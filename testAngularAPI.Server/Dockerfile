@@ -34,7 +34,8 @@ COPY --from=dotnet-builder /app/publish .
 # Copy Angular build output into wwwroot of .NET app
 COPY --from=angular-builder /app/dist/testangularapi.client/browser/ /app/wwwroot
 
-ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_URLS=http://+:${PORT:-80}
+
 EXPOSE 80
 
 ENTRYPOINT ["dotnet", "testAngularAPI.Server.dll"]
