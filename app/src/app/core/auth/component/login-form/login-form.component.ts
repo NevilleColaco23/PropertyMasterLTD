@@ -22,8 +22,9 @@ enum ExternalLoginState {
 }
 
 @Component({
-  selector: 'app-login-form',
-  templateUrl: './login-form.component.html'
+    selector: 'app-login-form',
+    templateUrl: './login-form.component.html',
+    standalone: false
 })
 export class LoginFormComponent implements OnInit, OnDestroy {
 

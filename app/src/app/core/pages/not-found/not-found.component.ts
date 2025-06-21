@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { faSadTear } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-  selector: 'app-not-found',
-  templateUrl: './not-found.component.html',
-  styleUrl: './not-found.component.scss'
+    selector: 'app-not-found',
+    templateUrl: './not-found.component.html',
+    styleUrl: './not-found.component.scss',
+    standalone: false
 })
 export class NotFoundComponent implements OnInit {
 

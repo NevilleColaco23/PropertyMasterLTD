@@ -11,9 +11,10 @@ import {  subDays, addWeeks, subWeeks, addMonths, subMonths, startOfWeek, endOfW
 }
 
 @Component({
-  selector: 'app-calender',
-  templateUrl: './calender.component.html',
-  styleUrls: ['./calender.component.scss']
+    selector: 'app-calender',
+    templateUrl: './calender.component.html',
+    styleUrls: ['./calender.component.scss'],
+    standalone: false
 })
 export class CalenderComponent implements OnInit {
     view: CalendarView = CalendarView.Month;

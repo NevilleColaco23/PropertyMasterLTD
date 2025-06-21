@@ -5,8 +5,9 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-  selector: 'app-navbar-login-info',
-  templateUrl: './navbar-login-info.component.html'
+    selector: 'app-navbar-login-info',
+    templateUrl: './navbar-login-info.component.html',
+    standalone: false
 })
 export class NavbarLoginInfoComponent implements OnInit, OnDestroy {
 

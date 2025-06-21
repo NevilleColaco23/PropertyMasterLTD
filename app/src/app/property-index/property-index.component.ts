@@ -4,9 +4,10 @@ import { Router } from '@angular/router';
 
 
 @Component({
-  selector: 'app-property-index',
-  templateUrl: './property-index.component.html',
-  styleUrl: './property-index.component.scss'
+    selector: 'app-property-index',
+    templateUrl: './property-index.component.html',
+    styleUrl: './property-index.component.scss',
+    standalone: false
 })
 export class PropertyIndexComponent {
   dropdownOptions : any[] = [];

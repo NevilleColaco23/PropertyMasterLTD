@@ -3,9 +3,10 @@ import { ActivatedRoute } from '@angular/router'
 import { CalendarEvent } from 'angular-calendar';
 
 @Component({
-  selector: 'app-property-homepage',
-  templateUrl: './property-homepage.component.html',
-  styleUrl: './property-homepage.component.scss'
+    selector: 'app-property-homepage',
+    templateUrl: './property-homepage.component.html',
+    styleUrl: './property-homepage.component.scss',
+    standalone: false
 })
 export class PropertyHomepageComponent {
 value: string;
