@@ -1,0 +1,28 @@
+<ul *ngIf="isLoggedIn" class="navbar-nav">
+    <li class="nav-item">
+      <a class="nav-link font-weight-bold" [routerLink]="" (click)="openModal(userInfo)"><fa-icon [icon]="faUser" class="mr-2"></fa-icon>{{username}}</a>
+    </li>
+  </ul>
+  
+  <ng-template #userInfo let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">User information</h4>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+        <span aria-hidden="true">&times;</span>
+      </button>
+  </div>
+  <div class="modal-body">
+    <div *ngIf="isLoggedIn">
+        <h5>You're logged in as <strong>{{username}}</strong>.</h5>
+        <p>
+          <span *ngIf="externalLogin">We've authenticated you through a {{externalLogin}} account connected to the <strong>{{email}}</strong> email address. Rest assured, no personal identification data is stored in our database. When you log out here, we won't remember anything.</span>
+          <span *ngIf="!externalLogin">You're using a local user account connected to the following email address: <strong>{{email}}</strong>.</span>
+        </p>
+        <p>Your login session is valid for <strong>{{validityDays}} more days</strong>.</p>
+        <p>Would you like to <a [routerLink]="['/']" (click)="signOut(); modal.dismiss('')">log out</a>?</p>
+    </div>
+    <div *ngIf="!isLoggedIn">
+        <p>You're not logged in.</p>
+    </div>
+  </div>
+  </ng-template>

@@ -1,0 +1,57 @@
+
+<div class="container h-100" style="display: flex; align-items: center; justify-content: center;">
+
+    <div *ngIf="isLoggedIn">
+      <div class="alert alert-light">
+        Hello, {{loggedInUsername}}! Good to have you back.
+      </div>
+    </div>
+  
+    <div *ngIf="!isLoggedIn" class="text-center align-middle" style="margin: 0 auto; max-width: 450px;">
+      <div class="my-4">
+        <img style="margin: 0 auto;" width="300px" height="auto" src="assets/logo-long-color.png" />
+      </div>
+  
+      <div class="card m-2" style="min-width: 350px;">
+        <div class="card-body">
+          <h5 class="card-title">Sign in</h5>
+          <p class="card-text">Sign in to chew bubblegum <br/> and test stuff.</p>
+  
+          <div class="text-left">
+            <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="px-2 pt-1 pb-3">
+  
+              <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" formControlName="username" id="username" placeholder="Username"
+                  [ngClass]="{ 'is-invalid': formSubmitAttempt && f['username'].errors }">
+                <div *ngIf="f['username'].errors" class="invalid-feedback">
+                  <div>Username is required</div>
+                </div>
+              </div>
+  
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" formControlName="password" id="password"
+                  placeholder="Password" [ngClass]="{ 'is-invalid': formSubmitAttempt && f['password'].errors }">
+                <div *ngIf="f['password'].errors" class="invalid-feedback">
+                  <div>A minimum 6 character password is required</div>
+                </div>
+              </div>
+              <button [disabled]="form.disabled" type="submit" class="btn btn-primary" (click)="onSubmit()">Sign in</button>
+              <span *ngIf="localLoginState == localLoginStates.Waiting" class="ml-3">Please wait... <fa-icon [icon]="faSpinner"
+                  spin="true"></fa-icon></span>
+              <span *ngIf="localLoginState == localLoginStates.ErrorWrongData" class="ml-3 text-danger">Incorrect credentials.</span>
+              <span *ngIf="localLoginState == localLoginStates.Success" class="ml-3 text-success">Success.</span>
+  
+            </form>
+          </div>
+          <div class="mx-4 pt-3" style="border-top:1px solid #dddddd">
+            <button [disabled]="form.disabled" type="submit" class="btn btn-light py-2 px-3 mb-2" (click)="onCreateGuestClick()"><img style="margin: 0 auto;" width="30px" height="auto"/>Create guest account</button>
+            <div *ngIf="externalLoginState == externalLoginStates.Waiting" class="font-italic">Working on it... <fa-icon [icon]="faSpinner"
+              spin="true"></fa-icon></div>
+            <div *ngIf="externalLoginState == externalLoginStates.Error">Uhh, it didn't work. 😓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

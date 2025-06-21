@@ -1,0 +1,120 @@
+.gantt-chart-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto; /* Hide the overflow to control scrollbar position */
+}
+
+.header {
+  display: flex;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ccc;
+}
+
+.room-header-sticky {
+  min-width: 180px; /* Ensure both header and names are the same width */
+  background-color: #e9e9e9;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  border-right: 1px solid #ccc;
+  text-align: left;
+  padding-left: 5px;
+  white-space: nowrap; /* Keep text from breaking */
+  overflow: hidden; /* Prevent overflow */
+  box-sizing: border-box; /* Include padding in width */
+}
+
+.room-names-sticky {
+  min-width: 180px; /* Ensure both header and names are the same width */
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0; /* Ensure it sticks to the top */
+  left: 0;
+  z-index: 2;
+  background-color: #f5f5f5;
+  border-right: 1px solid #ccc;
+  text-align: left;
+  padding-left: 5px;
+  white-space: nowrap; /* Keep text from breaking */
+  overflow: hidden; /* Prevent overflow */
+  box-sizing: border-box; /* Include padding in width */
+}
+
+.dates-header {
+  display: flex;
+  flex: 1;
+  background-color: #f5f5f5;
+}
+
+.cell {
+  flex: 1;
+  padding: 0;
+  text-align: center;
+  border-right: 1px solid #ccc;
+}
+
+.gantt-content {
+  display: flex;
+  margin-left: 180px; /* Offset the left margin */
+}
+
+.content-wrapper {
+  display: grid;
+  grid-template-columns: auto 1fr;
+}
+
+.room-name {
+  width: 100%;
+  padding: 5px;
+  text-align: left;
+  height: 40px;
+  line-height: 40px;
+  margin-bottom: 1px;
+  border: none;
+  box-sizing: border-box; /* Include padding in width */
+}
+
+.room-rows {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.room-row {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  border-bottom: 1px solid #ccc;
+}
+
+.booking-container {
+  position: relative;
+  flex: 1;
+  height: 100%;
+}
+
+.booking-period {
+  position: absolute;
+  height: 100%;
+  top: 0;
+  color: white;
+  text-align: center;
+  line-height: 40px;
+  border-radius: 4px;
+  margin-bottom: 1px;
+  border: none;
+}
+
+@media (max-width: 768px) {
+  .header {
+    min-width: auto;
+  }
+  .gantt-content {
+    display: block;
+  }
+  .room-name, .booking-period {
+    font-size: 0.8em;
+  }
+}
