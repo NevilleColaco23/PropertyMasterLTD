@@ -8,20 +8,20 @@
     <img width="40px" height="auto" src="../../../../assets/logo-short-white-transp.png" />
   </a>
 
-  <div *ngIf="isLoggedIn" class="collapse navbar-collapse" id="navbarNav" [ngbCollapse]="isCollapsed">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item">
-        <a class="nav-link" [routerLink]="['/products']" routerLinkActive="active">Products</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" [routerLink]="['/transactions']" routerLinkActive="active">Transactions</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" [routerLink]="['/partners']" routerLinkActive="active">Partners</a>
-      </li>
-    </ul>
-
-    <app-navbar-login-info></app-navbar-login-info>
-
-  </div>
+  @if (isLoggedIn) {
+    <div class="collapse navbar-collapse" id="navbarNav" [ngbCollapse]="isCollapsed">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/products']" routerLinkActive="active">Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/transactions']" routerLinkActive="active">Transactions</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/partners']" routerLinkActive="active">Partners</a>
+        </li>
+      </ul>
+      <app-navbar-login-info></app-navbar-login-info>
+    </div>
+  }
 </nav>
