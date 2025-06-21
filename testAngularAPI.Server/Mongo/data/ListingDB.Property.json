@@ -1,0 +1,19 @@
+[{
+  "_id": 100,
+  "Name": "New Hotel International",
+  "Rooms": [
+    {
+      "RoomName": "R1",
+      "RoomCode": "xxxco10",
+      "Id": "q",
+      "Active": true
+    },
+    {
+      "RoomName": "R2",
+      "RoomCode": "TOYO01",
+      "Id": "5Q",
+      "Active": true
+    }
+  ],
+  "Active": true
+}]
