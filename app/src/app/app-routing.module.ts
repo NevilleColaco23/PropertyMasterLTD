@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { LoginFormComponent } from './core/login-form/login-form.component';  // adjust path accordingly
+import { LoginFormComponent } from './core/auth/login-form/login-form.component';  // adjust path accordingly
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
