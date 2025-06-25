@@ -27,7 +27,7 @@ public class UserService : IUserService
     {
         try
         {
-            var user = await _userManager.FindByNameAsync(username);
+            var user = await _userManager.FindByEmailAsync(username);
 
             if (user == null)
             {
