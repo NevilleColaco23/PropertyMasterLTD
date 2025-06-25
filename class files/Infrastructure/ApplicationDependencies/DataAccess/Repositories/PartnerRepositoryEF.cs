@@ -1,0 +1,26 @@
+﻿using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories;
+using MyWarehouse.Domain.Partners;
+using MyWarehouse.Infrastructure.ApplicationDependencies.DataAccess.Repositories.Common;
+using MyWarehouse.Infrastructure.Persistence.Context;
+
+namespace MyWarehouse.Infrastructure.ApplicationDependencies.DataAccess.Repositories;
+
+internal class PartnerRepositoryEf : RepositoryBaseEf<Partner, int>, IPartnerRepository
+{
+    protected override IQueryable<Partner> BaseQuery
+        => _context.Partners;
+
+    public PartnerRepositoryEf(ApplicationDbContext context, IMapper mapper) : base(context, mapper)
+    { }
+
+    public override void Remove(Partner entityToDelete)
+    {
+        _context.Remove(entityToDelete);
+    }
+
+    public override void RemoveRange(IEnumerable<Partner> entitiesToDelete)
+    {
+        foreach (var e in entitiesToDelete)
+            Remove(e);
+    }
+}
