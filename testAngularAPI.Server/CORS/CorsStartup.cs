@@ -24,7 +24,9 @@ internal static class CorsStartup
                 .AllowCredentials()
                 .SetIsOriginAllowedToAllowWildcardSubdomains()
                 .WithOrigins(
-                    corsSettings.AllowedOrigins)
+                     "http://localhost:4200", // Note: http not https
+                    "https://localhost:4200",
+                    "https://testangularapidocker-production.up.railway.app")
                 .Build();
             });
         });

@@ -7,8 +7,7 @@ const apiVersion = 'v1';
 
 export const environment = {
   production: false,
-  baseHost: `https://${new URL(window.location.origin).hostname}:${apiPort}/${apiVersion}`,
-  apiHost: `https://${new URL(window.location.origin).hostname}:${apiPort}/${apiVersion}`,
+  apiHost: `https://localhost:${apiPort}/${apiVersion}`,
 };
 
 /*
