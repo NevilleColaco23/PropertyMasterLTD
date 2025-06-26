@@ -7,4 +7,7 @@
     <!-- Folder where production build objects will be placed -->
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist\testangularapi.client\browser\</BuildOutputFolder>
   </PropertyGroup>
+  <Target Name="EnsureNodeModulesInstalled" BeforeTargets="Build">
+  <Exec Command="echo Skipping npm install" />
+</Target>
 </Project>

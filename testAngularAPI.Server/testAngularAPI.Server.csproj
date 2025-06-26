@@ -27,11 +27,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\app\app.esproj">
+    <ProjectReference Include="..\app\testangularapi.client.esproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\class files\Application\Application.csproj" />
-    <ProjectReference Include="..\class files\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\classfiles\Application\Application.csproj" />
+    <ProjectReference Include="..\classfiles\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

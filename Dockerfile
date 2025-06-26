@@ -3,7 +3,6 @@ FROM node:18 AS angular-builder
 
 WORKDIR /app
 
-# Copy Angular project files
 COPY app/package*.json ./
 RUN npm install --legacy-peer-deps
 
@@ -16,26 +15,34 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS dotnet-builder
 
 WORKDIR /src
 
-# Copy API source and solution file
-COPY testAngularAPI.Server/ ./testAngularAPI.Server/
 COPY testAngularAPI.sln ./
+COPY testAngularAPI.Server/ ./testAngularAPI.Server/
+
+
+# Copy all referenced projects
+COPY classfiles/Domain/ ./classfiles/Domain/
+COPY classfiles/MongoDBBackend/ ./classfiles/MongoDBBackend/
+COPY classfiles/SampleData/ ./classfiles/SampleData/
+COPY classfiles/Application/ ./classfiles/Application/
+COPY classfiles/Infrastructure/ ./classfiles/Infrastructure/
+
 
 RUN dotnet restore testAngularAPI.Server/testAngularAPI.Server.csproj
 RUN dotnet publish testAngularAPI.Server/testAngularAPI.Server.csproj -c Release -o /app/publish
 
-# --- Stage 3: Final image to run app ---
+
+# --- Stage 3: Final runtime image ---
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 
 WORKDIR /app
 
-# Copy .NET publish output
-COPY --from=dotnet-builder /app/publish .
+# Copy backend publish output
+COPY --from=dotnet-builder /app/publish ./
 
-# Copy Angular build output into wwwroot of .NET app
-COPY --from=angular-builder /app/dist/testangularapi.client/browser/ /app/wwwroot
+# Copy Angular build output
+COPY --from=angular-builder /app/dist/testangularapi.client/browser/ ./wwwroot/
 
-ENV ASPNETCORE_URLS=http://+:${PORT:-80}
-
+ENV ASPNETCORE_URLS=http://+:80
 EXPOSE 80
 
 ENTRYPOINT ["dotnet", "testAngularAPI.Server.dll"]
