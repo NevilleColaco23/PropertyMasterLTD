@@ -34,6 +34,7 @@ export class LoginFormComponent  {
   }
 
   onSubmit() {
+    console.log('Login form submitted');
     if (this.loginForm.valid) {
       const loginData = this.loginForm.value;
       
