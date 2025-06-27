@@ -1,5 +1,5 @@
 
 export const environment = {
   production: true,
-  apiUrl: 'https://your-api-service.up.railway.app/v1'
+  apiUrl: 'https://testangularapidocker-production.up.railway.app/v1'
 };
