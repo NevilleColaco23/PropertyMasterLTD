@@ -1,5 +1,5 @@
 
 export const environment = {
   production: true,
-  apiHost: '/v1',
+  apiUrl: 'https://your-api-service.up.railway.app/v1'
 };
