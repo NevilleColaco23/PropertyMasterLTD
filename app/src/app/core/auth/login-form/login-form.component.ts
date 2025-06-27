@@ -34,7 +34,6 @@ export class LoginFormComponent  {
   }
 
   onSubmit() {
-    alert('Login submitted!'); // visible UI feedback for test
     if (this.loginForm.valid) {
       const loginData = this.loginForm.value;
       
