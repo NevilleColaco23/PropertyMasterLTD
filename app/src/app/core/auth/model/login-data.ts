@@ -18,7 +18,7 @@ export interface AuthenticationSuccessData {
 })
 export class GetAllPropertiesService {
   public event: any;
-  private pathAPI: string = environment.apiHost;
+  private pathAPI: string = environment.apiUrl;
 
   constructor(private http: HttpClient, private errorHandling: ErrorHandlingCommonServiceService) {
   }

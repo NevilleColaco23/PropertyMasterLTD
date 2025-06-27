@@ -7,7 +7,7 @@ const apiVersion = 'v1';
 
 export const environment = {
   production: true,
-  apiHost: '/v1',
+  apiUrl: '/v1',
 };
 
 /*

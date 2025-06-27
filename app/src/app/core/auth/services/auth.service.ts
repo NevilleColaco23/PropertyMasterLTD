@@ -30,8 +30,8 @@ export class AuthService {
       username: username,
       password: password
     };
-console.log('Using API host:', environment.apiHost);
-    return this._http.post<AuthenticationSuccessData>(`${environment.apiHost}/account/login`, loginData, { observe: 'response' })
+console.log('Using API host:', environment.apiUrl);
+    return this._http.post<AuthenticationSuccessData>(`${environment.apiUrl}/account/login`, loginData, { observe: 'response' })
       .pipe(
         tap(res => {
           if (res.body) {
@@ -50,7 +50,7 @@ public signUp(username : string,email :string,password:string){
   };
 
  
-  return this._http.post<AuthenticationSuccessData>(`${environment.apiHost}/account/SignUp`, signUpmodel, { observe: 'response' })
+  return this._http.post<AuthenticationSuccessData>(`${environment.apiUrl}/account/SignUp`, signUpmodel, { observe: 'response' })
       .pipe(
         tap(res => {
           
