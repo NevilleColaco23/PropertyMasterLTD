@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable, map, catchError } from "rxjs";
-import { AppConfig } from "../../../Appconfig";
+import { environment } from '../../../../environments/environment';
 import { ErrorHandlingCommonServiceService } from '../../../Common/Services/error-handling-common-service.service';
 
 export interface AuthenticationSuccessData {
@@ -17,13 +17,10 @@ export interface AuthenticationSuccessData {
   providedIn: 'root'
 })
 export class GetAllPropertiesService {
-  public baseUrLocal: string;
   public event: any;
-  private pathAPI: string;
+  private pathAPI: string = environment.apiHost;
 
-  constructor(private http: HttpClient, private config: AppConfig, private errorHandling: ErrorHandlingCommonServiceService) {
-    this.pathAPI = this.config.setting['PathAPI'];
-    this.baseUrLocal = this.pathAPI;
+  constructor(private http: HttpClient, private errorHandling: ErrorHandlingCommonServiceService) {
   }
 
   getDropdownOptions(): Observable<any[]> {
