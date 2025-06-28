@@ -11,3 +11,17 @@
 button {
   margin-top: 15px;
 }
+.register-section {
+  display: flex; /* Make the container a flex container */
+  justify-content: center; /* Center items along the main axis (horizontally by default) */
+  align-items: center; /* (Optional) Center items along the cross axis (vertically if it were a column) */
+  margin-top: 20px;
+  flex-direction: column; /* Added this to stack the button and any other content vertically if needed */
+  gap: 10px; /* Adds space between flex items (e.g., if you add a <p> tag) */
+}
+
+/* You might also want to center the heading within the card actions if it's there */
+.register-heading {
+  text-align: center;
+  width: 100%; /* Ensure it takes full width to center its text */
+}

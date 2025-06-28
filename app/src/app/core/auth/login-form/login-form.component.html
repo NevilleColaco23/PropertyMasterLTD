@@ -1,7 +1,7 @@
 <mat-card class="login-card">
   <h2>Login</h2>
   <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-
+  <mat-card-content>
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Email</mat-label>
       <input matInput type="email" formControlName="email" required autocomplete="email" />
@@ -24,10 +24,9 @@
     <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">
       Login
     </button>
-<span *ngIf="localLoginState == localLoginStates.Waiting" class="ml-3">Please wait... <fa-icon [icon]="faSpinner"
-                  [spin]="true"></fa-icon></span>
-              <span *ngIf="localLoginState == localLoginStates.ErrorWrongData" class="ml-3 text-danger">Incorrect credentials.</span>
-              <span *ngIf="localLoginState == localLoginStates.Success" class="ml-3 text-success">Success.</span>
-  
+  </mat-card-content>
   </form>
+  <mat-divider></mat-divider> <mat-card-actions class="register-section">
+      <button mat-button color="accent">Create Your Account</button>
+      </mat-card-actions>
 </mat-card>
