@@ -16,6 +16,7 @@ export class AuthService {
 
   constructor(private _http: HttpClient) {
     this.signInState = this._signInState.asObservable();
+    console.log('PRODUCTION:', environment.production);
 
     const userData = this.getStoredUserData();
 
