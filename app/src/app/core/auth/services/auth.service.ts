@@ -30,7 +30,7 @@ export class AuthService {
       username: username,
       password: password
     };
-console.log('Using API host:', environment.apiUrl);
+    
     return this._http.post<AuthenticationSuccessData>(`${environment.apiUrl}/account/login`, loginData, { observe: 'response' })
       .pipe(
         tap(res => {

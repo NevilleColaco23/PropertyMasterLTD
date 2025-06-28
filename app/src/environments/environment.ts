@@ -7,7 +7,7 @@ const apiVersion = 'v1';
 
 export const environment = {
   production: true,
-  apiUrl: '/v1',
+  apiUrl: `https://localhost:${apiPort}/${apiVersion}`
 };
 
 /*

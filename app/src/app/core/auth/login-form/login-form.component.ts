@@ -3,6 +3,8 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../services/auth.service';
 import { Subscription, timer } from 'rxjs';
+import { Router } from '@angular/router';
+
 
 enum LocalLoginState {
   None,
@@ -27,7 +29,7 @@ export class LoginFormComponent  {
   localLoginState = LocalLoginState.None;
   get localLoginStates() { return LocalLoginState; }
 
-  constructor(private as: AuthService, private fb: FormBuilder) {
+  constructor(private as: AuthService, private fb: FormBuilder,private router: Router) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],password: ['', Validators.required]
     });
@@ -45,6 +47,12 @@ export class LoginFormComponent  {
      this.as.authenticate(email, password).subscribe(
       _ => {
         this.localLoginState = LocalLoginState.Success;
+
+         console.log('Login successful. Navigating to dashboard...');
+    this.router.navigate(['/dashboard']).then(navigated => {
+      console.log('Navigation status:', navigated);
+    });
+
         timer(5000).subscribe(() => this.localLoginState = LocalLoginState.None); // In case user logs out without navigating elsewhere; the 'success' would still be visible.
         this.loginForm.enable();
       },
