@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using MyWarehouse.Application.Users.CreateUser;
 using MyWarehouse.Infrastructure.Authentication.Core.Model;
 using MyWarehouse.Infrastructure.Models;
@@ -14,13 +15,15 @@ public class UserService : IUserService
     private readonly SignInManager<ApplicationUserIdentity> _signInManager;
     private readonly ITokenService _tokenService;
     private readonly IMediator _mediator;
+    private readonly ILogger<UserService> _logger;
 
-    public UserService(UserManager<ApplicationUserIdentity> userManager, SignInManager<ApplicationUserIdentity> signInManager, ITokenService tokenService, IMediator mediator)
+    public UserService(UserManager<ApplicationUserIdentity> userManager, SignInManager<ApplicationUserIdentity> signInManager, ITokenService tokenService, IMediator mediator, ILogger<UserService> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _mediator = mediator;
+        _logger = logger;
     }
 
     public async Task<(MySignInResult result, SignInData? data)> SignIn(string username, string password)
@@ -61,8 +64,8 @@ public class UserService : IUserService
         }
         catch (Exception ex)
         {
-            // Log the exception (not shown here for brevity)
-            throw new System.Exception("An error occurred while signing in.", ex);
+            _logger.LogError(ex, "An error occurred during the sign-in process for username: {Username}.", username);
+            throw new Exception("An error occurred while signing in.", ex);
         }
     }
 
