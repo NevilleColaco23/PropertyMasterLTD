@@ -20,7 +20,7 @@ namespace MyWarehouse.Domain.Users
         public string PasswordHash { get; set; }
         public string SecurityStamp { get; set; }
         public string ConcurrencyStamp { get; set; }
-        public int? PhoneNumber { get; set; }
+        public string PhoneNumber { get; set; }
         public bool PhoneNumberConfirmed { get; set; }
         public bool TwoFactorEnabled { get; set; }
         public string LockoutEnd { get; set; }
@@ -35,11 +35,12 @@ namespace MyWarehouse.Domain.Users
             
         }
 
-        public Users(string username, string email, string password)
+        public Users(string username, string email, string password, string phoneNumber)
         {
             UpdateName(username);
             UpdateEmail(email);
             UpdatePassword(password);
+            UpdatePhone(phoneNumber);
         }
 
         [MemberNotNull(nameof(UserName))]
@@ -48,7 +49,7 @@ namespace MyWarehouse.Domain.Users
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("User Name cannot be empty.");
 
-            UserName = value;
+            PhoneNumber = value;
         }
 
         [MemberNotNull(nameof(Email))]
@@ -73,6 +74,15 @@ namespace MyWarehouse.Domain.Users
                 throw new ArgumentException($"Length of value ({value.Length}) exceeds maximum name length ({ProductInvariants.NameMaxLength}).");
 
             PasswordHash = value;
+        }
+
+        [MemberNotNull(nameof(PhoneNumber))]
+        public void UpdatePhone(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ArgumentException("Phone Number cannot be empty.");
+
+            UserName = value;
         }
     }
     public class PropertyAccessList

@@ -69,9 +69,9 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<(SignUpResult result, SignUpResultData? data)> SignUp(string username, string email, string password)
+    public async Task<(SignUpResult result, SignUpResultData? data)> SignUp(string username, string email, string password, string phoneNumber)
     {
-        var emailFound = await _userManager.FindByEmailAsync(username);
+        var emailFound = await _userManager.FindByEmailAsync(email);
 
         if (emailFound is not null)
         {
@@ -91,10 +91,11 @@ public class UserService : IUserService
         {
             UserName = username,
             Email = email,
-            Password = pass
+            Password = pass,
+            PhoneNumber = phoneNumber
         };
 
-        //var userId = await _mediator.Send(createUserCommand);
+        var userId = await _mediator.Send(createUserCommand);
 
         UserActivationMailTemplateModel model = new();
         model.Message = "Test Email Body";
@@ -102,8 +103,10 @@ public class UserService : IUserService
         var mailService = ResourceLocator.Get<IMailService>();
         mailService.SendMail(   model, "BidInviteTemplate", "nevillecolaco94@gmail.com", null, null, //pass model here
                                     "Test", null, null);
-        int userId = 0;
+        //int userId = 0;
 
+        //if (!string.IsNullOrEmpty(userId))
+        //    return (SignUpResult.Failed, null);
         if (userId == 0)
             return (SignUpResult.Failed, null);
 
@@ -111,7 +114,7 @@ public class UserService : IUserService
             SignUpResult.Success,
             data: new SignUpResultData()
             {
-                UserId = userId,
+                UserId = Convert.ToInt32(userId),
                 Email = email,
             }
         );

@@ -103,7 +103,7 @@ public class AccountController : ControllerBase
             Email = signUpDto.Email
         };
 
-        var result = await _userService.SignUp(signUpDto.Username, signUpDto.Email,signUpDto.Password); //check if internal identity function can be used
+        var result = await _userService.SignUp(signUpDto.Username, signUpDto.Email,signUpDto.Password, signUpDto.PhoneNumber); //check if internal identity function can be used
         
         
         return result.result switch

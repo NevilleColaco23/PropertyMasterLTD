@@ -9,6 +9,7 @@ namespace MyWarehouse.Application.Users.CreateUser
         public string UserName { get; init; }
         public string Email { get; init; }
         public string Password { get; init; }
+        public string PhoneNumber { get; init; }
     }
 
     public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, int>
@@ -23,7 +24,8 @@ namespace MyWarehouse.Application.Users.CreateUser
             var newUser = new Domain.Users.Users(
              username: request.UserName.Trim(),
              email: request.Email.Trim(),
-             password: request.Password
+             password: request.Password,
+             phoneNumber: request.PhoneNumber
              );
 
             _unitOfWork.Users.Add(newUser);

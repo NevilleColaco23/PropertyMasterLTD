@@ -5,5 +5,5 @@ namespace MyWarehouse.Infrastructure.Authentication.Core.Services;
 public interface IUserService
 {
     Task<(MySignInResult result, SignInData? data)> SignIn(string username, string password);
-    Task<(SignUpResult result, SignUpResultData? data)> SignUp(string username, string email, string password);
+    Task<(SignUpResult result, SignUpResultData? data)> SignUp(string username, string email, string password, string phoneNumber);
 }

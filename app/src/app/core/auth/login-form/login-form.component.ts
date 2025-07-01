@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../services/auth.service';
-import { Subscription, timer } from 'rxjs';
+import { timer } from 'rxjs';
 import { Router } from '@angular/router';
 
 
@@ -48,10 +48,7 @@ export class LoginFormComponent  {
       _ => {
         this.localLoginState = LocalLoginState.Success;
 
-         console.log('Login successful. Navigating to dashboard...');
-    this.router.navigate(['/dashboard']).then(navigated => {
-      console.log('Navigation status:', navigated);
-    });
+    this.router.navigate(['/dashboard']).then(navigated => {});
 
         timer(5000).subscribe(() => this.localLoginState = LocalLoginState.None); // In case user logs out without navigating elsewhere; the 'success' would still be visible.
         this.loginForm.enable();
@@ -65,5 +62,9 @@ export class LoginFormComponent  {
           this.localLoginState = LocalLoginState.ErrorOther;
       });
     }
+  }
+
+  goToCreateUser() {
+    this.router.navigate(['/create-user']);
   }
 }

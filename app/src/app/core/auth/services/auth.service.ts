@@ -42,15 +42,15 @@ export class AuthService {
         shareReplay()
       );
   }
-
-public signUp(username : string,email :string,password:string){
+  
+public signUp(username : string,email :string,password:string,phone:string){
   const signUpmodel = {
     username: username,
     password: password,
-    email:email
+    email:email,
+    phonenumber: phone
   };
-
- 
+  
   return this._http.post<AuthenticationSuccessData>(`${environment.apiUrl}/account/SignUp`, signUpmodel, { observe: 'response' })
       .pipe(
         tap(res => {

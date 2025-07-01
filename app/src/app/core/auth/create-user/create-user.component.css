@@ -1,0 +1,10 @@
+.user-form-card {
+  max-width: 400px;
+  margin: 30px auto;
+  padding: 20px;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
