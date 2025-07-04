@@ -48,7 +48,7 @@ export class LoginFormComponent  {
       _ => {
         this.localLoginState = LocalLoginState.Success;
 
-    this.router.navigate(['/dashboard']).then(navigated => {});
+    this.router.navigate(['/propertyLanding']).then(navigated => {});
 
         timer(5000).subscribe(() => this.localLoginState = LocalLoginState.None); // In case user logs out without navigating elsewhere; the 'success' would still be visible.
         this.loginForm.enable();

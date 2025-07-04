@@ -1,0 +1,8 @@
+<mat-form-field appearance="fill">
+  <mat-label>Select a country</mat-label>
+  <mat-select [(ngModel)]="selectedCountry">
+    <mat-option *ngFor="let option of dropdownOptions" [value]="option.id">
+      {{ option.name }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>

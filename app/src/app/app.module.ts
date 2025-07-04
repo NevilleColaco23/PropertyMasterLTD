@@ -1,7 +1,6 @@
 import { AppRoutingModule } from './app-routing.module';
 import { LoginFormComponent } from './core/auth/login-form/login-form.component';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { NgModule } from '@angular/core';
+import { NgModule,APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -14,6 +13,14 @@ import { MatFormFieldModule} from '@angular/material/form-field';
 import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { AppConfig } from './Appconfig';
+import { DatePipe } from '@angular/common';
+import { provideHttpClient } from '@angular/common/http';
+import { LoggingService } from './core/auth/services/logging.service';
+
+export function initializeApp(_loggingService: LoggingService) {
+  return (): void => {// This will ensure the logging service is instantiated
+  };}
 
 @NgModule({
   declarations: [
@@ -35,8 +42,12 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
     HttpClientModule,
     FontAwesomeModule,
   ],
-  providers: [
-    provideAnimationsAsync()
+  providers: [provideHttpClient(),DatePipe,{provide :AppConfig},
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      multi: true
+    }
   ],
   bootstrap: [AppComponent]
 })

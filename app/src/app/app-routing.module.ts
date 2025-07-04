@@ -8,7 +8,8 @@ const routes: Routes = [
   { path: 'dashboard', loadChildren: () => import('./core/dashboards/dashboard-default/dashboard-default.module')
     .then(m => m.DashboardDefaultModule) },
     { path: 'create-user',loadChildren: () => import('./core/auth/create-user/create-user.module').then(m => m.CreateUserModule)
-  }
+  },
+  { path: 'propertyLanding', loadChildren: () => import('./property/property-landing/property-landing.module').then(m => m.PropertyLandingModule) }
 ];
 
 
