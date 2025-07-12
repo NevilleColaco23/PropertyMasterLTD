@@ -2,11 +2,10 @@
 using MyWarehouse.Application.Common.Dependencies.DataAccess;
 using MyWarehouse.Application.Property.PropertyQueries;
 using System.Data;
-using MyWarehouse.Application.Users.GetUsersByUserid;
 
 namespace MyWarehouse.Application.Property.GetProperty
 {
-    public class GetPropertyListQuery : ListQueryModel<GetPropertyDto>
+    public class GetPropertyListQuery : ListQueryModel<GetPropertyDto>, IRequest<IListResponseModel<GetPropertyDto>>
     {
     }
 
@@ -20,16 +19,8 @@ namespace MyWarehouse.Application.Property.GetProperty
         public async Task<IListResponseModel<GetPropertyDto>> Handle(GetPropertyListQuery request,
             CancellationToken cancellationToken)
         {
-            DataTable templateTable = new();
-
-            //var testDatabase = _unitOfWork.Properties? //This is working
-            //    .GetDataTablePaged(MongoCollections.PropertyCollection, new GetPropertyQuery(100,string.Empty), null,
-            //        0, request.PageSize, out var totalCount, "_id", false);
-
             var propertyListTest = _unitOfWork.Properties?.GetListBy<GetPropertyDto>(MongoCollections.PropertyCollection
-                      , new GetPropertyQueryByUserId(1, string.Empty)); //TODO : hardcoded user id
-
-            //return await _unitOfWork.Properties?.GetProjectedListAsync(request, readOnly: true)!; to get all properties
+                      , new GetPropertyQueryByUserIdUsingMongoQueryString(100, string.Empty)); //TODO : hardcoded user id
 
             var response = new ListResponseModel<GetPropertyDto>
             {

@@ -1,16 +1,17 @@
+using MyWarehouse.Infrastructure.Logging;
+using MyWarehouse.Infrastructure.ErrorHandling;
+using MyWarehouse.Infrastructure.CORS;
+using MyWarehouse.Infrastructure;
 using MyWarehouse.Application;
 using MyWarehouse.Infrastructure.Authentication;
+using MyWarehouse.Infrastructure.Swagger;
+using MyWarehouse.Infrastructure.Versioning;
 using MongoDB.Driver;
 using MongoDB.Bson.Serialization.Conventions;
-using testAngularAPI.Server;
-using testAngularAPI.Server.ErrorHandling;
-using testAngularAPI.Server.Swagger;
-using testAngularAPI.Server.Versioning;
-using testAngularAPI.Server.CORS;
-using testAngularAPI.Server.Logging;
-using testAngularAPI.Server.SignalR;
-using MyWarehouse.Application.Property.GetProperty;
-using MyWarehouse.Application.Common.Behaviors;
+using MyWarehouse.Infrastructure.SignalR;
+using MyWarehouse.Infrastructure.Services;
+using System.Net.Mail;
+using System.Net;
 
 namespace MyWarehouse.Infrastructure;
 
@@ -41,23 +42,7 @@ public class Startup
             WebRootFileProvider = Environment.WebRootFileProvider
         });
 
-     //   services.AddSingleton<IMailService, MailServiceImpl>();
-
-
-     //   services
-     //.AddFluentEmail("propertymaster193@yahoo.com", "property master")
-     //.AddRazorRenderer()
-     //.AddSmtpSender(new SmtpClient("smtp.mail.yahoo.com")
-     //{
-     //    UseDefaultCredentials = false,
-     //    Credentials = new NetworkCredential("propertymaster193@yahoo.com", "thisismypropertyman"),
-     //    EnableSsl = true,
-     //    Port = 587
-     //});
-
-
         //services.AddFluentEmail("youremail@example.com", "Your Name").AddRazorRenderer().AddSmtpSender(new SmtpClient("smtp.example.com") { UseDefaultCredentials = false, Credentials = new NetworkCredential("yourusername", "yourpassword"), EnableSsl = true, Port = 587 });
-        //services.ConfigureServicesMailingService();
         var serviceProvider = services.BuildServiceProvider();
         // Build the service provider
         MyWarehouse.Infrastructure.ResourceLocator.RegisterServiceProvider(serviceProvider);
@@ -89,20 +74,13 @@ public class Startup
         services.AddMyInfrastructureDependencies(Configuration, Environment);
         services.AddMyApplicationDependencies();
         services.AddSignalR();
-
-        // Register MediatR handlers from external Application project
-        services.AddMediatR(typeof(GetPropertyListQueryHandler).Assembly);
-
-        // Register pipeline behaviors
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionLoggingBehavior<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
-
     }
 
     public void Configure(IApplicationBuilder app)
     {
         app.UseDefaultFiles(); // this enables serving index.html by default
-        app.UseStaticFiles();// Enable serving static files from wwwroot
+        // Enable serving static files from wwwroot
+        app.UseStaticFiles();
         app.UseMyRequestLogging();
         app.UseHttpsRedirection();
         app.UseRouting();

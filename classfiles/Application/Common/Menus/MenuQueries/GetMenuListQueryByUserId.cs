@@ -1,4 +1,5 @@
-﻿using MyWarehouse.Application.Common.Dependencies.DataAccess;
+﻿using MongoDB.Bson;
+using MyWarehouse.Application.Common.Dependencies.DataAccess;
 using System.Data;
 
 namespace MyWarehouse.Application.Common.Menus.MenuQueries
@@ -18,5 +19,7 @@ namespace MyWarehouse.Application.Common.Menus.MenuQueries
         public CommandType CommandType => CommandType.Text;
 
         public IReadOnlyList<NamedQueryParameter> Parameters => null;
+
+        public BsonArray? BsonPipeline => null;
     }
 }

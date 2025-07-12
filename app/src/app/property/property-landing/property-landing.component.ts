@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { GetAllPropertiesServiceService } from '../services/get-all-properties-service.service';
+import { GetAllPropertiesServiceService, PropertyModel } from '../services/get-all-properties-service.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -7,6 +7,8 @@ import { Router } from '@angular/router';
   templateUrl: './property-landing.component.html',
   styleUrls: ['./property-landing.component.css']
 })
+
+
 export class PropertyLandingComponent {
 dropdownOptions : any[] = [];
 selectedOption: string | undefined;
@@ -28,15 +30,15 @@ selectedCountry: string = '';
 
  fetchDropdownOptions(): void {
   console.log('Fetching dropdown options...');
-    this.dropdownService.getDropdownOptions().subscribe(
-      (options: string[]) => {
-        console.log('Dropdown options fetched:', options);
-        this.dropdownOptions = options;
-      },
-      (error: any) => {
-        console.error('Error fetching dropdown options', error);
-      }
-    );
-  }
-
+  
+  this.dropdownService.getDropdownOptions().subscribe(
+    (options: PropertyModel[]) => {
+      console.log('Dropdown options fetched:', options);
+      this.dropdownOptions = options;
+    },
+    (error: any) => {
+      console.error('Error fetching dropdown options', error);
+    }
+  );
+}
 }

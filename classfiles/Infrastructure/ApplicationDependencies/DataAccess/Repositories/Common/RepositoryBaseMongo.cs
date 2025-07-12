@@ -131,13 +131,26 @@ public abstract class RepositoryBaseMongo<TDocument, TId> : IRepository<TDocumen
 
     public IList<T> GetListBy<T>(string tableName, INamedQuery filterQuery = null)
     {
-        var stages = BsonSerializer.Deserialize<BsonArray>(filterQuery?.QueryStr ?? "[ {\"$match\": { }} ]").Select(p => p.AsBsonDocument).ToList();    // Add Empty Filter if no Query String is given
+        List<BsonDocument> stages;
+
+        if (filterQuery?.BsonPipeline != null)
+        {
+            stages = filterQuery.BsonPipeline.Select(p => p.AsBsonDocument).ToList();
+        }
+        else
+        {
+            var json = filterQuery?.QueryStr ?? "[ { \"$match\": { } } ]";
+            var bsonArray = BsonSerializer.Deserialize<BsonArray>(json);
+            stages = bsonArray.Select(p => p.AsBsonDocument).ToList();
+        }
+
+        var pipeline = PipelineDefinition<BsonDocument, T>.Create(stages);
 
         var data = BsonCollection
-            .Aggregate(PipelineDefinition<BsonDocument, T>.Create(stages), new AggregateOptions { AllowDiskUse = true })
+            .Aggregate(pipeline, new AggregateOptions { AllowDiskUse = true })
             .ToList();
 
-        return data.ToList();
+        return data;
     }
 
     public DataTable GetDataTablePaged(string tableName, INamedQuery filterQuery, DataTable template, int start, int numRecords,
@@ -204,4 +217,5 @@ public abstract class RepositoryBaseMongo<TDocument, TId> : IRepository<TDocumen
     }
 
     #endregion
+
 }

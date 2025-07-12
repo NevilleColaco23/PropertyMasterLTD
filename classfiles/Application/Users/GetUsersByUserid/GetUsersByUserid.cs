@@ -23,7 +23,7 @@ namespace MyWarehouse.Application.Users.GetUsers
             DataTable templateTable = new();
 
             var propertyList = _unitOfWork.Users?.GetListBy<GetUsersbyUserIdDto>(MongoCollections.UsersCollection
-                      , new GetPropertyQueryByUserId(1, string.Empty));
+                      , new GetPropertyQueryByUserIdUsingMongoQueryString(1, string.Empty));
 
             var response = new ListResponseModel<GetUsersbyUserIdDto>
             {

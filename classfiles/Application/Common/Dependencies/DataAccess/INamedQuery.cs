@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using MongoDB.Bson;
+using System.Data;
 
 namespace MyWarehouse.Application.Common.Dependencies.DataAccess;
 
@@ -18,6 +19,8 @@ public interface INamedQuery
     /// The Sql query's parameter Name & value list
     /// </summary>
     IReadOnlyList<NamedQueryParameter> Parameters { get; }
+
+    BsonArray? BsonPipeline { get; }
 }
 
 public class NamedQueryParameter

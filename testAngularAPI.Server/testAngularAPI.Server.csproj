@@ -27,10 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\app\testangularapi.client.esproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\classfiles\Application\Application.csproj" />
     <ProjectReference Include="..\classfiles\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 

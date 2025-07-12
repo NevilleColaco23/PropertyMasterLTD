@@ -1,7 +1,6 @@
 using MyWarehouse.Infrastructure;
 using MyWarehouse.Infrastructure.Logging;
 using System.Reflection;
-using testAngularAPI.Server.Logging;
 
 namespace MyWarehouse.Infrastructure;
 
