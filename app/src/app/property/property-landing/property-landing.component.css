@@ -125,9 +125,12 @@ body {
   position: absolute;
   top: 100%;
   left: 0;
-  max-width: 980px; /* Set a maximum width */
-  width: 100%; /* Allow panel width to fill available space, then constrained by max-width */
-  /* min-width: 700px; */ /* Consider removing this if it causes issues on smaller screens */
+  /* Adjust max-width. A larger value or 'unset' to let content define width. */
+  /* Using a larger fixed width for desktop based on the image provided,
+     or `fit-content` if you want it to wrap tightly around the content. */
+  max-width: 1200px; /* Increased from 980px to give more room */
+  width: auto; /* Let the content determine the width */
+  min-width: 800px; /* A minimum width to ensure it's not too narrow */
   background-color: #fff;
   border: 1px solid #eee;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -151,7 +154,7 @@ body {
   display: flex;
   gap: 30px;
   justify-content: flex-start;
-  width: 100%; /* Ensure content takes full width of the panel */
+  /* width: 100%; */ /* Remove this if it's constraining the flex items */
 }
 
 .mega-menu-column {
@@ -197,8 +200,10 @@ body {
   display: flex;
   flex-direction: column; /* Stack promo cards vertically */
   gap: 15px;
-  flex: 0 0 250px;
+  flex: 0 0 250px; /* Fixed width for the promo section */
   margin-left: 30px;
+  /* Ensure these cards don't shrink too much */
+  min-width: 200px; /* Added to prevent excessive shrinking */
 }
 
 .promo-card {
@@ -308,6 +313,8 @@ body {
   font-size: 15px;
   color: #333;
   transition: background-color 0.2s ease;
+  display: flex; /* Make it a flex container to align icon and text */
+  align-items: center; /* Vertically align items */
 }
 
 /* Ensure border only between items, not on the edges of the list */
@@ -319,6 +326,30 @@ body {
 .suggestions-list div:hover,
 .suggestions-list div.active { /* 'active' for keyboard navigation */
   background-color: #f0f0f0;
+}
+
+/* --- Styles for Small Icons within Suggestions --- */
+.suggestions-list .search-icon-small,
+.suggestions-list .gallery-icon-small {
+  font-size: 16px; /* Adjust size as needed */
+  margin-right: 10px; /* Space between icon and text */
+  color: #888; /* Match search bar icon color */
+  flex-shrink: 0; /* Prevent icon from shrinking */
+}
+
+.suggestions-list .close-icon-small {
+  font-size: 16px;
+  margin-left: auto; /* Pushes the close icon to the far right */
+  color: #888;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 5px; /* Add some padding for easier clicking */
+  border-radius: 50%; /* Make it circular */
+  transition: background-color 0.2s ease;
+}
+
+.suggestions-list .close-icon-small:hover {
+    background-color: #e0e0e0; /* Light background on hover */
 }
 
 
@@ -394,13 +425,18 @@ body {
     margin-top: 10px;
     margin-left: 0;
   }
+  /* Mega menu for smaller screens */
   .mega-menu-panel {
-    width: 95vw;
-    left: 2.5vw;
+    /* Adjusted width to ensure it's not too narrow on smaller screens */
+    /* and allows content to fit. */
+    width: 90vw; /* Take up 90% of viewport width */
+    left: 5vw; /* Center it by pushing from left */
+    min-width: unset; /* Remove minimum width constraint on small screens */
+    max-width: unset; /* Remove maximum width constraint on small screens */
     transform: none;
   }
   .mega-menu-column {
-    flex: 1 1 100%;
+    flex: 1 1 100%; /* Columns stack vertically on small screens */
   }
   .spacer { /* This is likely an empty div to push things apart, if it exists */
     display: none; /* Hide spacer on small screens to save space */
