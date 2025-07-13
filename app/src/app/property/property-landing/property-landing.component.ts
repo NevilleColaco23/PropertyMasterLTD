@@ -1,11 +1,7 @@
 import { Component, ViewChildren, QueryList, ViewChild, ElementRef, AfterViewInit,OnDestroy } from '@angular/core';
 import { GetAllPropertiesServiceService, PropertyModel } from '../services/get-all-properties-service.service';
-import { Router } from '@angular/router';
 import { MatMenuTrigger, MatMenu } from '@angular/material/menu';
-import { ViewEncapsulation } from '@angular/core';
 import { takeUntil, Subject } from 'rxjs'; // For cleaning up subscriptions
-import { OverlayContainer } from '@angular/cdk/overlay'; // To access the menu panel in the overlay
-
 
 @Component({
   selector: 'app-property-landing',
@@ -15,8 +11,8 @@ import { OverlayContainer } from '@angular/cdk/overlay'; // To access the menu p
 
 export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
   @ViewChildren(MatMenuTrigger) megaMenuTriggerRefs!: QueryList<MatMenuTrigger>;
-  // @ViewChild('megaMenu') megaMenuComponent!: MatMenu; // Not strictly needed for this hover logic
 
+  searchTerm: string = '';
   dropdownOptions: any[] = [];
   selectedCountry: string = '';
 
@@ -38,10 +34,12 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private dropdownService: GetAllPropertiesServiceService,
-    private router: Router,
-    private elementRef: ElementRef,
-    private overlayContainer: OverlayContainer // Keep if you use it for other purposes
   ) {}
+
+applyFilter() {
+    console.log('Filtering with:', this.searchTerm);
+    // Logic to filter your data goes here
+  }
 
   ngAfterViewInit() {
     // Attach mouseleave/mouseenter to the menu panel only when it's opened.

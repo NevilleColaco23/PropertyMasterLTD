@@ -1,4 +1,3 @@
-/* Inherit from previous CSS */
 /* Basic Reset & Body Styles (Optional, for context) */
 body {
   margin: 0;
@@ -10,9 +9,8 @@ body {
 /* Main Header Container */
 .main-header {
   display: flex;
-  align-items: center;
-  /* Key change: Distributes space evenly */
-  justify-content: space-between; /* Pushes content to the ends of the container */
+  align-items: center; /* Ensures vertical alignment of all direct children */
+  justify-content: space-between; /* Pushes first item (logo) left, last item (buttons/search) right */
   padding: 10px 20px;
   background-color: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -26,42 +24,47 @@ body {
 
 /* Logo Styling */
 .canva-logo {
-  height: 28px; /* Adjust logo size */
-  margin-right: 30px; /* Space to the right of the logo */
+  height: 28px;
+  /* Removed margin-right here, as .navigation-links will handle spacing with margin-right: auto */
 }
 
 /* Navigation Links Container */
 .navigation-links {
   display: flex;
   gap: 25px;
-  /* Key change: Allows navigation to grow and push buttons */
-  flex-grow: 1; /* Makes this element take up all available space */
-  justify-content: flex-start; /* Keeps navigation links aligned to their left */
+  /* Key changes for moving menu items to the left: */
+  flex-grow: 0; /* Prevents it from taking all available space */
+  justify-content: flex-start; /* Keeps nav items aligned to their left within this container */
   margin-left: 20px; /* Space from the logo */
+  margin-right: auto; /* Pushes the search bar and buttons to the far right */
+  max-width: fit-content; /* Allows navigation to shrink to its content's size */
+  white-space: nowrap; /* Prevents the entire navigation block from wrapping */
+  flex-shrink: 0; /* Prevents navigation from shrinking prematurely */
 }
 
 /* New: Wrapper for each nav item that has a mega menu */
 .nav-item-wrapper {
-  position: relative; /* Crucial for positioning the mega menu panel */
-  display: flex; /* Allow nav-item within to be flex item */
+  position: relative;
+  display: flex;
   align-items: center;
-  height: 100%; /* Make wrapper fill height of header */
+  height: 100%;
 }
 
 .nav-item {
-  color: #333; /* Dark text color */
-  text-decoration: none; /* Remove underline */
+  color: #333;
+  text-decoration: none;
   font-size: 15px;
   font-weight: 500;
-  display: flex; /* Allows styling for the arrow */
-  align-items: center; /* Vertically centers text and arrow */
-  gap: 5px; /* Space between text and arrow */
-  transition: color 0.2s ease-in-out; /* Smooth transition for hover */
-  padding: 0 5px; /* Add some padding to increase hover area */
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.2s ease-in-out;
+  padding: 0 5px;
+  white-space: nowrap; /* Prevents individual nav item text from wrapping */
 }
 
 .nav-item:hover {
-  color: #666; /* Slightly darker on hover */
+  color: #666;
 }
 
 /* Dropdown Arrow Icon Styling */
@@ -70,22 +73,24 @@ body {
   height: 0;
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
-  border-top: 4px solid #333; /* Dark arrow */
-  opacity: 0.7; /* Make arrow slightly less prominent */
+  border-top: 4px solid #333;
+  opacity: 0.7;
 }
 
 /* Ensure these are in your CSS as well for the buttons to be affected */
 .header-buttons {
   display: flex;
   gap: 10px;
-  margin-left: 20px; /* Add some space from the navigation links */
+  margin-left: 20px; /* Space from the search bar */
+  white-space: nowrap; /* Prevents buttons from wrapping */
+  flex-shrink: 0; /* Prevents buttons from shrinking prematurely */
 }
 
 /* Common Button Styles */
 .btn {
   padding: 10px 20px;
   border: none;
-  border-radius: 5px; /* Slightly rounded corners */
+  border-radius: 5px;
   cursor: pointer;
   font-size: 15px;
   font-weight: 600;
@@ -94,23 +99,23 @@ body {
 
 /* Login Button Specific Styles */
 .login-btn {
-  background-color: transparent; /* Transparent background */
-  color: #333; /* Dark text */
-  border: 1px solid #ccc; /* Light grey border */
+  background-color: transparent;
+  color: #333;
+  border: 1px solid #ccc;
 }
 
 .login-btn:hover {
-  background-color: #f0f0f0; /* Light grey on hover */
+  background-color: #f0f0f0;
 }
 
 /* Sign Up Button Specific Styles */
 .signup-btn {
-  background-color: #8C52FF; /* The purple color from the image */
-  color: white; /* White text */
+  background-color: #8C52FF;
+  color: white;
 }
 
 .signup-btn:hover {
-  background-color: #7a3ee6; /* Slightly darker purple on hover */
+  background-color: #7a3ee6;
 }
 
 
@@ -118,46 +123,36 @@ body {
 
 .mega-menu-panel {
   position: absolute;
-  top: 100%; /* Place it right below the navigation item */
-  /* REMOVE: left: 50%; transform: translateX(-50%); */
-
-  /* NEW: Align to the left edge of its parent (.nav-item-wrapper) */
+  top: 100%;
   left: 0;
-
-  width: 980px; /* Set a fixed width based on your desired layout */
-  /* Or, if you want it responsive but constrained: */
-  /* width: calc(100vw - 40px); /* Example: viewport width minus header padding */
-  /* max-width: 980px; /* Max width to control size */
-
+  max-width: 980px; /* Set a maximum width */
+  width: 100%; /* Allow panel width to fill available space, then constrained by max-width */
+  /* min-width: 700px; */ /* Consider removing this if it causes issues on smaller screens */
   background-color: #fff;
   border: 1px solid #eee;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  z-index: 999; /* Below the main header, but above page content */
-
-  opacity: 0; /* Initially hidden */
-  visibility: hidden; /* Ensures it's not interactive when hidden */
-  transform: translateY(10px); /* Small slide down effect, no X translation */
-  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease; /* Smooth transition */
+  padding: 20px; /* This padding adds to the total width */
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
 }
 
 /* Show mega menu on hover of the wrapper */
 .nav-item-wrapper:hover .mega-menu-panel {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0); /* Slide into position, no X translation */
+  transform: translateY(0);
 }
 
 /* Ensure the mega menu content doesn't overflow if it's too wide */
 .mega-menu-content {
   display: flex;
   gap: 30px;
-  /* Use flex-start to align columns to the left within the panel */
   justify-content: flex-start;
   width: 100%; /* Ensure content takes full width of the panel */
 }
-
-/* Previous .mega-menu-column, .mega-menu-promo, etc. styles remain */
 
 .mega-menu-column {
   flex: 1; /* Each column takes equal space */
@@ -202,7 +197,8 @@ body {
   display: flex;
   flex-direction: column; /* Stack promo cards vertically */
   gap: 15px;
-  width: 300px; /* Fixed width for the promo section */
+  /* Use flex-basis to control its size within the flex container */
+  flex: 0 0 250px; /* flex-grow: 0, flex-shrink: 0, flex-basis: 250px. ADJUST THIS VALUE! */
   margin-left: 30px; /* Space from the last column */
 }
 
@@ -234,49 +230,134 @@ body {
   margin-bottom: 0;
 }
 
-/* Responsive adjustments (optional but good practice) */
+/* --- Search Bar Styles (Universal) --- */
+.header-search-container {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc; /* Lighter border, matches image */
+  border-radius: 18px; /* Standard border-radius for default height */
+  padding: 8px 25px; /* Increased horizontal padding, kept vertical padding */
+  background-color: #f9f9f9;
+  margin-left: 20px;
+  width: 350px; /* **Significantly increased width** */
+  height: 45px; /* Maintain moderate height */
+  box-sizing: border-box;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.header-search-container:focus-within {
+  border-color: #8c52ff;
+  box-shadow: 0 0 0 2px rgba(140, 82, 255, 0.2);
+}
+
+.header-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 16px; /* Kept font size moderate */
+  width: calc(100% - 30px); /* Adjusted width to account for icon */
+  padding: 0;
+  color: #333;
+}
+
+.header-search-input::placeholder {
+  color: #888;
+  opacity: 0.9;
+}
+
+.search-icon {
+  color: #888;
+  font-size: 20px; /* Kept icon size moderate */
+  margin-left: 10px; /* Adjusted margin for better spacing */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px; /* Adjusted width for icon */
+  height: 25px; /* Adjusted height for icon */
+}
+
+/* --- Responsive adjustments (Override universal styles as needed) --- */
 @media (max-width: 900px) {
   .mega-menu-content {
-    flex-wrap: wrap; /* Allow columns to wrap on smaller screens */
-    justify-content: center; /* Center columns when wrapped */
+    flex-wrap: wrap;
+    justify-content: center;
   }
   .mega-menu-column {
-    flex: 1 1 45%; /* Allow columns to take about half width */
+    flex: 1 1 45%;
     margin-bottom: 20px;
   }
   .mega-menu-promo {
-    width: 100%; /* Promo section takes full width */
+    width: 100%;
     margin-left: 0;
+  }
+  /* Responsive search bar adjustments */
+  .header-search-container {
+    width: 280px; /* Adjusted width for smaller desktops */
+    margin-left: 15px;
+    padding: 8px 18px; /* Adjusted padding */
+    height: 45px; /* Maintained height */
+  }
+  .header-search-input {
+    font-size: 15px;
+  }
+  .search-icon {
+    font-size: 19px;
+    margin-left: 9px;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .main-header {
-    flex-wrap: wrap; /* Allow header items to wrap */
-    height: auto; /* Auto height for header if wrapping occurs */
+    flex-wrap: wrap;
+    height: auto;
     padding: 10px;
+    justify-content: center;
+  }
+  .logo {
+    margin-right: 0;
+    margin-bottom: 10px;
+    width: 100%;
+    text-align: center;
   }
   .navigation-links {
-    flex-basis: 100%; /* Nav links take full width */
+    flex-basis: 100%;
     margin-top: 10px;
+    margin-left: 0;
+    margin-right: 0; /* Reset margin-right: auto on small screens */
     justify-content: center;
     gap: 15px;
+  }
+  .header-search-container {
+    flex-basis: 100%; /* Search bar takes full width on small screens */
+    margin-top: 10px;
+    margin-left: 0;
+    width: calc(100% - 40px); /* Adjust width to fit header padding */
+    height: 45px; /* Maintained height for mobile */
+    padding: 10px 15px; /* Adjusted padding for mobile */
+  }
+  .header-search-input {
+    font-size: 16px;
+  }
+  .search-icon {
+    font-size: 20px;
   }
   .header-buttons {
     flex-basis: 100%;
     justify-content: center;
     margin-top: 10px;
+    margin-left: 0;
   }
   .mega-menu-panel {
-    width: 95vw; /* Adjust width for very small screens */
-    left: 2.5vw; /* Fixed left to remove transform */
-    transform: none; /* Remove transform for simpler positioning */
+    width: 95vw;
+    left: 2.5vw;
+    transform: none;
   }
   .mega-menu-column {
-    flex: 1 1 100%; /* Stack columns vertically */
+    flex: 1 1 100%;
   }
-
-  .spacer {
-  flex-grow: 1; /* This makes the spacer take up all available space */
-}
+  .spacer { /* This is likely an empty div to push things apart, if it exists */
+    display: none; /* Hide spacer on small screens to save space */
+  }
 }
