@@ -1,0 +1,96 @@
+/* Basic Reset & Body Styles (Optional, for context) */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+/* Main Header Container */
+.main-header {
+  display: flex; /* Makes the header a flex container */
+  align-items: center; /* Vertically centers items */
+  justify-content: space-between; /* Pushes logo/nav/buttons to the ends and spreads the navigation */
+  padding: 10px 20px; /* Padding around the header content */
+  background-color: #fff; /* White background */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow at the bottom */
+  height: 64px; /* Fixed height for the header */
+}
+
+/* Logo Styling */
+.canva-logo {
+  height: 28px; /* Adjust logo size */
+  margin-right: 30px; /* Space to the right of the logo */
+}
+
+/* Navigation Links Container */
+.navigation-links {
+  display: flex; /* Makes navigation links a flex container */
+  gap: 25px; /* Space between navigation items */
+  flex-grow: 1; /* Allows navigation to take up available space, pushing buttons to the right */
+  justify-content: flex-start; /* Aligns links to the start if there's extra space */
+  margin-left: 20px; /* Add some margin from the logo */
+}
+
+.nav-item {
+  color: #333; /* Dark text color */
+  text-decoration: none; /* Remove underline */
+  font-size: 15px;
+  font-weight: 500;
+  display: flex; /* Allows styling for the arrow */
+  align-items: center; /* Vertically centers text and arrow */
+  gap: 5px; /* Space between text and arrow */
+  transition: color 0.2s ease-in-out; /* Smooth transition for hover */
+}
+
+.nav-item:hover {
+  color: #666; /* Slightly darker on hover */
+}
+
+/* Dropdown Arrow Icon Styling */
+.arrow-down {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #333; /* Dark arrow */
+  opacity: 0.7; /* Make arrow slightly less prominent */
+}
+
+/* Header Buttons Container */
+.header-buttons {
+  display: flex; /* Makes buttons a flex container */
+  gap: 10px; /* Space between the buttons */
+  margin-left: 20px; /* Add some margin from the navigation */
+}
+
+/* Common Button Styles */
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px; /* Slightly rounded corners */
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+/* Login Button Specific Styles */
+.login-btn {
+  background-color: transparent; /* Transparent background */
+  color: #333; /* Dark text */
+  border: 1px solid #ccc; /* Light grey border */
+}
+
+.login-btn:hover {
+  background-color: #f0f0f0; /* Light grey on hover */
+}
+
+/* Sign Up Button Specific Styles */
+.signup-btn {
+  background-color: #8C52FF; /* The purple color from the image */
+  color: white; /* White text */
+}
+
+.signup-btn:hover {
+  background-color: #7a3ee6; /* Slightly darker purple on hover */
+}

@@ -73,7 +73,8 @@ public class AccountController : ControllerBase
                 Username = data.Username,
                 Email = data.Email,
                 IsExternalLogin = data.IsExternalLogin,
-                ExternalAuthenticationProvider = data.ExternalAuthenticationProvider
+                ExternalAuthenticationProvider = data.ExternalAuthenticationProvider,
+                PropertyAccessList = data.PropertyAccessList?.Select(p => p).ToList()
             }),
             _ => throw new InvalidEnumArgumentException("Unknown sign-in result or sign-in data missing.")
         };

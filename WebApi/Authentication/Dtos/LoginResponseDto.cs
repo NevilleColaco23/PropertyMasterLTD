@@ -33,4 +33,5 @@ public class LoginResponseDto
     public string? ExternalAuthenticationProvider { get; init; }
 
     public bool IsExternalLogin { get; init; }
+    public List<int>? PropertyAccessList { get; init; }
 }

@@ -7,4 +7,6 @@ public record SignInData
     public string Email { get; init; } = null!;
     public bool IsExternalLogin => !string.IsNullOrWhiteSpace(ExternalAuthenticationProvider);
     public string? ExternalAuthenticationProvider { get; init; }
+    public List<int>? PropertyAccessList { get; init; }
+
 }

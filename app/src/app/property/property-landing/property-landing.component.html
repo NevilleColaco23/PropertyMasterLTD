@@ -1,8 +1,18 @@
-<mat-form-field appearance="fill">
-  <mat-label>Select a country</mat-label>
-  <mat-select [(ngModel)]="selectedCountry">
-    <mat-option *ngFor="let option of dropdownOptions" [value]="option.id">
-      {{ option.name }}
-    </mat-option>
-  </mat-select>
-</mat-form-field>
+<header class="main-header">
+  <div class="logo">
+    <img src="your-canva-logo-path.png" alt="Canva Logo" class="canva-logo">
+  </div>
+
+  <nav class="navigation-links">
+    <a href="#" class="nav-item">Design spotlight <span class="arrow-down"></span></a>
+    <a href="#" class="nav-item">Business <span class="arrow-down"></span></a>
+    <a href="#" class="nav-item">Education <span class="arrow-down"></span></a>
+    <a href="#" class="nav-item">Plans and pricing <span class="arrow-down"></span></a>
+    <a href="#" class="nav-item">Learn <span class="arrow-down"></span></a>
+  </nav>
+
+  <div class="header-buttons">
+    <button class="btn login-btn">Log in</button>
+    <button class="btn signup-btn">Sign up</button>
+  </div>
+</header>

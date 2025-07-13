@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using MongoDB.Bson;
+using MongoDBBackend;
 using MyWarehouse.Application.Common.Dependencies.DataAccess;
 
 namespace MyWarehouse.Application.Property.PropertyQueries;
@@ -22,54 +23,50 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
     {
         return new BsonArray
         {
-            new BsonDocument("$match", new BsonDocument("_id", propertyId)),
-            new BsonDocument("$lookup", new BsonDocument
+            new BsonDocument(MongoStages.MATCH, new BsonDocument("_id", propertyId)),
+            new BsonDocument(MongoStages.LOOKUP, new BsonDocument
             {
-                { "from", "Property" },
-                { "let", new BsonDocument("propertyIds", new BsonDocument("$map", new BsonDocument
+            { MongoStages.FROM, "Property" },
+            { MongoStages.LET, new BsonDocument("propertyIds", new BsonDocument("$map", new BsonDocument
+                {
+                    { "input", "$PropertyAccessList" },
+                    { "as", "pa" },
+                    { "in", "$$pa.PropertyID" }
+                }))
+            },
+            { MongoStages.PIPELINE, new BsonArray
+                {
+                    new BsonDocument(MongoStages.PROJECT, new BsonDocument
                     {
-                        { "input", "$PropertyAccessList" },
-                        { "as", "pa" },
-                        { "in", "$$pa.PropertyID" }
-                    }))
-                },
-                { "pipeline", new BsonArray
-                    {
-                        new BsonDocument("$match", new BsonDocument("$expr", new BsonDocument("$and", new BsonArray
-                        {
-                            new BsonDocument("$in", new BsonArray { "$_id", "$$propertyIds" }),
-                            new BsonDocument("$eq", new BsonArray { "$Active", true })
-                        }))),
-                        new BsonDocument("$project", new BsonDocument
-                        {
-                            { "_id", 1 },
-                            { "Name", 1 },
-                            { "Rooms", new BsonDocument("$filter", new BsonDocument
-                                {
-                                    { "input", "$Rooms" },
-                                    { "as", "room" },
-                                    { "cond", new BsonDocument("$eq", new BsonArray { "$$room.Active", true }) }
-                                })
-                            }
-                        })
-                    }
-                },
-                { "as", "PropertyList" }
-            }),
-            new BsonDocument("$unwind", "$PropertyList"),
-            new BsonDocument("$project", new BsonDocument
-            {
-                { "_id", 0 },
-                { "Name", "$PropertyList.Name" },
-                { "Id", "$PropertyList._id" },
-                { "Rooms", "$PropertyList.Rooms" }
-            })
+                        { "_id", 1 },
+                        { "Name", 1 },
+                        { "Rooms", new BsonDocument(MongoStages.FILTER, new BsonDocument
+                            {
+                                { "input", "$Rooms" },
+                                { "as", "room" },
+                                { "cond", new BsonDocument(MongoStages.EQ, new BsonArray { "$$room.Active", true }) }
+                            })
+                        }
+                    })
+                }
+            },
+            { MongoStages.AS, "PropertyList" }
+        }),
+        new BsonDocument(MongoStages.UNWIND, "$PropertyList"),
+        new BsonDocument(MongoStages.PROJECT, new BsonDocument
+        {
+            { "_id", 0 },
+            { "Name", "$PropertyList.Name" },
+            { "Id", "$PropertyList._id" },
+            { "Rooms", "$PropertyList.Rooms" }
+        })
+
         };
     }
 
     public CommandType CommandType => CommandType.Text;
 
-    public IReadOnlyList<NamedQueryParameter> Parameters => null;
+    public IReadOnlyList<Common.Dependencies.DataAccess.NamedQueryParameter> Parameters => null;
 
     public string QueryStr => throw new NotImplementedException();
 

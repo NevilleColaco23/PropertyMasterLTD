@@ -66,7 +66,8 @@ public signUp(username : string,email :string,password:string,phone:string){
   private signIn(data: AuthenticationSuccessData) {
     const expiresAt = new Date();
     expiresAt.setTime(Date.now() + (data.expiresIn * 1000));
-
+    console.log('Setting user data in localStorage:', data);
+    
     localStorage.setItem('auth_userData', JSON.stringify(data));
     localStorage.setItem('auth_tokenString', `${data.tokenType} ${data.accessToken}`);
     localStorage.setItem('auth_tokenExpiresAt', expiresAt.getTime().toString());

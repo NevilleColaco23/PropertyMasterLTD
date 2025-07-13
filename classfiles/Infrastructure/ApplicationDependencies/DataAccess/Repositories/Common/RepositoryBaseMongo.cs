@@ -9,6 +9,7 @@ using MyWarehouse.Domain.Common;
 
 namespace MyWarehouse.Infrastructure.ApplicationDependencies.DataAccess.Repositories.Common;
 
+//TODO : use mongodb pipeline across all function
 /// <summary>
 /// Generic base repository for MongoDB with implementations of basic operations.
 /// Concrete derived repositories should extend it with custom querying requirements for the given document type.
