@@ -197,9 +197,8 @@ body {
   display: flex;
   flex-direction: column; /* Stack promo cards vertically */
   gap: 15px;
-  /* Use flex-basis to control its size within the flex container */
-  flex: 0 0 250px; /* flex-grow: 0, flex-shrink: 0, flex-basis: 250px. ADJUST THIS VALUE! */
-  margin-left: 30px; /* Space from the last column */
+  flex: 0 0 250px;
+  margin-left: 30px;
 }
 
 .promo-card {
@@ -230,40 +229,41 @@ body {
   margin-bottom: 0;
 }
 
-/* --- Search Bar Styles (Universal) --- */
-.header-search-container {
-  display: flex;
-  align-items: center;
-  border: 1px solid #ccc; /* Lighter border, matches image */
-  border-radius: 18px; /* Standard border-radius for default height */
-  padding: 8px 25px; /* Increased horizontal padding, kept vertical padding */
-  background-color: #f9f9f9;
-  margin-left: 20px;
-  width: 350px; /* **Significantly increased width** */
+/* --- Search Bar Styles (Universal) for Autocomplete --- */
+.search-container-autocomplete {
+  position: relative; /* Essential for positioning the suggestions list */
+  width: 350px; /* **Significantly increased width for the overall container** */
+  margin-left: 20px; /* Space from 'Learn' nav item */
   height: 45px; /* Maintain moderate height */
-  box-sizing: border-box;
-  overflow: hidden;
+  display: flex; /* To align input and icon */
+  align-items: center; /* Vertically align them */
   flex-shrink: 0;
+  /* No border/padding on the container, as they are on the input itself now */
 }
 
-.header-search-container:focus-within {
-  border-color: #8c52ff;
-  box-shadow: 0 0 0 2px rgba(140, 82, 255, 0.2);
-}
-
+/* Style the actual search input field */
 .header-search-input {
-  border: none;
-  background: transparent;
-  outline: none;
+  width: 100%; /* Take full width of its parent (.search-container-autocomplete) */
+  padding: 8px 15px; /* Adjust padding to match your desired visual size */
+  border: 1px solid #ccc;
+  border-radius: 18px; /* For pill shape */
   font-size: 16px; /* Kept font size moderate */
-  width: calc(100% - 30px); /* Adjusted width to account for icon */
-  padding: 0;
+  outline: none;
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  height: 100%; /* Make input fill the height of its parent */
+  background-color: #f9f9f9;
   color: #333;
+  flex-grow: 1; /* Allow input to grow and take available space */
 }
 
 .header-search-input::placeholder {
   color: #888;
   opacity: 0.9;
+}
+
+.header-search-input:focus {
+  border-color: #8c52ff;
+  box-shadow: 0 0 0 2px rgba(140, 82, 255, 0.2);
 }
 
 .search-icon {
@@ -276,7 +276,51 @@ body {
   justify-content: center;
   width: 25px; /* Adjusted width for icon */
   height: 25px; /* Adjusted height for icon */
+  flex-shrink: 0; /* Prevent icon from shrinking */
 }
+
+/* Styles for the suggestions list */
+.suggestions-list {
+  position: absolute;
+  top: calc(100% + 5px); /* Position slightly below the input with a gap */
+  left: 0;
+  width: 100%; /* Match the input width */
+  max-height: 200px; /* Limit height and make it scrollable */
+  overflow-y: auto;
+  border: 1px solid #eee;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100; /* Ensure it's above other content */
+  display: none; /* Hidden by default */
+  border-radius: 8px; /* Add some border-radius */
+  padding: 5px 0; /* Internal padding for list */
+}
+
+/* Class to show the suggestions list */
+.suggestions-list.show-suggestions {
+  display: block;
+}
+
+.suggestions-list div {
+  padding: 10px 15px; /* Match input padding for alignment */
+  cursor: pointer;
+  background-color: #fff;
+  font-size: 15px;
+  color: #333;
+  transition: background-color 0.2s ease;
+}
+
+/* Ensure border only between items, not on the edges of the list */
+.suggestions-list div:not(:last-child) {
+  border-bottom: 1px solid #eee;
+}
+
+
+.suggestions-list div:hover,
+.suggestions-list div.active { /* 'active' for keyboard navigation */
+  background-color: #f0f0f0;
+}
+
 
 /* --- Responsive adjustments (Override universal styles as needed) --- */
 @media (max-width: 900px) {
@@ -293,18 +337,18 @@ body {
     margin-left: 0;
   }
   /* Responsive search bar adjustments */
-  .header-search-container {
+  .search-container-autocomplete {
     width: 280px; /* Adjusted width for smaller desktops */
     margin-left: 15px;
-    padding: 8px 18px; /* Adjusted padding */
     height: 45px; /* Maintained height */
   }
   .header-search-input {
     font-size: 15px;
+    padding: 8px 12px; /* Adjusted padding */
   }
   .search-icon {
     font-size: 19px;
-    margin-left: 9px;
+    margin-left: 8px;
   }
 }
 
@@ -329,16 +373,17 @@ body {
     justify-content: center;
     gap: 15px;
   }
-  .header-search-container {
+  .search-container-autocomplete {
     flex-basis: 100%; /* Search bar takes full width on small screens */
     margin-top: 10px;
     margin-left: 0;
     width: calc(100% - 40px); /* Adjust width to fit header padding */
     height: 45px; /* Maintained height for mobile */
-    padding: 10px 15px; /* Adjusted padding for mobile */
+    /* Remove padding here, as it's on the input directly now */
   }
   .header-search-input {
     font-size: 16px;
+    padding: 10px 15px; /* Adjusted padding for mobile */
   }
   .search-icon {
     font-size: 20px;

@@ -65,13 +65,25 @@
     <a href="#" class="nav-item">Plans and pricing <span class="arrow-down"></span></a>
     <a href="#" class="nav-item">Learn <span class="arrow-down"></span></a>
   </nav>
-
-  <!-- <div class="spacer" class="header-buttons">
+    <div class="search-container-autocomplete">
+    <input type="text" id="searchInput" placeholder="Search..."
+           [(ngModel)]="searchQuery"
+           (input)="onSearchInput()"
+           (keydown)="onKeyDown($event)"
+           (focus)="onSearchFocus()"
+           class="header-search-input">
+    <span class="search-icon">🔍</span>
+    <div id="suggestions" class="suggestions-list"
+         [class.show-suggestions]="showSuggestionsList">
+      <div *ngFor="let suggestion of filteredSuggestions; let i = index"
+           [class.active]="i === activeSuggestionIndex"
+           (click)="selectSuggestion(suggestion)">
+        {{ suggestion }}
+      </div>
+    </div>
+  </div>
+<!-- <div class="spacer" class="header-buttons">
     <button class="btn login-btn">Log in</button>
     <button class="btn signup-btn">Sign up</button>
   </div> -->
-   <div class="header-search-container">
-    <input type="text" placeholder="Search..." class="header-search-input">
-    <span class="search-icon">🔍</span>
-</div>
 </header>
