@@ -1,19 +1,27 @@
+/* Inherit from previous CSS */
 /* Basic Reset & Body Styles (Optional, for context) */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
   box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  padding-top: 64px; /* Add padding to body to prevent content from going under fixed header */
 }
 
 /* Main Header Container */
 .main-header {
-  display: flex; /* Makes the header a flex container */
-  align-items: center; /* Vertically centers items */
-  justify-content: space-between; /* Pushes logo/nav/buttons to the ends and spreads the navigation */
-  padding: 10px 20px; /* Padding around the header content */
-  background-color: #fff; /* White background */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow at the bottom */
-  height: 64px; /* Fixed height for the header */
+  display: flex;
+  align-items: center;
+  /* Key change: Distributes space evenly */
+  justify-content: space-between; /* Pushes content to the ends of the container */
+  padding: 10px 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 64px;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1000;
 }
 
 /* Logo Styling */
@@ -24,11 +32,20 @@ body {
 
 /* Navigation Links Container */
 .navigation-links {
-  display: flex; /* Makes navigation links a flex container */
-  gap: 25px; /* Space between navigation items */
-  flex-grow: 1; /* Allows navigation to take up available space, pushing buttons to the right */
-  justify-content: flex-start; /* Aligns links to the start if there's extra space */
-  margin-left: 20px; /* Add some margin from the logo */
+  display: flex;
+  gap: 25px;
+  /* Key change: Allows navigation to grow and push buttons */
+  flex-grow: 1; /* Makes this element take up all available space */
+  justify-content: flex-start; /* Keeps navigation links aligned to their left */
+  margin-left: 20px; /* Space from the logo */
+}
+
+/* New: Wrapper for each nav item that has a mega menu */
+.nav-item-wrapper {
+  position: relative; /* Crucial for positioning the mega menu panel */
+  display: flex; /* Allow nav-item within to be flex item */
+  align-items: center;
+  height: 100%; /* Make wrapper fill height of header */
 }
 
 .nav-item {
@@ -40,6 +57,7 @@ body {
   align-items: center; /* Vertically centers text and arrow */
   gap: 5px; /* Space between text and arrow */
   transition: color 0.2s ease-in-out; /* Smooth transition for hover */
+  padding: 0 5px; /* Add some padding to increase hover area */
 }
 
 .nav-item:hover {
@@ -56,11 +74,11 @@ body {
   opacity: 0.7; /* Make arrow slightly less prominent */
 }
 
-/* Header Buttons Container */
+/* Ensure these are in your CSS as well for the buttons to be affected */
 .header-buttons {
-  display: flex; /* Makes buttons a flex container */
-  gap: 10px; /* Space between the buttons */
-  margin-left: 20px; /* Add some margin from the navigation */
+  display: flex;
+  gap: 10px;
+  margin-left: 20px; /* Add some space from the navigation links */
 }
 
 /* Common Button Styles */
@@ -93,4 +111,172 @@ body {
 
 .signup-btn:hover {
   background-color: #7a3ee6; /* Slightly darker purple on hover */
+}
+
+
+/* --- Mega Menu Specific Styles --- */
+
+.mega-menu-panel {
+  position: absolute;
+  top: 100%; /* Place it right below the navigation item */
+  /* REMOVE: left: 50%; transform: translateX(-50%); */
+
+  /* NEW: Align to the left edge of its parent (.nav-item-wrapper) */
+  left: 0;
+
+  width: 980px; /* Set a fixed width based on your desired layout */
+  /* Or, if you want it responsive but constrained: */
+  /* width: calc(100vw - 40px); /* Example: viewport width minus header padding */
+  /* max-width: 980px; /* Max width to control size */
+
+  background-color: #fff;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  z-index: 999; /* Below the main header, but above page content */
+
+  opacity: 0; /* Initially hidden */
+  visibility: hidden; /* Ensures it's not interactive when hidden */
+  transform: translateY(10px); /* Small slide down effect, no X translation */
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease; /* Smooth transition */
+}
+
+/* Show mega menu on hover of the wrapper */
+.nav-item-wrapper:hover .mega-menu-panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0); /* Slide into position, no X translation */
+}
+
+/* Ensure the mega menu content doesn't overflow if it's too wide */
+.mega-menu-content {
+  display: flex;
+  gap: 30px;
+  /* Use flex-start to align columns to the left within the panel */
+  justify-content: flex-start;
+  width: 100%; /* Ensure content takes full width of the panel */
+}
+
+/* Previous .mega-menu-column, .mega-menu-promo, etc. styles remain */
+
+.mega-menu-column {
+  flex: 1; /* Each column takes equal space */
+  min-width: 150px; /* Minimum width for columns */
+}
+
+.mega-menu-column h3 {
+  font-size: 16px;
+  color: #555;
+  margin-top: 0;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+.mega-menu-column ul {
+  list-style: none; /* Remove bullet points */
+  padding: 0;
+  margin: 0;
+}
+
+.mega-menu-column li {
+  margin-bottom: 8px;
+}
+
+.mega-menu-column li a {
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  display: block; /* Make the whole area clickable */
+  padding: 4px 0;
+  transition: color 0.2s ease;
+}
+
+.mega-menu-column li a:hover {
+  color: #8C52FF; /* Highlight on hover */
+}
+
+/* Right-side Promo Section */
+.mega-menu-promo {
+  display: flex;
+  flex-direction: column; /* Stack promo cards vertically */
+  gap: 15px;
+  width: 300px; /* Fixed width for the promo section */
+  margin-left: 30px; /* Space from the last column */
+}
+
+.promo-card {
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.promo-card h4 {
+  font-size: 16px;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.promo-card img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.promo-card p {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 0;
+}
+
+/* Responsive adjustments (optional but good practice) */
+@media (max-width: 900px) {
+  .mega-menu-content {
+    flex-wrap: wrap; /* Allow columns to wrap on smaller screens */
+    justify-content: center; /* Center columns when wrapped */
+  }
+  .mega-menu-column {
+    flex: 1 1 45%; /* Allow columns to take about half width */
+    margin-bottom: 20px;
+  }
+  .mega-menu-promo {
+    width: 100%; /* Promo section takes full width */
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .main-header {
+    flex-wrap: wrap; /* Allow header items to wrap */
+    height: auto; /* Auto height for header if wrapping occurs */
+    padding: 10px;
+  }
+  .navigation-links {
+    flex-basis: 100%; /* Nav links take full width */
+    margin-top: 10px;
+    justify-content: center;
+    gap: 15px;
+  }
+  .header-buttons {
+    flex-basis: 100%;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  .mega-menu-panel {
+    width: 95vw; /* Adjust width for very small screens */
+    left: 2.5vw; /* Fixed left to remove transform */
+    transform: none; /* Remove transform for simpler positioning */
+  }
+  .mega-menu-column {
+    flex: 1 1 100%; /* Stack columns vertically */
+  }
+
+  .spacer {
+  flex-grow: 1; /* This makes the spacer take up all available space */
+}
 }
