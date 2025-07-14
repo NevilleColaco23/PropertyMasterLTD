@@ -10,5 +10,5 @@ public record TokenModel
         => (TokenType, AccessToken, ExpiresAt) = (tokenType, accessToken, expiresAt);
 
     public int GetRemainingLifetimeSeconds()
-        => Math.Max(0, (int)(ExpiresAt - DateTime.Now).TotalSeconds);
+        => Math.Max(0, (int)(ExpiresAt - DateTime.UtcNow).TotalSeconds);
 }

@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { AuthenticationSuccessData } from '../model/login-data';
-import {BehaviorSubject, Observable} from 'rxjs';
+import {BehaviorSubject, Observable, of } from 'rxjs';
 import {HttpClient, HttpResponse} from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { tap } from 'rxjs/operators';
+import { tap,catchError } from 'rxjs/operators';
 import { shareReplay } from 'rxjs/operators';
-
+import { Router } from '@angular/router';
 @Injectable({
   providedIn: 'root'
 })
@@ -14,7 +14,7 @@ export class AuthService {
   public signInState: Observable<AuthenticationSuccessData | null>;
   private _signInState = new BehaviorSubject<AuthenticationSuccessData | null>(null);
 
-  constructor(private _http: HttpClient) {
+  constructor(private _http: HttpClient, private router: Router) {
     this.signInState = this._signInState.asObservable();
     console.log('PRODUCTION:', environment.production);
 
@@ -22,6 +22,7 @@ export class AuthService {
 
     if (userData != null) { 
       this._signInState.next(userData);
+      this.checkTokenExpirationAndSignOut();
     }   
     }
 
@@ -66,7 +67,7 @@ public signUp(username : string,email :string,password:string,phone:string){
   private signIn(data: AuthenticationSuccessData) {
     const expiresAt = new Date();
     expiresAt.setTime(Date.now() + (data.expiresIn * 1000));
-    console.log('token valid till:', expiresAt);
+    console.log('token valid till:', expiresAt.setTime(Date.now() + (data.expiresIn * 1000)));
 
     localStorage.setItem('auth_userData', JSON.stringify(data));
     localStorage.setItem('auth_tokenString', `${data.tokenType} ${data.accessToken}`);
@@ -74,16 +75,54 @@ public signUp(username : string,email :string,password:string,phone:string){
     this._signInState.next(data);
   }
 
-  public signOut() {
+  public signOut() : Observable<void> { // <-- Now returns Observable<void>
     localStorage.removeItem('auth_userData');
     localStorage.removeItem('auth_tokenString');
     localStorage.removeItem('auth_tokenExpiresAt');
-    
-    this._signInState.next(null);
+    this._signInState.next(null); // Update observable state immediately
+    return of(undefined); // <-- Return an observable that immediately completes
   }
 
-  public isSignedIn() {
-    return this._signInState.value != null;
+  public isSignedIn() : boolean {
+    const expiresAtString = localStorage.getItem('auth_tokenExpiresAt');
+    if (!expiresAtString) {
+      return false; // No expiration time, so not signed in
+    }
+
+    const expiresAt = +expiresAtString; // Convert to number
+    const now = Date.now();
+
+    // If the token has expired, proactively sign out
+    if (now >= expiresAt) {
+      console.log('Token has expired locally. Signing out...');
+      // We are calling signOut without subscribing here, as we want immediate action.
+      // The HTTP Interceptor will handle the navigation if a subsequent API call is made.
+      // For immediate redirection, you might need to adjust the signOut() signature
+      // or call router.navigate directly after this signOut.
+      // Let's refine this below.
+      this.signOutInternalAndRedirect(); // New helper method
+      return false;
+    }
+    return true; // Token is still valid locally
+  }
+
+// New private helper method for internal sign out and redirection
+  private signOutInternalAndRedirect() {
+    this.signOut().subscribe({
+        next: () => {
+            console.log('Proactive logout successful.');
+            this.router.navigate(['/login']);
+        },
+        error: (err) => {
+            console.error('Proactive logout failed but redirecting:', err);
+            this.router.navigate(['/login']);
+        }
+    });
+  }
+
+ // Optional: A public method to trigger a manual check
+  public checkTokenExpirationAndSignOut() {
+    this.isSignedIn(); // This will trigger signOutInternalAndRedirect if expired
   }
 
   public getUserToken() {

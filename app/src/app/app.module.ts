@@ -17,6 +17,7 @@ import { AppConfig } from './Appconfig';
 import { DatePipe } from '@angular/common';
 import { provideHttpClient } from '@angular/common/http';
 import { LoggingService } from './core/auth/services/logging.service';
+import { AuthInterceptor } from './core/auth/services/auth-interceptor.service';
 
 export function initializeApp(_loggingService: LoggingService) {
   return (): void => {// This will ensure the logging service is instantiated
@@ -28,24 +29,15 @@ export function initializeApp(_loggingService: LoggingService) {
     LoginFormComponent
   ],
   imports: [
-    BrowserModule,
-    AppRoutingModule,
-    BrowserModule,
-    ReactiveFormsModule,
-    BrowserAnimationsModule,
-    MatInputModule,
-    MatButtonModule,
-    MatCardModule,
-    MatIconModule,
-    MatDividerModule,
-    MatFormFieldModule,
-    HttpClientModule,
-    FontAwesomeModule,
+    BrowserModule,    AppRoutingModule,    BrowserModule,    ReactiveFormsModule,    BrowserAnimationsModule,
+    MatInputModule,    MatButtonModule,    MatCardModule,    MatIconModule,    MatDividerModule,
+    MatFormFieldModule,    HttpClientModule,    FontAwesomeModule,
   ],
   providers: [provideHttpClient(),DatePipe,{provide :AppConfig},
     {
       provide: APP_INITIALIZER,
       useFactory: initializeApp,
+      useClass: AuthInterceptor,
       multi: true
     }
   ],
