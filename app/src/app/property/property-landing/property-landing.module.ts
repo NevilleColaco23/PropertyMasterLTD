@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
+import { MatButton } from '@angular/material/button';
 
 
 @NgModule({
@@ -20,6 +21,7 @@ import { MatIcon } from '@angular/material/icon';
     MatToolbarModule,
     MatMenuModule,
     MatIcon,
+    MatButton,
     PropertyLandingRoutingModule
   ]
 })

@@ -2,6 +2,7 @@ import { Component, ViewChildren, QueryList, ViewChild, ElementRef, AfterViewIni
 import { GetAllPropertiesServiceService, PropertyModel } from '../services/get-all-properties-service.service';
 import { MatMenuTrigger, MatMenu } from '@angular/material/menu';
 import { takeUntil, Subject } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-property-landing',
@@ -46,7 +47,7 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
   ];
 
   constructor(
-    private dropdownService: GetAllPropertiesServiceService,
+    private dropdownService: GetAllPropertiesServiceService,private router: Router
   ) {}
 
   ngAfterViewInit() {
@@ -203,4 +204,9 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
   handleMenuPanelMouseLeave = () => { /* ... existing code ... */ }
   handleMenuPanelMouseEnter = () => { /* ... existing code ... */ }
   fetchDropdownOptions(): void { /* ... existing code ... */ }
+
+  signOut() {
+    this.router.navigate(['/']);
+  }
 }
+
