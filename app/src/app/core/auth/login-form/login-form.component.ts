@@ -4,7 +4,8 @@ import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../services/auth.service';
 import { timer } from 'rxjs';
 import { Router } from '@angular/router';
-
+import { LoaderService } from '../../../core/auth/services/loader-service.service';
+import { finalize } from 'rxjs/operators';
 
 enum LocalLoginState {
   None,
@@ -29,7 +30,7 @@ export class LoginFormComponent  {
   localLoginState = LocalLoginState.None;
   get localLoginStates() { return LocalLoginState; }
 
-  constructor(private as: AuthService, private fb: FormBuilder,private router: Router) {
+  constructor(private as: AuthService, private fb: FormBuilder,private router: Router,private loaderService: LoaderService) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],password: ['', Validators.required]
     });
@@ -37,6 +38,7 @@ export class LoginFormComponent  {
 
   onSubmit() {
     if (this.loginForm.valid) {
+      this.loaderService.show();
       const loginData = this.loginForm.value;
       
     this.localLoginState = LocalLoginState.Waiting;
@@ -44,7 +46,10 @@ export class LoginFormComponent  {
     const email = loginData.email ?? '';
     const password = loginData.password ?? '';
     
-     this.as.authenticate(email, password).subscribe(
+     this.as.authenticate(email, password).pipe(
+          // Use finalize to ensure hide() is called whether the request succeeds or fails
+          finalize(() => this.loaderService.hide())
+        ).subscribe(
       _ => {
         this.localLoginState = LocalLoginState.Success;
 
