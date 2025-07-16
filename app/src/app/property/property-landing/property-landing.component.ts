@@ -1,8 +1,11 @@
 import { Component, ViewChildren, QueryList, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { GetAllPropertiesServiceService, PropertyModel } from '../services/get-all-properties-service.service';
 import { MatMenuTrigger, MatMenu } from '@angular/material/menu';
-import { takeUntil, Subject } from 'rxjs';
+import { takeUntil, Subject, catchError, map } from 'rxjs';
 import { Router } from '@angular/router';
+import { AppConfig } from '../../Appconfig';
+import { HttpClient } from "@angular/common/http";
+import { ErrorHandlingCommonServiceService } from '../../Common/Services/error-handling-common-service.service';
 
 @Component({
   selector: 'app-property-landing',
@@ -37,24 +40,44 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
   activeMenuItem: any | null = null;
   private currentOpenTrigger: MatMenuTrigger | null = null;
   private isMenuPanelHovered: boolean = false;
+  private pathAPI : string;
 
-  navItems = [
-    { label: 'Design spotlight', hasDropdown: true },
-    { label: 'Business', hasDropdown: true },
-    { label: 'Education', hasDropdown: true },
-    { label: 'Plans and pricing', hasDropdown: true },
-    { label: 'Learn', hasDropdown: true }
-  ];
+  navItems: any[] = [];
 
   constructor(
-    private dropdownService: GetAllPropertiesServiceService,private router: Router
-  ) {}
+    private router: Router, private config: AppConfig
+    ,private http: HttpClient, private errorHandling: ErrorHandlingCommonServiceService
+  ) {this.pathAPI = this.config.setting['PathAPI'];}
+
+
+getMenuItems() {
+  console.log('Fetching dropdown options from API:', this.pathAPI + 'v1/Menu');
+
+  return this.http.get<any>(this.pathAPI + 'v1/GetListByUserId').pipe(
+    map(response => {
+      console.log('Raw API response:', response.results);
+      return response; // or map your data
+    }),
+    catchError((err) => this.errorHandling.handleError(err))
+  );
+}
+
+
 
   ngAfterViewInit() {
     this.megaMenuTriggerRefs.changes.pipe(takeUntil(this.destroy$)).subscribe(() => {
       // Logic if triggers change dynamically
     });
+
     document.addEventListener('click', this.onDocumentClick.bind(this));
+
+     this.getMenuItems().subscribe({
+    next: (data) => {
+      this.navItems = data.results || [];  // <-- dynamically assign to navItems
+      console.log('Menu data:', this.navItems);
+    },
+    error: (err) => console.error('Error occurred while fetching menu items:', err)
+  });
   }
 
   ngOnDestroy() {

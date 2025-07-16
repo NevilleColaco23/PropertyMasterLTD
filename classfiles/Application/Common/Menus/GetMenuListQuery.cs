@@ -6,27 +6,27 @@ using MyWarehouse.Application.Common.Menus.MenuQueries;
 
 namespace MyWarehouse.Application.Common.Menus
 {
-    public class GetMenuListQuery : ListQueryModel<GetMenuListDTO>
+    public class GetMenuListQuery : ListQueryModel<GetMenuPermissionMappingListDTO>
     {
-        public TransactionType? Type { get; init; }
+        public int userId { get; init; }
     }
 
-    public class GetMenuListQueryHandler : IRequestHandler<GetMenuListQuery, IListResponseModel<GetMenuListDTO>>
+    public class GetMenuListQueryHandler : IRequestHandler<GetMenuListQuery, IListResponseModel<GetMenuPermissionMappingListDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
 
         public GetMenuListQueryHandler(IUnitOfWork unitOfWork)
             => _unitOfWork = unitOfWork;
 
-        public async Task<IListResponseModel<GetMenuListDTO>> Handle(GetMenuListQuery request,
+        public async Task<IListResponseModel<GetMenuPermissionMappingListDTO>> Handle(GetMenuListQuery request,
             CancellationToken cancellationToken)
         {
             DataTable templateTable = new();
 
-            var menuList = _unitOfWork.Menus?.GetListBy<GetMenuListDTO>(MongoCollections.MenuCollection
-                      , new GetMenuListQueryByUserId(1)); //TODO : hardcoded user id
+            var menuList = _unitOfWork.MenuPermissions?.GetListBy<GetMenuPermissionMappingListDTO>(MongoCollections.MenuPermissionsCollection
+                      , new GetMenuListQueryByUserId(1));//request.userId
 
-            var response = new ListResponseModel<GetMenuListDTO>
+            var response = new ListResponseModel<GetMenuPermissionMappingListDTO>
             {
                 PageIndex = 1,
                 PageSize = request.PageSize,
@@ -36,7 +36,7 @@ namespace MyWarehouse.Application.Common.Menus
                 ActiveOrderBy = request.OrderBy,
                 FirstRowOnPage = 1,
                 LastRowOnPage = 1,
-                Results = menuList ?? new List<GetMenuListDTO>()
+                Results = menuList ?? new List<GetMenuPermissionMappingListDTO>()
             };
 
             return await Task.FromResult(response);

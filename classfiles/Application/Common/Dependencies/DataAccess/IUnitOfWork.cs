@@ -11,6 +11,7 @@ public interface IUnitOfWork : IDisposable
     public IUsersRepository? Users { get; }
     public IAccessLogRepository? AccessLogs { get; }
     public IMenuRepository? Menus { get; }
+    public IMenuPermissionRepository? MenuPermissions { get; }
 
     bool HasActiveTransaction { get; }
 

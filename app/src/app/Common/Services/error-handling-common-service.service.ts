@@ -10,6 +10,7 @@ export class ErrorHandlingCommonServiceService {
   constructor() { }
 
   handleError(error: HttpErrorResponse) {
+    console.log('Error occurred:', error);
     // Handle the error appropriately
     let errorMessage = 'Unknown error!';
     if (error.error instanceof ErrorEvent) {

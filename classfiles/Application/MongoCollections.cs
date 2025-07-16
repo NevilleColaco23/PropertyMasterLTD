@@ -9,4 +9,5 @@ public static class MongoCollections
     public const string PropertyRoomMapCollection = "PropertyRoomMap";
     public const string AccessLogCollection = "AccessLog";
     public const string MenuCollection = "Menus";
+    public const string MenuPermissionsCollection = "MenuPermissions";
 }

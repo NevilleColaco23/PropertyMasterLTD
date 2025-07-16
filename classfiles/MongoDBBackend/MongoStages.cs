@@ -15,6 +15,9 @@
         public const string AND = "$and";
         public const string IN = "$in";
         public const string EQ = "$eq";
+        public const string SORT = "$sort";
+        public const string REPLACEROOT = "$replaceRoot";
+        public const string MERGEOBJECTS = "$mergeObjects";
     }
 
 }
