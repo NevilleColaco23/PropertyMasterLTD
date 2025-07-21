@@ -21,7 +21,7 @@ import { AuthInterceptor } from './core/auth/services/auth-interceptor.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { LoaderComponent } from './core/loader/loader.component';
-
+import { FormsModule } from '@angular/forms';
 
 
 export function initializeApp(_loggingService: LoggingService) {
@@ -32,12 +32,13 @@ export function initializeApp(_loggingService: LoggingService) {
   declarations: [
     AppComponent,
     LoginFormComponent,
-    LoaderComponent
+    LoaderComponent,
   ],
   imports: [
     BrowserModule,    AppRoutingModule,    BrowserModule,    ReactiveFormsModule,    BrowserAnimationsModule,
     MatInputModule,    MatButtonModule,    MatCardModule,    MatIconModule,    MatDividerModule,
     MatFormFieldModule,MatProgressSpinnerModule,MatProgressBarModule,    HttpClientModule,    FontAwesomeModule,
+    FormsModule
   ],
   providers: [provideHttpClient(),DatePipe,{provide :AppConfig},
     {

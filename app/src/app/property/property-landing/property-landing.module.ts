@@ -8,11 +8,12 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
 import { MatButton } from '@angular/material/button';
-
+import { SearchBoxAutocompleteComponent } from '../../core/search-box-autocomplete/search-box-autocomplete.component';
 
 @NgModule({
   declarations: [
-    PropertyLandingComponent
+    PropertyLandingComponent,
+    SearchBoxAutocompleteComponent
   ],
   imports: [
     CommonModule,

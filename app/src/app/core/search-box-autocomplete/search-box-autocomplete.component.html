@@ -1,0 +1,22 @@
+<div class="search-box-wrapper" #searchBoxWrapper>
+  <input
+    #searchInput
+    type="text"
+    class="search-box"
+    placeholder="Search..."
+    [(ngModel)]="searchQuery"
+    (ngModelChange)="onSearchQueryChanged($event)"
+    (focus)="onSearchFocus()"
+    (keydown)="onKeyDown($event)"
+  />
+
+  <div class="suggestion-box" *ngIf="searchSuggestions.length > 0 || isLoadingSuggestions">
+    <div *ngIf="isLoadingSuggestions">Loading...</div>
+    <ul>
+      <li *ngFor="let suggestion of searchSuggestions; let i = index"
+    [class.active]="i === selectedSuggestionIndex"
+    (click)="onSuggestionClick(suggestion)">
+     {{ suggestion.displayLabel }} </li>
+    </ul>
+  </div>
+</div>

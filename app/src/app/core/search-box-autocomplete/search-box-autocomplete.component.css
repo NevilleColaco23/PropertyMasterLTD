@@ -1,0 +1,59 @@
+.search-box-wrapper {
+    position: relative;
+    /* Adjust width as needed for your layout */
+    width: 250px; /* Example width */
+    display: inline-block; /* Or block, depending on layout */
+}
+
+.search-box {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px; /* Slightly rounded corners */
+    box-sizing: border-box; /* Ensures padding/border don't increase total width */
+    font-size: 16px;
+}
+
+.suggestion-box {
+    position: absolute;
+    top: 100%; /* Position right below the input */
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* Ensures it's on top of other content */
+
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-top: none; /* Create a seamless look with the input border */
+    border-radius: 0 0 4px 4px; /* Rounded corners only at the bottom */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+
+    max-height: 200px; /* Limit height and add scroll if needed */
+    overflow-y: auto;
+}
+
+.suggestion-box ul {
+    list-style: none; /* Remove bullet points */
+    padding: 0;       /* Remove default padding */
+    margin: 0;        /* Remove default margin */
+}
+
+.suggestion-box li {
+    padding: 10px 12px;
+    cursor: pointer;
+    color: #333;
+    font-size: 14px;
+    transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
+}
+
+.suggestion-box li:hover,
+.suggestion-box li.active {
+    background-color: #f0f0f0; /* Light background on hover/active */
+    color: #007bff; /* Blue text for highlight */
+}
+
+.suggestion-box div[ngIf="isLoadingSuggestions"] {
+    padding: 10px 12px;
+    color: #666;
+    text-align: center;
+    font-style: italic;
+}

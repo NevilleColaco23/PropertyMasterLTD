@@ -24,26 +24,9 @@
 </nav>
 
 
-  <div class="search-container-autocomplete">
-    <input type="text" id="searchInput" placeholder="Search..."
-           [(ngModel)]="searchQuery"
-           (input)="onSearchInput()"
-           (keydown)="onKeyDown($event)"
-           (focus)="onSearchFocus()"
-           class="header-search-input">
-    <span class="search-icon">🔍</span>
-    <div id="suggestions" class="suggestions-list"
-         [class.show-suggestions]="showSuggestionsList">
-      <div *ngFor="let suggestion of filteredSuggestions; let i = index"
-           [class.active]="i === activeSuggestionIndex"
-           (click)="selectSuggestion(suggestion)">
-        <span class="search-icon-small" *ngIf="!suggestion.startsWith('Search for ')">🔍</span>
-        <span class="gallery-icon-small" *ngIf="suggestion.includes('Doc') || suggestion.includes('Document')">🖼️</span>
-        {{ suggestion }}
-        <span class="close-icon-small" *ngIf="i === activeSuggestionIndex">✖</span>
-      </div>
-    </div>
-  </div>
+ <app-search-box-autocomplete
+  (searchSelected)="onSearchSelected($event)">
+</app-search-box-autocomplete>
   <div class="example-button-row">
       <button mat-button="filled" (click)="signOut()">Sign Out</button>
   </div>
