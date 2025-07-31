@@ -1,6 +1,5 @@
 import { Component, ViewChildren, QueryList, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
-import { GetAllPropertiesServiceService, PropertyModel } from '../services/get-all-properties-service.service';
-import { MatMenuTrigger, MatMenu } from '@angular/material/menu';
+import { MatMenuTrigger } from '@angular/material/menu';
 import { takeUntil, Subject, catchError, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { AppConfig } from '../../Appconfig';
@@ -31,8 +30,6 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
   private openMenuTimeout: any;
   private destroy$ = new Subject<void>();
   activeMenuItem: any | null = null;
-  private currentOpenTrigger: MatMenuTrigger | null = null;
-  private isMenuPanelHovered: boolean = false;
   private pathAPI : string;
 
   navItems: any[] = [];

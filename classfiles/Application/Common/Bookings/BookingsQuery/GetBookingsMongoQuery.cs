@@ -3,29 +3,29 @@ using MongoDBBackend;
 using MyWarehouse.Application.Common.Dependencies.DataAccess;
 using System.Data;
 
-namespace MyWarehouse.Application.Common.Menus.MenuQueries
+namespace MyWarehouse.Application.Common.Bookings.BookingsQuery
 {
-    internal class GetMenuListQueryByUserId : INamedQuery
+    public class GetBookingsMongoQuery : INamedQuery
     {
-        private readonly int _userId;
+        private readonly string _bookingid;
         private readonly string _filterString;
 
-        public GetMenuListQueryByUserId(int userId)
+        public GetBookingsMongoQuery(string bookingId)
         {
-            _userId = userId;
+            _bookingid = bookingId;
         }
 
-        public BsonArray? BsonPipeline => string.IsNullOrEmpty(_filterString) ? GetMenuItemsPipeline(_userId)
+        public BsonArray? BsonPipeline => string.IsNullOrEmpty(_filterString) ? GetBookingsPipeline(_bookingid)
         : null;
 
-        private BsonArray GetMenuItemsPipeline(int userId)
+        private BsonArray GetBookingsPipeline(string bookingsId)
         {
             return new BsonArray
     {
         // 1. Match user-specific active permissions (excluding hidden)
         new BsonDocument(MongoStages.MATCH, new BsonDocument
         {
-            { "userId", userId },
+            { "userId", bookingsId },
             { "isActive", true },
             { "accessLevel", new BsonDocument("$ne", "hidden") }
         }),

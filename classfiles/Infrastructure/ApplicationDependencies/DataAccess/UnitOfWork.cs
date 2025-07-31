@@ -19,9 +19,10 @@ internal class UnitOfWork : IUnitOfWork
     public IAccessLogRepository AccessLogs { get; }
     public IMenuRepository Menus { get; }
     public IMenuPermissionRepository MenuPermissions { get; }
+    public IBookingsRepository Bookings { get; }
 
     public UnitOfWork(ApplicationDbContext dbContext, IPartnerRepository partners, IProductRepository products, ITransactionRepository transactions, IPropertyRepository properties
-        , IAccessLogRepository accessLogs, IUsersRepository users, IMenuRepository menus, IMenuPermissionRepository menusPermissions)
+        , IAccessLogRepository accessLogs, IUsersRepository users, IMenuRepository menus, IMenuPermissionRepository menusPermissions, IBookingsRepository bookings)
     {
         _dbContext = dbContext;
         Partners = partners;
@@ -32,6 +33,7 @@ internal class UnitOfWork : IUnitOfWork
         Users = users;
         Menus = menus;
         MenuPermissions = menusPermissions;
+        Bookings = bookings;
     }
 
     public void Dispose()

@@ -1,33 +1,51 @@
 <header class="main-header">
   <div class="logo">
+    <!-- Ensure this path is correct for your Canva logo -->
     <img src="your-canva-logo-path.png" alt="Canva Logo" class="canva-logo">
   </div>
 
   <nav class="navigation-links">
-  <div class="nav-item-wrapper" *ngFor="let item of navItems">
-    <a href="{{ item.path || '#' }}" class="nav-item">
-      {{ item.label }}
-      <span *ngIf="item.hasDropdown" class="arrow-down"></span>
-    </a>
+    <!-- Iterate over main navigation items -->
+    <div class="nav-item-wrapper" *ngFor="let item of navItems">
+      <!-- Main navigation link -->
+      <a href="{{ item.path || '#' }}" class="nav-item">
+        {{ item.label }}
+        <!-- Display dropdown arrow only if it has sub-items -->
+        <span *ngIf="item.hasDropdown && item.subItems?.length" class="arrow-down"></span>
+      </a>
 
-    <div class="mega-menu-panel" *ngIf="item.hasDropdown && item.subItems?.length">
-      <div class="mega-menu-content">
-        <div class="mega-menu-column" *ngFor="let sub of item.subItems">
-          <h3>{{ sub.subLabel }}</h3>
-          <ul>
-            <li><a [routerLink]="sub.subPath">{{ sub.subLabel }}</a></li>
-          </ul>
+      <!-- Mega Menu Panel for dropdowns -->
+      <!-- Only show if item.hasDropdown is true AND there are subItems -->
+      <div class="mega-menu-panel" *ngIf="item.hasDropdown && item.subItems?.length">
+        <div class="mega-menu-content">
+          <!--
+            Instead of creating a new 'mega-menu-column' for each 'sub' item,
+            we'll create one column (or more if you add grouping logic)
+            and then list all sub-items within it.
+            The '<h3>' for each 'sub' was redundant as 'sub' itself is a link.
+          -->
+          <div class="mega-menu-column">
+            <!-- Optional: A heading for the entire dropdown section,
+                 e.g., "Design Spotlight Options" -->
+            <!-- <h3 *ngIf="item.label !== 'Canva Logo'">{{ item.label }} Options</h3> -->
+
+            <ul>
+              <!-- Iterate over subItems to create list items (links) -->
+              <li *ngFor="let sub of item.subItems">
+                <a [routerLink]="sub.subPath">{{ sub.subLabel }}</a>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</nav>
+  </nav>
 
+  <app-search-box-autocomplete
+    (searchSelected)="onSearchSelected($event)">
+  </app-search-box-autocomplete>
 
- <app-search-box-autocomplete
-  (searchSelected)="onSearchSelected($event)">
-</app-search-box-autocomplete>
   <div class="example-button-row">
-      <button mat-button="filled" (click)="signOut()">Sign Out</button>
+    <button mat-button="filled" (click)="signOut()">Sign Out</button>
   </div>
-  </header>
+</header>

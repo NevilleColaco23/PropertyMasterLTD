@@ -23,7 +23,6 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { LoaderComponent } from './core/loader/loader.component';
 import { FormsModule } from '@angular/forms';
 
-
 export function initializeApp(_loggingService: LoggingService) {
   return (): void => {// This will ensure the logging service is instantiated
   };}
