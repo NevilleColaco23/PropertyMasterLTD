@@ -1,28 +1,29 @@
 ﻿using MongoDB.Bson;
+using MyWarehouse.Application.Models;
 
 namespace MyWarehouse.Application.Common.Bookings
 {
     public class GetBookingsListDTO
     {
-        public ObjectId _id { get; set; } 
+        public long _id { get; set; } 
 
-        public string BookingId { get; set; }
+        public string bookingId { get; set; }
 
-        public long GuestId { get; set; }
+        public long guestId { get; set; }
 
         public long StaffId { get; set; }
 
-        public string RoomNumber { get; set; }
+        public string roomNumber { get; set; }
 
-        public DateTime BookingDate { get; set; }
+        public DateTime bookingDate { get; set; }
 
         public DateTime CheckInDate { get; set; }
 
         public DateTime CheckOutDate { get; set; }
 
-        public int NumberOfGuests { get; set; }
+        public int numberOfGuests { get; set; }
 
-        public double TotalPrice { get; set; } 
+        public double totalPrice { get; set; } 
 
         public string PaymentStatusId { get; set; }
 
@@ -30,7 +31,7 @@ namespace MyWarehouse.Application.Common.Bookings
 
         public List<string> SpecialRequests { get; set; }
 
-        public bool IsConfirmed { get; set; }
+        public bool isConfirmed { get; set; }
 
         public DateTime LastModified { get; set; }
     }

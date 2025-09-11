@@ -55,6 +55,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataBackup", "DataBackup", 
 		..\..\..\..\..\Downloads\ListingDB\Users.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\Users.metadata.json.gz
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APIUnitProject.Tests", "APIUnitProject.Tests\APIUnitProject.Tests.csproj", "{72FAD0C2-922C-464D-8405-4D2829D613A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,10 @@ Global
 		{2601C8AF-B085-4611-B3C2-C8BC5E00F60F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2601C8AF-B085-4611-B3C2-C8BC5E00F60F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2601C8AF-B085-4611-B3C2-C8BC5E00F60F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72FAD0C2-922C-464D-8405-4D2829D613A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72FAD0C2-922C-464D-8405-4D2829D613A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72FAD0C2-922C-464D-8405-4D2829D613A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72FAD0C2-922C-464D-8405-4D2829D613A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

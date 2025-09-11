@@ -50,11 +50,9 @@ onSearchSelected(selectedResult: GetSearchResultsDTO) {
 }
 
 getMenuItems() {
-  console.log('Fetching dropdown options from API:', this.pathAPI + 'v1/Menu');
 
   return this.http.get<any>(this.pathAPI + 'v1/menu/GetListByUserId').pipe(
     map(response => {
-      console.log('Raw API response:', response.results);
       return response; // or map your data
     }),
     catchError((err) => this.errorHandling.handleError(err))
@@ -63,13 +61,11 @@ getMenuItems() {
  
 ngAfterViewInit() {
     this.megaMenuTriggerRefs.changes.pipe(takeUntil(this.destroy$)).subscribe(() => {
-      // Logic if triggers change dynamically
     });
 
      this.getMenuItems().subscribe({
     next: (data) => {
-      this.navItems = data.results || [];  // <-- dynamically assign to navItems
-      console.log('Menu data:', this.navItems);
+      this.navItems = data.results || [];
     },
     error: (err) => console.error('Error occurred while fetching menu items:', err)
   });

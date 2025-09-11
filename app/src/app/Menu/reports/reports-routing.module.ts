@@ -4,8 +4,6 @@ import { RouterModule, Routes } from '@angular/router';
 import { ReportsComponent } from '../reports/reports.component';
 
 const routes: Routes = [
-  // The path here is relative to the parent lazy-loaded path ('/reports')
-  // So, '/reports/bookings' will load BookingsReportComponent
   { path: 'bookings', component: ReportsComponent },
   // Add a default route for '/reports' if needed
   // { path: '', component: ReportsDashboardComponent },

@@ -1,0 +1,16 @@
+﻿# 1. Begin the SonarQube analysis
+# This command initializes the analysis process.
+dotnet sonarscanner begin /k:"MyWarehouseAPI" /d:sonar.host.url="http://localhost:9000" /d:sonar.login="YOUR_SONAR_TOKEN" /d:sonar.cs.cobertura.reportsPaths="APIUnitProject.Tests/coverage/cobertura.xml" /d:sonar.coverage.exclusions="**/*.Tests.cs,**/*.Tests.csproj"
+
+# 2. Build your solution
+# SonarScanner needs the compiled code to perform its analysis.
+dotnet build "Project to publish.sln"
+
+# 3. Run your tests to generate the code coverage report
+# This must be run AFTER the build, as it produces the coverage XML that SonarQube will consume.
+dotnet test APIUnitProject.Tests/APIUnitProject.Tests.csproj /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=./coverage/cobertura.xml
+
+# 4. End the SonarQube analysis
+# This command finalizes the analysis and sends all collected data (code quality and coverage)
+# to your running SonarQube server.
+dotnet sonarscanner end /d:sonar.login="YOUR_SONAR_TOKEN"

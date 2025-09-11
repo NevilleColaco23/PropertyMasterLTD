@@ -1,0 +1,8 @@
+﻿C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\APIUnitProject.Tests\ControllersTest\AccountControllerTests.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\APIUnitProject.Tests\UnitTest1.cs
+C:\Users\nevil\.nuget\packages\microsoft.net.test.sdk\17.8.0\build\netcoreapp3.1\Microsoft.NET.Test.Sdk.Program.cs
+C:\Users\nevil\.nuget\packages\microsoft.testplatform.testhost\17.8.0\build\netcoreapp3.1\x64\testhost.exe
+C:\Users\nevil\.nuget\packages\microsoft.testplatform.testhost\17.8.0\build\netcoreapp3.1\x64\testhost.dll
+C:\Users\nevil\.nuget\packages\xunit.runner.visualstudio\2.5.3\build\net6.0\xunit.runner.visualstudio.dotnetcore.testadapter.dll
+C:\Users\nevil\.nuget\packages\xunit.runner.visualstudio\2.5.3\build\net6.0\xunit.runner.reporters.netcoreapp10.dll
+C:\Users\nevil\.nuget\packages\xunit.runner.visualstudio\2.5.3\build\net6.0\xunit.runner.utility.netcoreapp10.dll

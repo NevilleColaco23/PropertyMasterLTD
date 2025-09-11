@@ -1,22 +1,20 @@
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { Observable, catchError, map, of } from 'rxjs'; // For RxJS operations
+import {catchError, map, of } from 'rxjs'; // For RxJS operations
 import { AppConfig } from '../../Appconfig'; // For your API path
 import { ErrorHandlingCommonServiceService } from '../../Common/Services/error-handling-common-service.service'; // Your error handling service
 
 export interface Booking {
-  _id: string; // MongoDB's default ID
+  _id: string;
   bookingId: string;
-  customerName: string;
-  serviceType: string;
-  bookingDate: string; // Or Date, if you'll convert it
-  status: string;
-  amount: number;
-  currency: string;
-  notes?: string; // Optional field
+  guestId: number;
+  roomNumber: string;
+  BookingDate: Date;
+  totalPrice: number;
+  isConfirmed: boolean;
 }
 
 @Component({
@@ -28,7 +26,7 @@ export interface Booking {
 export class ReportsComponent implements OnInit, AfterViewInit {
 
   // Columns to display in the table, order matters
-  displayedColumns: string[] = ['bookingId', 'customerName', 'serviceType', 'bookingDate', 'amount', 'status', 'actions'];
+  displayedColumns: string[] = ['bookingId', 'guestId', 'serviceType', 'bookingDate', 'amount', 'isConfirmed', 'actions'];
 
   // DataSource for the Material Table
   dataSource = new MatTableDataSource<Booking>();
@@ -58,7 +56,7 @@ export class ReportsComponent implements OnInit, AfterViewInit {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
 
-    // Apply filter predicate for searching across all columns
+    // Apply filter predicate fo r searching across all columns
     this.dataSource.filterPredicate = (data: Booking, filter: string): boolean => {
       // Convert all string values of the booking object to lowercase for case-insensitive matching
       const dataStr = Object.keys(data).reduce((currentTerm: string, key: string) => {
@@ -76,17 +74,27 @@ export class ReportsComponent implements OnInit, AfterViewInit {
 
   getBookings(): void {
     this.isLoading = true; // Start loading indicator
-    this.http.get<any>(this.pathAPI + 'v1/Bookings') // Adjust your API endpoint
+
+    // 1. Create a new HttpParams instance
+  let params = new HttpParams();
+
+  // 2. Append each query parameter using the .set() method
+  params = params.set('BookingId', '66');
+  params = params.set('PageIndex', '9');
+  params = params.set('PageSize', '7');
+  params = params.set('OrderBy', '4');
+  params = params.set('Filter', '10');
+    this.http.get<any>(this.pathAPI + 'v1/Bookings/GetBookings', { params: params })
       .pipe(
         map(response => {
-          // Assuming your API returns an object like { results: Booking[] }
+          console.log('API response12:', response.results);
           return response.results as Booking[];
         }),
         catchError(error => {
-          this.isLoading = false; // Stop loading on error
+          this.isLoading = false; 
           console.error('Error fetching bookings:', error);
-          this.errorHandling.handleError(error); // Use your common error handling
-          return of([]); // Return an empty array to prevent breaking the observable chain
+          this.errorHandling.handleError(error);
+          return of([]);
         })
       )
       .subscribe({

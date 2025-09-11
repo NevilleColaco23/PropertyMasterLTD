@@ -1,0 +1,4 @@
+﻿C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\SampleData\DataGenerator.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\SampleData\Samples\SamplePartners.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\SampleData\Samples\SampleProducts.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\SampleData\Samples\SampleTransactions.cs

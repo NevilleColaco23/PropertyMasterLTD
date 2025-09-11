@@ -4,6 +4,7 @@ using MyWarehouse.Infrastructure.Authentication.Core.Services;
 using MyWarehouse.Infrastructure.Authentication.External.Services;
 using MyWarehouse.Infrastructure.Authentication.Dtos;
 using MyWarehouse.Infrastructure.Authentication.Models.Dtos;
+using MyWarehouse.WebApi.Authentication.Dtos;
 
 namespace MyWarehouse.Infrastructure.API.V1;
 
@@ -40,11 +41,11 @@ public class AccountController : ControllerBase
 
         return result switch
         {
-            MySignInResult.Success => Ok(new
+            MySignInResult.Success => Ok(new OAuth2TokenResponseDto
             {
-                access_token = model!.Token.AccessToken,
-                token_type = model.Token.TokenType,
-                expires_in = model.Token.GetRemainingLifetimeSeconds()
+                AccessToken = model!.Token.AccessToken,
+                TokenType = model.Token.TokenType,
+                ExpiresIn = model.Token.GetRemainingLifetimeSeconds()
             }),
             _ => Unauthorized()
         };

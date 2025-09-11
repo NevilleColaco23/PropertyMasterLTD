@@ -22,7 +22,7 @@ namespace MyWarehouse.Application.Common.Bookings
         {
             DataTable templateTable = new();
 
-            var menuList = _unitOfWork.MenuPermissions?.GetListBy<GetBookingsListDTO>(MongoCollections.BookingsCollection
+            var menuList = _unitOfWork.Bookings?.GetListBy<GetBookingsListDTO>(MongoCollections.BookingsCollection
                       , new GetBookingsMongoQuery(request.BookingId));
 
             var response = new ListResponseModel<GetBookingsListDTO>

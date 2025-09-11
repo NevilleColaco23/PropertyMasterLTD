@@ -10,9 +10,11 @@ const routes: Routes = [
     .then(m => m.DashboardDefaultModule) },
     { path: 'create-user',loadChildren: () => import('./core/auth/create-user/create-user.module').then(m => m.CreateUserModule)
   },
-  { path: 'propertyLanding', loadChildren: () => import('./property/property-landing/property-landing.module').then(m => m.PropertyLandingModule) 
-    ,canActivate: [AuthGuard]
-  }
+  {path: 'propertyLanding', loadChildren: () => import('./property/property-landing/property-landing.module').then(m => m.PropertyLandingModule) 
+    ,canActivate: [AuthGuard]},
+    
+    {path: 'bookingsReport',
+    loadChildren: () => import('./Menu/reports/reports.module').then(m => m.ReportsModule)}
 ];
 
 

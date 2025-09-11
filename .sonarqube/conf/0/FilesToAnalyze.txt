@@ -1,0 +1,26 @@
+﻿C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\AccessLog\AccessLog.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\AssemblyConfig.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Bookings\Bookings.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Common\IAudited.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Common\IEntity.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Common\ISoftDeletable.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Common\Menus\Menus.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Common\Menus\MenusPermissions.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Common\MyEntity.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Common\ValueObjects\Mass\Mass.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Common\ValueObjects\Mass\MassUnit.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Common\ValueObjects\Money\Currency.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Common\ValueObjects\Money\Money.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Exceptions\InsufficientStockException.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\GlobalUsings.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Other Entities\KeyCounter.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Partners\Address.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Partners\Partner.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Partners\PartnerInvariants.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Products\Product.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Products\ProductInvariants.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Property\Property.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Transactions\Transaction.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Transactions\TransactionLine.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Transactions\TransactionType.cs
+C:\Users\nevil\OneDrive\Desktop\Projects to learn\workspace\Project to publish\classfiles\Domain\Users\Users.cs

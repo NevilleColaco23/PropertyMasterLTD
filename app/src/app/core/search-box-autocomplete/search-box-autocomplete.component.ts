@@ -90,20 +90,8 @@ export class SearchBoxAutocompleteComponent implements AfterViewInit, OnDestroy 
 
 
   getSearchSuggestionsFromApi(query: string) {
-    // Specify the expected API response type: ApiResponse<GetSearchResultsDTO>
     return this.http.get<ApiResponse<GetSearchResultsDTO>>(`${this.pathAPI}v1/menu/search?SearchText=${query}`)
        .pipe(
-      //   map(response => {
-      //     console.log('Raw API response for search suggestions:', response);
-
-      //     // Access the 'results' array from the response object
-      //     // and then map over that array.
-      //     return response.results.map(item => ({
-      //       ...item,
-      //       displayLabel: item.parentLabel ? `${item.parentLabel} > ${item.label}` : item.label
-      //     }));
-      //   }),
-      // Inside getSearchSuggestionsFromApi method, within the map operator:
 map(response => {
   console.log('Raw API response for search suggestions:', response);
 
@@ -111,7 +99,6 @@ map(response => {
     const labelFromApi = Array.isArray(item.searchedItem) && item.searchedItem.length > 0
                          ? item.searchedItem[0]
                          : (typeof item.searchedItem === 'string' ? item.searchedItem : ''); // Handle if it's a string or other cases
-
               return {
                 label: labelFromApi,
                 path: item.path || '', // Make sure 'path' exists, provide default if not

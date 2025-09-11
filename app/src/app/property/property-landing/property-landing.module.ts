@@ -7,8 +7,12 @@ import { FormsModule } from '@angular/forms';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
+import { MatCard } from '@angular/material/card';
 import { MatButton } from '@angular/material/button';
 import { SearchBoxAutocompleteComponent } from '../../core/search-box-autocomplete/search-box-autocomplete.component';
+import { MatCardModule  } from '@angular/material/card';
+import { MatProgressBarModule  } from '@angular/material/progress-bar';
+import { MatPaginatorModule  } from '@angular/material/paginator';
 
 @NgModule({
   declarations: [
@@ -22,7 +26,11 @@ import { SearchBoxAutocompleteComponent } from '../../core/search-box-autocomple
     MatToolbarModule,
     MatMenuModule,
     MatIcon,
+    MatCard,
     MatButton,
+    MatCardModule,
+    MatProgressBarModule,
+    MatPaginatorModule,
     PropertyLandingRoutingModule
   ]
 })
