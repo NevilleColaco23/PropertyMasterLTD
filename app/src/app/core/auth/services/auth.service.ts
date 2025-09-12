@@ -70,6 +70,7 @@ public signUp(username : string,email :string,password:string,phone:string){
     console.log('token valid till:', expiresAt.setTime(Date.now() + (data.expiresIn * 1000)));
 
     localStorage.setItem('auth_userData', JSON.stringify(data));
+    console.log('Storing data:', data);
     localStorage.setItem('auth_tokenString', `${data.tokenType} ${data.accessToken}`);
     localStorage.setItem('auth_tokenExpiresAt', expiresAt.getTime().toString());
     this._signInState.next(data);

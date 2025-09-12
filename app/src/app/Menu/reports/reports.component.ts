@@ -28,7 +28,8 @@ export class ReportsComponent implements OnInit, AfterViewInit {
   // Corrected: Updated column names to match the matColumnDef IDs in the HTML.
   displayedColumns: string[] = ['bookingId', 'guestId', 'roomNumber', 'bookingDate', 'totalPrice', 'isConfirmed', 'actions'];
   dataSource = new MatTableDataSource<Booking>();
-
+  panelOpenState = true;
+  
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 

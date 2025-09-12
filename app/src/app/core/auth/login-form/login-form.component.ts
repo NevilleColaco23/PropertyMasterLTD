@@ -47,8 +47,7 @@ export class LoginFormComponent  {
     const password = loginData.password ?? '';
     
      this.as.authenticate(email, password).pipe(
-          // Use finalize to ensure hide() is called whether the request succeeds or fails
-          finalize(() => this.loaderService.hide())
+          finalize(() => this.loaderService.hide()) // Use finalize to ensure hide() is called whether the request succeeds or fails
         ).subscribe(
       _ => {
         this.localLoginState = LocalLoginState.Success;

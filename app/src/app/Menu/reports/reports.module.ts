@@ -17,6 +17,7 @@ import { HttpClientModule } from '@angular/common/http'; // Make sure this is im
 import { AppConfig } from '../../Appconfig'; // Assuming you have AppConfig for API path
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @NgModule({
   declarations: [ ReportsComponent],
@@ -32,7 +33,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     MatInputModule,
     MatIconModule,
     MatCheckboxModule,
-    HttpClientModule
+    HttpClientModule,
+    MatExpansionModule
   ],
   providers: [
     // Provide AppConfig and ErrorHandlingCommonServiceService here

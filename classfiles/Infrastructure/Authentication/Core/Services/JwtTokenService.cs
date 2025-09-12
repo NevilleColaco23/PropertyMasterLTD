@@ -18,7 +18,7 @@ public class JwtTokenService : ITokenService
     public TokenModel CreateAuthenticationToken(string userId, string uniqueName,
         IEnumerable<(string claimType, string claimValue)>? customClaims = null)
     {
-        var expiration = DateTime.UtcNow.AddMinutes(5);  //DateTime.UtcNow.AddDays(7);
+        var expiration = DateTime.UtcNow.AddMinutes(5);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new Claim[]
@@ -31,7 +31,8 @@ public class JwtTokenService : ITokenService
                 customClaims?.Select(x => new Claim(x.claimType, x.claimValue)) ?? Enumerable.Empty<Claim>())
             ),
             Expires = expiration,
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(_authSettings.JwtSigningKey), SecurityAlgorithms.HmacSha256Signature)
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(_authSettings.JwtSigningKey),
+            SecurityAlgorithms.HmacSha256Signature)
         };
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
