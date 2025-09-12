@@ -13,6 +13,7 @@ import { SearchBoxAutocompleteComponent } from '../../core/search-box-autocomple
 import { MatCardModule  } from '@angular/material/card';
 import { MatProgressBarModule  } from '@angular/material/progress-bar';
 import { MatPaginatorModule  } from '@angular/material/paginator';
+import { systemmessagessnackbarModule } from '../../core/system-messages-snackbar/system-message-snackbar.module';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,8 @@ import { MatPaginatorModule  } from '@angular/material/paginator';
     MatCardModule,
     MatProgressBarModule,
     MatPaginatorModule,
-    PropertyLandingRoutingModule
+    PropertyLandingRoutingModule,
+    systemmessagessnackbarModule
   ]
 })
 export class PropertyLandingModule { }

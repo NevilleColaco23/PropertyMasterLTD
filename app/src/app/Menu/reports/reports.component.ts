@@ -3,9 +3,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import {catchError, map, of } from 'rxjs'; // For RxJS operations
-import { AppConfig } from '../../Appconfig'; // For your API path
-import { ErrorHandlingCommonServiceService } from '../../Common/Services/error-handling-common-service.service'; // Your error handling service
+import {catchError, map, of } from 'rxjs';
+import { AppConfig } from '../../Appconfig';
+import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 
 export interface Booking {
   _id: string;
@@ -42,7 +42,7 @@ export class ReportsComponent implements OnInit, AfterViewInit {
   constructor(
     private http: HttpClient,
     private appConfig: AppConfig,
-    private errorHandling: ErrorHandlingCommonServiceService
+    private errorHandling: ErrorHandlingService
   ) {
     this.pathAPI = this.appConfig.setting['PathAPI'];
   }
@@ -75,7 +75,7 @@ export class ReportsComponent implements OnInit, AfterViewInit {
   getBookings(): void {
     this.isLoading = true; // Start loading indicator
 
-    // 1. Create a new HttpParams instance
+  // 1. Create a new HttpParams instance
   let params = new HttpParams();
 
   // 2. Append each query parameter using the .set() method
@@ -87,55 +87,46 @@ export class ReportsComponent implements OnInit, AfterViewInit {
     this.http.get<any>(this.pathAPI + 'v1/Bookings/GetBookings', { params: params })
       .pipe(
         map(response => {
-          console.log('API response12:', response.results);
           return response.results as Booking[];
         }),
         catchError(error => {
           this.isLoading = false; 
-          console.error('Error fetching bookings:', error);
           this.errorHandling.handleError(error);
-          return of([]);
+          return this.errorHandling.handleError(error);
         })
       )
       .subscribe({
         next: (data: Booking[]) => {
-          this.dataSource.data = data; // Assign the fetched data to the dataSource
-          this.isLoading = false; // Stop loading indicator
+          this.dataSource.data = data;
+          this.isLoading = false;
+          this.errorHandling.handleSuccess(data.length + ' Bookings loaded successfully!');
         },
         error: (err) => {
-          // Error already handled by catchError, but this can catch final errors if needed
           console.error('Subscription error:', err);
         }
       });
   }
 
-  // Method to apply filter from the search input
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
 
-    // Reset pagination if filter changes
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
   }
 
-  // Example action methods (implement these based on your needs)
   viewBooking(booking: Booking): void {
     console.log('View booking:', booking);
-    // Navigate to a detail page, open a dialog, etc.
   }
 
   editBooking(booking: Booking): void {
     console.log('Edit booking:', booking);
-    // Navigate to an edit page, open an edit form, etc.
   }
 
   deleteBooking(booking: Booking): void {
     if (confirm(`Are you sure you want to delete booking ID: ${booking.bookingId}?`)) {
       console.log('Delete booking:', booking);
-      // Implement actual delete API call here
-      // After successful deletion, refresh data or remove from dataSource
     }
   }
 }

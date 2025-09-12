@@ -1,5 +1,4 @@
-﻿using MongoDB.Driver;
-using MyWarehouse.Application.Common.Mapping;
+﻿using MyWarehouse.Application.Common.Mapping;
 using MyWarehouse.Domain.Common;
 using System.Data;
 using System.Linq.Expressions;

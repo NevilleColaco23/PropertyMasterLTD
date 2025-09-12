@@ -13,6 +13,7 @@ public interface IUnitOfWork : IDisposable
     public IMenuRepository? Menus { get; }
     public IMenuPermissionRepository? MenuPermissions { get; }
     public IBookingsRepository? Bookings { get; }
+    public ISystemMessagesRepository? SystemMessages { get; }
 
     bool HasActiveTransaction { get; }
 

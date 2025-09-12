@@ -2,7 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable, map, catchError } from "rxjs";
 import { environment } from '../../../../environments/environment';
-import { ErrorHandlingCommonServiceService } from '../../../Common/Services/error-handling-common-service.service';
+import { ErrorHandlingService } from '../../../core/system-messages-snackbar/service/error-handling-service.service';
 
 export interface AuthenticationSuccessData {
     accessToken: string;
@@ -20,7 +20,7 @@ export class GetAllPropertiesService {
   public event: any;
   private pathAPI: string = environment.apiUrl;
 
-  constructor(private http: HttpClient, private errorHandling: ErrorHandlingCommonServiceService) {
+  constructor(private http: HttpClient, private errorHandling: ErrorHandlingService) {
   }
 
   getDropdownOptions(): Observable<any[]> {

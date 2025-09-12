@@ -4,7 +4,7 @@ import { takeUntil, Subject, catchError, map } from 'rxjs';
 import { Router } from '@angular/router';
 import { AppConfig } from '../../Appconfig';
 import { HttpClient } from "@angular/common/http";
-import { ErrorHandlingCommonServiceService } from '../../Common/Services/error-handling-common-service.service';
+import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { GetSearchResultsDTO } from '../../core/search-box-autocomplete/search-box-autocomplete.component';
 
 @Component({
@@ -36,7 +36,7 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private router: Router, private config: AppConfig
-    ,private http: HttpClient, private errorHandling: ErrorHandlingCommonServiceService
+    ,private http: HttpClient, private errorHandling: ErrorHandlingService
   ) {this.pathAPI = this.config.setting['PathAPI'];}
 
 onSearchSelected(selectedResult: GetSearchResultsDTO) {

@@ -28,6 +28,7 @@ internal static class Startup
         services.AddScoped<IMenuRepository, MenuRepositoryMongo>();
         services.AddScoped<IMenuPermissionRepository, MenuPermissionRepositoryMongo>();
         services.AddScoped<IBookingsRepository, BookingsRepositoryMongo>();
+        services.AddScoped<ISystemMessagesRepository, SystemMessagesRepositoryMongo>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddTransient<IDateTime, DateTimeService>();

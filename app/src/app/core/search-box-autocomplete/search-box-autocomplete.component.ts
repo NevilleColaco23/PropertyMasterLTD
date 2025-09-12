@@ -1,7 +1,7 @@
 import { Component,  ElementRef,  ViewChild,  AfterViewInit,  OnDestroy, Output, EventEmitter } from '@angular/core';
 import { debounceTime,  distinctUntilChanged,  Subject,  takeUntil,  catchError,  map,  of,} from 'rxjs';
 import { Router } from '@angular/router';
-import { ErrorHandlingCommonServiceService } from '../../Common/Services/error-handling-common-service.service';
+import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { HttpClient } from "@angular/common/http";
 import { AppConfig } from '../../Appconfig';
 
@@ -43,7 +43,7 @@ export class SearchBoxAutocompleteComponent implements AfterViewInit, OnDestroy 
   @ViewChild('searchBoxWrapper') searchBoxWrapper!: ElementRef;
 
   constructor(   
-    private router: Router, private errorHandling: ErrorHandlingCommonServiceService,private http: HttpClient
+    private router: Router, private errorHandling: ErrorHandlingService,private http: HttpClient
   ,private config: AppConfig) {
       this.pathAPI = this.config.setting['PathAPI'];
     }
