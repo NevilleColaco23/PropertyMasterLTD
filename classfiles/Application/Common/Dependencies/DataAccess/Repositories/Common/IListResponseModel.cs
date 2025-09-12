@@ -10,9 +10,11 @@ public interface IListResponseModel<T>
 
     string? ActiveFilter { get; }
     string? ActiveOrderBy { get; }
+    int ActiveSortDirection { get; }
 
     int FirstRowOnPage { get; }
     int LastRowOnPage { get; }
+    string SearchItem { get; }
 
     IEnumerable<T> Results { get; set; }
 }
@@ -26,8 +28,10 @@ public class ListResponseModel<T> : IListResponseModel<T>
     public int TotalRowCount { get; set; }
     public string? ActiveFilter { get; set; }
     public string? ActiveOrderBy { get; set; }
+    public int ActiveSortDirection { get; set; }
     public int FirstRowOnPage { get; set; }
     public int LastRowOnPage { get; set; }
+    public string SearchItem { get; set; }
     public IEnumerable<T> Results { get; set; } = new List<T>();
 }
 

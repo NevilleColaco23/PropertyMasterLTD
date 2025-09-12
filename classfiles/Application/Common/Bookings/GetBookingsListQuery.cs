@@ -23,7 +23,7 @@ namespace MyWarehouse.Application.Common.Bookings
             DataTable templateTable = new();
 
             var menuList = _unitOfWork.Bookings?.GetPagedListBy<GetBookingsListDTO>(MongoCollections.BookingsCollection
-                      , new GetBookingsMongoQuery(request.BookingId,request.PageIndex,request.PageSize));
+                      , new GetBookingsMongoQuery(request.BookingId,request.SearchItem,request.PageIndex,request.PageSize,request.OrderBy,request.ActiveSortDirection));
 
             var response = new ListResponseModel<GetBookingsListDTO>
             {

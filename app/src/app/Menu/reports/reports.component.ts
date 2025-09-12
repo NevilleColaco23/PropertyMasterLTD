@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
+import { MatSort, Sort } from '@angular/material/sort';
 import {catchError, map,of } from 'rxjs';
 import { AppConfig } from '../../Appconfig';
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
@@ -26,7 +26,7 @@ export interface Booking {
 export class ReportsComponent implements OnInit, AfterViewInit {
 
   // Corrected: Updated column names to match the matColumnDef IDs in the HTML.
-  displayedColumns: string[] = ['bookingId', 'guestId', 'serviceType', 'bookingDate', 'amount', 'isConfirmed', 'actions'];
+  displayedColumns: string[] = ['bookingId', 'guestId', 'roomNumber', 'bookingDate', 'totalPrice', 'isConfirmed', 'actions'];
   dataSource = new MatTableDataSource<Booking>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -34,7 +34,10 @@ export class ReportsComponent implements OnInit, AfterViewInit {
 
   isLoading = false;
   private pathAPI: string;
-  
+  orderBy = 'lastModified'; // Default sorting column
+  sortOrder = 'desc'; // Default sorting order
+  filterString = '';
+
   // Corrected: Initialize totalCount to 0 to be updated by API response.
   totalCount = 0; 
   pageSize = 10;
@@ -61,6 +64,10 @@ export class ReportsComponent implements OnInit, AfterViewInit {
       this.onPageChange(event);
     });
     
+  this.sort.sortChange.subscribe((sort: Sort) => {
+      this.onSortChange(sort);
+    }); 
+
     this.dataSource.sort = this.sort;
     this.dataSource.filterPredicate = (data: Booking, filter: string): boolean => {
       const dataStr = Object.keys(data).reduce((currentTerm: string, key: string) => {
@@ -80,6 +87,28 @@ export class ReportsComponent implements OnInit, AfterViewInit {
     this.getBookings();
   }
 
+onSortChange(sort: Sort): void {
+    // Corrected: Map the sort direction to a value the API understands (e.g., 'asc' or 'desc')
+    this.orderBy = sort.active;
+    this.sortOrder = sort.direction === 'asc' ? 'asc' : 'desc';
+    
+    // Reset page index to 0 when a new sort is applied
+    this.paginator.pageIndex = 0;
+    this.pageIndex = 0;
+    
+    this.getBookings();
+  }
+
+  onFilterChange(event: Event): void {
+    this.filterString = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    console.log('Filter string:', this.filterString);
+    // Reset page index to 0 to start a new search from the first page
+    this.paginator.pageIndex = 0;
+    this.pageIndex = 0;
+    
+    this.getBookings();
+  }
+
   getBookings(): void {
     this.isLoading = true;
 
@@ -87,14 +116,19 @@ export class ReportsComponent implements OnInit, AfterViewInit {
     params = params.set('PageIndex', (this.pageIndex + 1).toString());
     params = params.set('PageSize', this.pageSize.toString());
     params = params.set('BookingId', '66');
-    params = params.set('OrderBy', '4');
-    params = params.set('Filter', '10');
-    console.log('Request params:', params.toString());
+    
+    // Added dynamic sort parameters to the request
+    params = params.set('OrderBy', this.orderBy);
+    params = params.set('ActiveOrderBy', this.sortOrder);
+    
+    params = params.set('ActiveFilter', '10');
+    params = params.set('SearchItem', this.filterString);
+    params = params.set('ActiveSortDirection', this.sortOrder == 'asc' ? 1 : -1);
+    
     
     this.http.get<any>(this.pathAPI + 'v1/Bookings/GetBookings', { params: params })
       .pipe(
         map(response => {
-          // Log the API response to check the totalCount
           console.log('API Response:', response);
 
           if (!response || !response.results) {
@@ -102,7 +136,7 @@ export class ReportsComponent implements OnInit, AfterViewInit {
             this.totalCount = 0;
             return [];
           }
-          // The totalCount is correctly updated from the API response
+          
           this.totalCount = response.totalRowCount || 0;
           return response.results as Booking[];
         }),

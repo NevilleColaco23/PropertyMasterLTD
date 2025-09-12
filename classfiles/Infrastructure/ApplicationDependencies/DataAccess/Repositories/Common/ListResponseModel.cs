@@ -12,6 +12,8 @@ public class ListResponseModel<TDto> : IListResponseModel<TDto>
 
     public string? ActiveFilter { get; private set; }
     public string? ActiveOrderBy { get; private set; }
+    public int ActiveSortDirection { get; private set; }
+    public string SearchItem { get; private set; }
 
     public int FirstRowOnPage => RowCount <= 0 ? 0 : ((PageIndex - 1) * PageSize) + 1;
     public int LastRowOnPage => Math.Min(PageIndex * PageSize, RowCount);
