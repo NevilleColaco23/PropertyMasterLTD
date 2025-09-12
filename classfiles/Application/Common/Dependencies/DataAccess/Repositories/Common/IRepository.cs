@@ -2,6 +2,7 @@
 using MyWarehouse.Domain.Common;
 using System.Data;
 using System.Linq.Expressions;
+using static MyWarehouse.Application.Models.PagingMongoModel;
 
 namespace MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories.Common;
 
@@ -28,7 +29,7 @@ public interface IRepository<TEntity, in TId> where TEntity : IEntity<TId>
     /// </summary>
     Task<IListResponseModel<TDto>> GetProjectedListAsync<TDto>(ListQueryModel<TDto> model, Expression<Func<TEntity, bool>>? additionalFilter = null, bool readOnly = false) where TDto : IMapFrom<TEntity>;
 
-
+    PagedResult<T> GetPagedListBy<T>(string tableName, INamedQuery filterQuery);
 
     #region  Get data by INamedQuery
 

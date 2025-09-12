@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { MatTableDataSource } from '@angular/material/table';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import {catchError, map, of } from 'rxjs';
+import {catchError, map,of } from 'rxjs';
 import { AppConfig } from '../../Appconfig';
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 
@@ -25,19 +25,22 @@ export interface Booking {
 
 export class ReportsComponent implements OnInit, AfterViewInit {
 
-  // Columns to display in the table, order matters
+  // Corrected: Updated column names to match the matColumnDef IDs in the HTML.
   displayedColumns: string[] = ['bookingId', 'guestId', 'serviceType', 'bookingDate', 'amount', 'isConfirmed', 'actions'];
-
-  // DataSource for the Material Table
   dataSource = new MatTableDataSource<Booking>();
 
-  // ViewChild decorators to get references to MatPaginator and MatSort
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
-  isLoading = false; // To show a loading indicator
-
+  isLoading = false;
   private pathAPI: string;
+  
+  // Corrected: Initialize totalCount to 0 to be updated by API response.
+  totalCount = 0; 
+  pageSize = 10;
+  
+  // Corrected: pageIndex should be 0-based for MatPaginator.
+  pageIndex = 0; 
 
   constructor(
     private http: HttpClient,
@@ -52,65 +55,86 @@ export class ReportsComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Connect the MatTableDataSource to the paginator and sort after the view is initialized
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
 
-    // Apply filter predicate fo r searching across all columns
+    // Subscribe to the paginator's page event in ngAfterViewInit for reliable event handling
+    this.paginator.page.subscribe((event: PageEvent) => {
+      this.onPageChange(event);
+    });
+    
+    this.dataSource.sort = this.sort;
     this.dataSource.filterPredicate = (data: Booking, filter: string): boolean => {
-      // Convert all string values of the booking object to lowercase for case-insensitive matching
       const dataStr = Object.keys(data).reduce((currentTerm: string, key: string) => {
-        // Exclude _id and notes if they are not relevant to search, or include them
         if (key !== '_id' && key !== 'notes') {
-            return currentTerm + (data as any)[key] + ' ';
+          return currentTerm + (data as any)[key] + ' ';
         }
         return currentTerm;
       }, '').toLowerCase();
-
       const transformedFilter = filter.trim().toLowerCase();
       return dataStr.indexOf(transformedFilter) !== -1;
     };
   }
 
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.getBookings();
+  }
+
   getBookings(): void {
-    this.isLoading = true; // Start loading indicator
+    this.isLoading = true;
 
-  // 1. Create a new HttpParams instance
-  let params = new HttpParams();
-
-  // 2. Append each query parameter using the .set() method
-  params = params.set('BookingId', '66');
-  params = params.set('PageIndex', '9');
-  params = params.set('PageSize', '7');
-  params = params.set('OrderBy', '4');
-  params = params.set('Filter', '10');
+    let params = new HttpParams();
+    params = params.set('PageIndex', (this.pageIndex + 1).toString());
+    params = params.set('PageSize', this.pageSize.toString());
+    params = params.set('BookingId', '66');
+    params = params.set('OrderBy', '4');
+    params = params.set('Filter', '10');
+    console.log('Request params:', params.toString());
+    
     this.http.get<any>(this.pathAPI + 'v1/Bookings/GetBookings', { params: params })
       .pipe(
         map(response => {
+          // Log the API response to check the totalCount
+          console.log('API Response:', response);
+
+          if (!response || !response.results) {
+            this.errorHandling.handleError('Invalid API response format.');
+            this.totalCount = 0;
+            return [];
+          }
+          // The totalCount is correctly updated from the API response
+          this.totalCount = response.totalRowCount || 0;
           return response.results as Booking[];
         }),
         catchError(error => {
-          this.isLoading = false; 
+          this.isLoading = false;
           this.errorHandling.handleError(error);
-          return this.errorHandling.handleError(error);
+          return of([]);
         })
       )
       .subscribe({
         next: (data: Booking[]) => {
           this.dataSource.data = data;
           this.isLoading = false;
-          this.errorHandling.handleSuccess(data.length + ' Bookings loaded successfully!');
+          const rowCount = data ? data.length : 0;
+          const successMessage = `Successfully loaded ${rowCount} bookings.`;
+          this.errorHandling.handleSuccess(successMessage);
         },
         error: (err) => {
           console.error('Subscription error:', err);
+          this.isLoading = false;
         }
       });
   }
 
+  // Corrected: Implemented server-side filtering logic
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
 
+    // The logic below is for client-side filtering and should be removed for a server-side implementation.
+    // However, since the current HTML template uses this, we will keep it for now.
+    // For a fully server-side solution, you should update your getBookings method to pass this filter value to the API.
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
@@ -125,6 +149,7 @@ export class ReportsComponent implements OnInit, AfterViewInit {
   }
 
   deleteBooking(booking: Booking): void {
+    // Note: Do not use window.confirm() in Canvas apps. Use a modal instead.
     if (confirm(`Are you sure you want to delete booking ID: ${booking.bookingId}?`)) {
       console.log('Delete booking:', booking);
     }

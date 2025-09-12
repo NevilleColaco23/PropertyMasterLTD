@@ -1,11 +1,13 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+using MyWarehouse.Application.Common.Bookings.BookingsQuery;
 using MyWarehouse.Application.Common.Dependencies.DataAccess;
 using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories.Common;
 using MyWarehouse.Application.Common.Mapping;
 using MyWarehouse.Application.Services;
 using MyWarehouse.Domain.Common;
+using static MyWarehouse.Application.Models.PagingMongoModel;
 
 namespace MyWarehouse.Infrastructure.ApplicationDependencies.DataAccess.Repositories.Common;
 
@@ -154,6 +156,29 @@ public abstract class RepositoryBaseMongo<TDocument, TId> : IRepository<TDocumen
         return data;
     }
 
+    public PagedResult<T> GetPagedListBy<T>(string tableName, INamedQuery filterQuery)
+    {
+        List<BsonDocument> stages;
+        if (filterQuery?.BsonPipeline != null)
+        {
+            stages = filterQuery.BsonPipeline.Select(p => p.AsBsonDocument).ToList();
+        }
+        else
+        {
+            var json = filterQuery?.QueryStr ?? "[ { \"$match\": { } } ]";
+            var bsonArray = BsonSerializer.Deserialize<BsonArray>(json);
+            stages = bsonArray.Select(p => p.AsBsonDocument).ToList();
+        }
+
+        var pipeline = PipelineDefinition<BsonDocument, PagedResult<T>>.Create(stages);
+
+        var data = BsonCollection
+            .Aggregate(pipeline, new AggregateOptions { AllowDiskUse = true })
+            .FirstOrDefault();
+
+        return data;
+    }
+
     public DataTable GetDataTablePaged(string tableName, INamedQuery filterQuery, DataTable template, int start, int numRecords,
         out int totalCount, string sortField1 = null, bool bAscending = true, string sortField2 = null,
         bool bAscending2 = true)
@@ -219,4 +244,5 @@ public abstract class RepositoryBaseMongo<TDocument, TId> : IRepository<TDocumen
 
     #endregion
 
+    
 }

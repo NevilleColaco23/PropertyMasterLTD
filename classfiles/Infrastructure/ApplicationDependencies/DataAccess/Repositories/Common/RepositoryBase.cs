@@ -4,9 +4,8 @@ using MyWarehouse.Application.Common.Dependencies.DataAccess;
 using MyWarehouse.Infrastructure.Persistence.Context;
 using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories.Common;
 using MyWarehouse.Application.Common.Mapping;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson;
 using MongoDB.Driver;
+using static MyWarehouse.Application.Models.PagingMongoModel;
 
 namespace MyWarehouse.Infrastructure.ApplicationDependencies.DataAccess.Repositories.Common;
 
@@ -104,6 +103,11 @@ internal abstract class RepositoryBaseEf<TEntity, TId> : IRepository<TEntity, TI
     }
 
     public IList<T> GetListBy<T>(string tableName, INamedQuery filterQuery = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public PagedResult<T> GetPagedListBy<T>(string tableName, INamedQuery filterQuery = null)
     {
         throw new NotImplementedException();
     }

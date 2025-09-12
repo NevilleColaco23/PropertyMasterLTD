@@ -10,8 +10,8 @@ export class ErrorHandlingService {
   constructor(private snackBar: MatSnackBar) {}
 
   public handleError(error: any): Observable<any> {
-    const errorMessage = 'An error occurred. Please try again later.';
-    console.error('API Error:', error);
+    const errorMessage = 'An error occurred. Please try again later.' + (error.error?.title ? ` Details: ${error.error.title}` : '');
+    console.error('Error details:', error);
     this.snackBar.open(errorMessage, 'Dismiss', {
       duration: 5000,
       panelClass: ['error-snackbar'],

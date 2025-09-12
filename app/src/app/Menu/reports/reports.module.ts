@@ -16,6 +16,7 @@ import { MatIconModule } from '@angular/material/icon'; // For search icon
 import { HttpClientModule } from '@angular/common/http'; // Make sure this is imported if not already in app module
 import { AppConfig } from '../../Appconfig'; // Assuming you have AppConfig for API path
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @NgModule({
   declarations: [ ReportsComponent],
@@ -30,6 +31,7 @@ import { ErrorHandlingService } from '../../core/system-messages-snackbar/servic
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
+    MatCheckboxModule,
     HttpClientModule
   ],
   providers: [

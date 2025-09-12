@@ -23,6 +23,7 @@ public class ListResponseModel<T> : IListResponseModel<T>
     public int PageSize { get; set; }
     public int PageCount { get; set; }
     public int RowCount { get; set; }
+    public int TotalRowCount { get; set; }
     public string? ActiveFilter { get; set; }
     public string? ActiveOrderBy { get; set; }
     public int FirstRowOnPage { get; set; }

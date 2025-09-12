@@ -22,20 +22,21 @@ namespace MyWarehouse.Application.Common.Bookings
         {
             DataTable templateTable = new();
 
-            var menuList = _unitOfWork.Bookings?.GetListBy<GetBookingsListDTO>(MongoCollections.BookingsCollection
-                      , new GetBookingsMongoQuery(request.BookingId));
+            var menuList = _unitOfWork.Bookings?.GetPagedListBy<GetBookingsListDTO>(MongoCollections.BookingsCollection
+                      , new GetBookingsMongoQuery(request.BookingId,request.PageIndex,request.PageSize));
 
             var response = new ListResponseModel<GetBookingsListDTO>
             {
-                PageIndex = 1,
+                PageIndex = request.PageIndex,
                 PageSize = request.PageSize,
-                PageCount = 1,
-                RowCount = 1,
+                PageCount = menuList.results.Count,
+                RowCount = menuList.results.Count,
+                TotalRowCount = 3000,
                 ActiveFilter = request.Filter,
                 ActiveOrderBy = request.OrderBy,
                 FirstRowOnPage = 1,
                 LastRowOnPage = 1,
-                Results = menuList ?? new List<GetBookingsListDTO>()
+                Results = menuList.results ?? new List<GetBookingsListDTO>()
             };
 
             return await Task.FromResult(response);

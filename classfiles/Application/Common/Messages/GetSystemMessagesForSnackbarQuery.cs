@@ -23,7 +23,7 @@ namespace MyWarehouse.Application.Common.Messages
             DataTable templateTable = new();
 
             var menuList = _unitOfWork.SystemMessages?.GetListBy<GetSystemMessagesDTO>(MongoCollections.SystemMessagesCollection
-                      , new GetBookingsMongoQuery(request.BookingId));
+                      , new GetBookingsMongoQuery(request.BookingId,request.PageIndex,request.PageSize));
 
             var response = new ListResponseModel<GetSystemMessagesDTO>
             {
