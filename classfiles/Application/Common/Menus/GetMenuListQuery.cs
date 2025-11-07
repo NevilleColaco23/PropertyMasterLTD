@@ -3,6 +3,7 @@ using MyWarehouse.Application.Common.Dependencies.DataAccess;
 using MyWarehouse.Domain;
 using System.Data;
 using MyWarehouse.Application.Common.Menus.MenuQueries;
+using MyWarehouse.Application.Dependencies.Services;
 
 namespace MyWarehouse.Application.Common.Menus
 {
@@ -16,7 +17,9 @@ namespace MyWarehouse.Application.Common.Menus
         private readonly IUnitOfWork _unitOfWork;
 
         public GetMenuListQueryHandler(IUnitOfWork unitOfWork)
-            => _unitOfWork = unitOfWork;
+        {
+            _unitOfWork = unitOfWork;
+        }
 
         public async Task<IListResponseModel<GetMenuPermissionMappingListDTO>> Handle(GetMenuListQuery request,
             CancellationToken cancellationToken)
@@ -24,7 +27,7 @@ namespace MyWarehouse.Application.Common.Menus
             DataTable templateTable = new();
 
             var menuList = _unitOfWork.MenuPermissions?.GetListBy<GetMenuPermissionMappingListDTO>(MongoCollections.MenuPermissionsCollection
-                      , new GetMenuListQueryByUserId(1));//request.userId
+            ,new GetMenuListQueryByUserId(1)); //currentUserService == null ? 1 : Convert.ToInt32(currentUserService.UserId
 
             var response = new ListResponseModel<GetMenuPermissionMappingListDTO>
             {

@@ -71,6 +71,7 @@ internal static class Startup
 
                 options.RequireHttpsMetadata = false;
                 options.SaveToken = true;
+                options.MapInboundClaims = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,

@@ -6,6 +6,7 @@ import { AppConfig } from '../../Appconfig';
 import { HttpClient } from "@angular/common/http";
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { GetSearchResultsDTO } from '../../core/search-box-autocomplete/search-box-autocomplete.component';
+import { HttpParams } from '@angular/common/http';
 
 @Component({
   selector: 'app-property-landing',
@@ -50,10 +51,11 @@ onSearchSelected(selectedResult: GetSearchResultsDTO) {
 }
 
 getMenuItems() {
+ let params = new HttpParams().set('userId', 10); //TODO : to remove. get userid from token on server
 
-  return this.http.get<any>(this.pathAPI + 'v1/menu/GetListByUserId').pipe(
+  return this.http.get<any>(this.pathAPI + 'v1/menu/GetListByUserId', { params }).pipe(
     map(response => {
-      return response; // or map your data
+      return response;
     }),
     catchError((err) => this.errorHandling.handleError(err))
   );

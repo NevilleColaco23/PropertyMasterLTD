@@ -1,4 +1,5 @@
-﻿using MyWarehouse.Application.Dependencies.Services;
+﻿using Microsoft.AspNetCore.Http;
+using MyWarehouse.Application.Dependencies.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -17,8 +18,9 @@ public class CurrentUserService : ICurrentUserService
         }
         else
         {
-            UserId = httpContextAccessor.HttpContext.User?.FindFirstValue(JwtRegisteredClaimNames.UniqueName)
-                 ?? UknownUserMoniker;
+            UserId = httpContextAccessor.HttpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? httpContextAccessor.HttpContext.User?.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                     ?? UknownUserMoniker;
         }
     }
 

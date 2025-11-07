@@ -162,14 +162,10 @@ onSortChange(sort: Sort): void {
       });
   }
 
-  // Corrected: Implemented server-side filtering logic
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
 
-    // The logic below is for client-side filtering and should be removed for a server-side implementation.
-    // However, since the current HTML template uses this, we will keep it for now.
-    // For a fully server-side solution, you should update your getBookings method to pass this filter value to the API.
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
@@ -184,7 +180,6 @@ onSortChange(sort: Sort): void {
   }
 
   deleteBooking(booking: Booking): void {
-    // Note: Do not use window.confirm() in Canvas apps. Use a modal instead.
     if (confirm(`Are you sure you want to delete booking ID: ${booking.bookingId}?`)) {
       console.log('Delete booking:', booking);
     }

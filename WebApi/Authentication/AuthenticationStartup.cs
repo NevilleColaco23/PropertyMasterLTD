@@ -10,6 +10,6 @@ internal static class AuthenticationStartup
     public static void AddMyApiAuthDeps(this IServiceCollection services)
     {
         services.AddHttpContextAccessor();
-        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        //services.AddScoped<ICurrentUserService, CurrentUserService>(); //TODO: Enable when auth is implemented
     }
 }
