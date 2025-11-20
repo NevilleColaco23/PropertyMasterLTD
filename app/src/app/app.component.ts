@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { LoggingService } from './core/auth/services/logging.service';
+import { Router } from '@angular/router';
 
 interface WeatherForecast {
   date: string;
@@ -15,9 +17,10 @@ interface WeatherForecast {
 export class AppComponent implements OnInit {
   public forecasts: WeatherForecast[] = [];
 
-  constructor() {}
+  //The service must be injected here to ensure immediate initialization.
+  constructor(private loggingService: LoggingService, private router: Router) { }
 
   ngOnInit() {}
-
+    
   title = 'testangularapi.client';
 }

@@ -6,6 +6,8 @@ import { timer } from 'rxjs';
 import { Router } from '@angular/router';
 import { LoaderService } from '../../../core/auth/services/loader-service.service';
 import { finalize } from 'rxjs/operators';
+import { LOG_EDIT_GRID, LOG_LOGIN_SUCCESS } from '../../../Common/Constants/Constants';
+import { LoggingService } from '../../../core/auth/services/logging.service';
 
 enum LocalLoginState {
   None,
@@ -30,7 +32,7 @@ export class LoginFormComponent  {
   localLoginState = LocalLoginState.None;
   get localLoginStates() { return LocalLoginState; }
 
-  constructor(private as: AuthService, private fb: FormBuilder,private router: Router,private loaderService: LoaderService) {
+  constructor(private as: AuthService, private fb: FormBuilder,private router: Router,private loaderService: LoaderService,private loggingService: LoggingService) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],password: ['', Validators.required]
     });
@@ -51,7 +53,9 @@ export class LoginFormComponent  {
         ).subscribe(
       _ => {
         this.localLoginState = LocalLoginState.Success;
-
+    
+    this.loggingService.logPageNavigation(`loginSuccess`, LOG_LOGIN_SUCCESS, `User logged in successfully with email: ${email}`);
+        
     this.router.navigate(['/propertyLanding']).then(navigated => {});
 
         timer(5000).subscribe(() => this.localLoginState = LocalLoginState.None); // In case user logs out without navigating elsewhere; the 'success' would still be visible.

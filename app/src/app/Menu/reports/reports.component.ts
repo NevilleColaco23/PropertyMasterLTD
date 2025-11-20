@@ -6,6 +6,8 @@ import { MatSort, Sort } from '@angular/material/sort';
 import {catchError, map,of } from 'rxjs';
 import { AppConfig } from '../../Appconfig';
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
+import { LoggingService } from '../../core/auth/services/logging.service';
+import { LOG_DELETE_BOOKING, LOG_EDIT_GRID, LOG_EDIT_VIEW } from '../../Common/Constants/Constants';
 
 export interface Booking {
   _id: string;
@@ -49,7 +51,7 @@ export class ReportsComponent implements OnInit, AfterViewInit {
   constructor(
     private http: HttpClient,
     private appConfig: AppConfig,
-    private errorHandling: ErrorHandlingService
+    private errorHandling: ErrorHandlingService,private loggingService: LoggingService
   ) {
     this.pathAPI = this.appConfig.setting['PathAPI'];
   }
@@ -172,16 +174,16 @@ onSortChange(sort: Sort): void {
   }
 
   viewBooking(booking: Booking): void {
-    console.log('View booking:', booking);
+    this.loggingService.logPageNavigation(`viewBooking`, LOG_EDIT_VIEW, `User viewed booking with ID: ${booking.bookingId}`);
   }
 
   editBooking(booking: Booking): void {
-    console.log('Edit booking:', booking);
+    this.loggingService.logPageNavigation(`editBooking`, LOG_EDIT_GRID, `User edited booking with ID: ${booking.bookingId}`);
   }
 
   deleteBooking(booking: Booking): void {
     if (confirm(`Are you sure you want to delete booking ID: ${booking.bookingId}?`)) {
-      console.log('Delete booking:', booking);
+      this.loggingService.logPageNavigation(`deleteBooking`, LOG_DELETE_BOOKING, `User deleted booking with ID: ${booking.bookingId}`);
     }
   }
 }

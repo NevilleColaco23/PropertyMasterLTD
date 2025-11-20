@@ -4,7 +4,8 @@ import { Router } from '@angular/router';
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { HttpClient } from "@angular/common/http";
 import { AppConfig } from '../../Appconfig';
-
+import { LOG_LOGOUT, LOG_SEARCH } from '../../Common/Constants/Constants';
+import { LoggingService } from '../../core/auth/services/logging.service';
 export interface ApiResponse<T> {
   pageIndex: number;
   pageSize: number;
@@ -42,9 +43,8 @@ export class SearchBoxAutocompleteComponent implements AfterViewInit, OnDestroy 
 
   @ViewChild('searchBoxWrapper') searchBoxWrapper!: ElementRef;
 
-  constructor(   
-    private router: Router, private errorHandling: ErrorHandlingService,private http: HttpClient
-  ,private config: AppConfig) {
+  constructor(private router: Router, private errorHandling: ErrorHandlingService,private http: HttpClient
+  ,private config: AppConfig, private loggingService: LoggingService) {
       this.pathAPI = this.config.setting['PathAPI'];
     }
 
@@ -67,6 +67,8 @@ export class SearchBoxAutocompleteComponent implements AfterViewInit, OnDestroy 
   }
 
   onSearchQueryChanged(value: string): void {
+    this.loggingService.logPageNavigation(`loginSuccess`, LOG_SEARCH, `User searched for: ${value}`);
+    
     this.searchInputChanged$.next(value);
   }
 

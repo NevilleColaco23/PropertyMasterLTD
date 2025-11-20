@@ -10,6 +10,8 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
         public string AccessLog { get; init; } = null!;
         public int User { get; init; }
         public DateTime TimeStamp { get; init; }
+        public string Action { get; init; } = null!;
+        public string Detail { get; init; } = null!;
     }
 
     public class CreatelogCommandHandler : IRequestHandler<CreateLogCommand, int>
@@ -25,7 +27,9 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
                 id: request.Id,
                 log: request.AccessLog.Trim(),
                 user: request.User,
-                time: request.TimeStamp
+                time: request.TimeStamp,
+                action:request.Action,
+                details:request.Detail
                 );
 
             _unitOfWork.AccessLogs?.Add(logEntry);

@@ -7,6 +7,8 @@ import { HttpClient } from "@angular/common/http";
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { GetSearchResultsDTO } from '../../core/search-box-autocomplete/search-box-autocomplete.component';
 import { HttpParams } from '@angular/common/http';
+import { LOG_LOGIN_SUCCESS, LOG_LOGOUT } from '../../Common/Constants/Constants';
+import { LoggingService } from '../../core/auth/services/logging.service';
 
 @Component({
   selector: 'app-property-landing',
@@ -37,7 +39,7 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private router: Router, private config: AppConfig
-    ,private http: HttpClient, private errorHandling: ErrorHandlingService
+    ,private http: HttpClient, private errorHandling: ErrorHandlingService, private loggingService: LoggingService
   ) {this.pathAPI = this.config.setting['PathAPI'];}
 
 onSearchSelected(selectedResult: GetSearchResultsDTO) {
@@ -112,6 +114,7 @@ ngAfterViewInit() {
   fetchDropdownOptions(): void { /* ... existing code ... */ }
 
   signOut() {
+    this.loggingService.logPageNavigation(`loginSuccess`, LOG_LOGOUT, `User logged out successfully`);
     this.router.navigate(['/']);
   }
 }

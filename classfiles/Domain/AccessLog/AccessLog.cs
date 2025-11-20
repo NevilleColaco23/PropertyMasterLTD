@@ -15,17 +15,21 @@ namespace MyWarehouse.Domain.AccessLog
 
         [BsonElement("Log")]
         public string Log { get; protected set; }
+        public string Action { get; protected set; }
+        public string Details { get; protected set; }
 
         [BsonElement("User")]
         public int User { get; set; }
         public DateTime TimeStamp { get; set; }
 
-        public AccessLog(int id, string log, int user,DateTime time)
+        public AccessLog(int id, string log, int user,DateTime time, string action, string details)
         {
             Id = id;
             Log = log;
             User = user;
             TimeStamp = time;
+            Action = action;
+            Details = details;
         }
     }
 }
