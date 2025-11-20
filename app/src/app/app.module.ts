@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule} from '@angular/material/divider';
 import { MatFormFieldModule} from '@angular/material/form-field';
 import { AppComponent } from './app.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { AppConfig } from   './Appconfig';
 import { DatePipe } from '@angular/common';
@@ -22,6 +22,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { LoaderComponent } from './core/loader/loader.component';
 import { FormsModule } from '@angular/forms';
+import { AccessTokenInterceptor } from './Common/Services/access-token.interceptor';
 
 export function initializeApp(_loggingService: LoggingService) {
   return (): void => {// This will ensure the logging service is instantiated
@@ -45,7 +46,12 @@ export function initializeApp(_loggingService: LoggingService) {
       useFactory: initializeApp,
       useClass: AuthInterceptor,
       multi: true
-    }
+    },
+    {
+    provide: HTTP_INTERCEPTORS,
+    useClass: AccessTokenInterceptor, //interceptor to add auth token to requests
+    multi: true, // Allows multiple interceptors
+  }
   ],
   bootstrap: [AppComponent]
 })

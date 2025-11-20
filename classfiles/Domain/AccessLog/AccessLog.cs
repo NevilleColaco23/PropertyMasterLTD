@@ -19,14 +19,14 @@ namespace MyWarehouse.Domain.AccessLog
         public string Details { get; protected set; }
 
         [BsonElement("User")]
-        public int User { get; set; }
+        public int UserID { get; set; }
         public DateTime TimeStamp { get; set; }
 
         public AccessLog(int id, string log, int user,DateTime time, string action, string details)
         {
             Id = id;
             Log = log;
-            User = user;
+            UserID = user;
             TimeStamp = time;
             Action = action;
             Details = details;

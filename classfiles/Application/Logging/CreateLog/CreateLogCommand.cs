@@ -1,4 +1,5 @@
 ﻿using MyWarehouse.Application.Common.Dependencies.DataAccess;
+using MyWarehouse.Application.Dependencies.Services;
 using MyWarehouse.Domain.AccessLog;
 
 namespace MyWarehouse.Application.NewFolder.CreateLog
@@ -17,16 +18,28 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
     public class CreatelogCommandHandler : IRequestHandler<CreateLogCommand, int>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public CreatelogCommandHandler(IUnitOfWork unitOfWork)
-            => _unitOfWork = unitOfWork;
+        public CreatelogCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        {
+            _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
+        }
 
         public async Task<int> Handle(CreateLogCommand request, CancellationToken cancellationToken)
         {
+            string userIdString = _currentUserService.UserId ?? "0";
+
+            if (!int.TryParse(userIdString, out int parsedUserId))
+            {
+                // TODO: map "System" to -1, "Anonymous" to -2
+                parsedUserId = 0;
+            }
+
             var logEntry = new AccessLog(
                 id: request.Id,
                 log: request.AccessLog.Trim(),
-                user: request.User,
+                user: parsedUserId,
                 time: request.TimeStamp,
                 action:request.Action,
                 details:request.Detail
