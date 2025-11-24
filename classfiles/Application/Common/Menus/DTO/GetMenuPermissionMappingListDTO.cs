@@ -1,4 +1,4 @@
-﻿namespace MyWarehouse.Application.Common.Menus
+﻿namespace MyWarehouse.Application.Common.Menus.DTO
 {
     public class GetMenuPermissionMappingListDTO
     {
@@ -12,6 +12,7 @@
         public int MenuID { get; set; }
         public DateTime From { get; set; }
         public DateTime To { get; set; }
+        public MyWarehouse.Domain.Property.Property property { get; set; }
     }
 
     public class SubMenuItemDTO

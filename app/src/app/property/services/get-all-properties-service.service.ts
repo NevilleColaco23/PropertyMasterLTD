@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AppConfig } from '../../Appconfig';
 import { HttpClient } from '@angular/common/http';
-import { ErrorHandlingCommonServiceService } from '../../Common/Services/error-handling-common-service.service';
+import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { Observable } from 'rxjs';
 import { map,catchError } from 'rxjs/operators';
 
@@ -19,7 +19,7 @@ export class GetAllPropertiesServiceService {
   public event: any;
   private pathAPI : string;
 
-  constructor(private http: HttpClient, private config: AppConfig,private errorHandling: ErrorHandlingCommonServiceService) {
+  constructor(private http: HttpClient, private config: AppConfig,private errorHandling: ErrorHandlingService) {
     this.pathAPI = this.config.setting['PathAPI'];
   }
 
@@ -27,7 +27,7 @@ export class GetAllPropertiesServiceService {
 
   return this.http.get<any>(this.pathAPI + 'v1/property').pipe(
     map(response => {
-
+      console.log( "Response: " + response);
       if (Array.isArray(response.results)) {
         return response.results.map((property: any) => ({
           id: property.id,

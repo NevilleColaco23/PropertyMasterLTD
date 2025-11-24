@@ -21,8 +21,10 @@ import { AuthInterceptor } from './core/auth/services/auth-interceptor.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { LoaderComponent } from './core/loader/loader.component';
+import { PropertySelectionComponent } from './property/property-selection/property-selection.component';
 import { FormsModule } from '@angular/forms';
 import { AccessTokenInterceptor } from './Common/Services/access-token.interceptor';
+import { MatSelectModule } from '@angular/material/select';
 
 export function initializeApp(_loggingService: LoggingService) {
   return (): void => {// This will ensure the logging service is instantiated
@@ -33,11 +35,12 @@ export function initializeApp(_loggingService: LoggingService) {
     AppComponent,
     LoginFormComponent,
     LoaderComponent,
+    PropertySelectionComponent,
   ],
   imports: [
     BrowserModule,    AppRoutingModule,    BrowserModule,    ReactiveFormsModule,    BrowserAnimationsModule,
     MatInputModule,    MatButtonModule,    MatCardModule,    MatIconModule,    MatDividerModule,
-    MatFormFieldModule,MatProgressSpinnerModule,MatProgressBarModule,    HttpClientModule,    FontAwesomeModule,
+    MatFormFieldModule,MatProgressSpinnerModule,MatProgressBarModule, MatSelectModule, HttpClientModule,  FontAwesomeModule,
     FormsModule
   ],
   providers: [provideHttpClient(),DatePipe,{provide :AppConfig},

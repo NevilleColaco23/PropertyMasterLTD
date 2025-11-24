@@ -1,0 +1,33 @@
+.property-selection {
+  display: flex;
+  align-items: center;      /* vertical centering */
+  gap: 1rem;
+  width: 100%;
+}
+
+.property-field {
+  flex: 1;                  /* field grows to fill space */
+  min-width: 280px;
+}
+
+.actions {
+  margin-left: auto;        /* pushes buttons to far right */
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Optional: stack on small screens */
+@media (max-width: 600px) {
+  .property-selection {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .actions {
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+
+   .property-field.narrow {
+  width: clamp(220px, 30vw, 360px);
+}
+}

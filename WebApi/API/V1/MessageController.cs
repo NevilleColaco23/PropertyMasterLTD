@@ -1,5 +1,6 @@
 ﻿using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories.Common;
 using MyWarehouse.Application.Common.Menus;
+using MyWarehouse.Application.Common.Menus.DTO;
 using MyWarehouse.Application.Common.Messages;
 
 namespace MyWarehouse.WebApi.API.V1

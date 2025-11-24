@@ -2,6 +2,7 @@
 using MyWarehouse.Application.Common.Dependencies.DataAccess;
 using MyWarehouse.Application.Property.PropertyQueries;
 using System.Data;
+using MyWarehouse.Application.Dependencies.Services;
 
 namespace MyWarehouse.Application.Property.GetProperty
 {
@@ -12,15 +13,21 @@ namespace MyWarehouse.Application.Property.GetProperty
     public class GetPropertyListQueryHandler : IRequestHandler<GetPropertyListQuery, IListResponseModel<GetPropertyDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetPropertyListQueryHandler(IUnitOfWork unitOfWork)
-            => _unitOfWork = unitOfWork;
+        public GetPropertyListQueryHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        {
+            _unitOfWork = unitOfWork;
+            this._currentUserService = currentUserService;
+        }
 
         public async Task<IListResponseModel<GetPropertyDto>> Handle(GetPropertyListQuery request,
             CancellationToken cancellationToken)
         {
+            string userIdString = _currentUserService.UserId ?? "0";
             var propertyListTest = _unitOfWork.Properties?.GetListBy<GetPropertyDto>(MongoCollections.PropertyCollection
-                      , new GetPropertyQueryByUserIdUsingMongoQueryString(100, string.Empty)); //TODO : hardcoded user id
+                      , new GetPropertyQueryByUserIdUsingMongoQueryString(
+                          int.TryParse(userIdString, out int parsedUserId) ? parsedUserId : 0, string.Empty));
 
             var response = new ListResponseModel<GetPropertyDto>
             {

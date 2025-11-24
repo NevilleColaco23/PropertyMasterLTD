@@ -18,6 +18,7 @@
         public const string SORT = "$sort";
         public const string REPLACEROOT = "$replaceRoot";
         public const string MERGEOBJECTS = "$mergeObjects";
+        public const string ADDFIELDS = "$addFields";
     }
 
 }

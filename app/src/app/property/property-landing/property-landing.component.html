@@ -1,7 +1,7 @@
 <header class="main-header">
   <div class="logo">
     <!-- Ensure this path is correct for your Canva logo -->
-    <img src="your-canva-logo-path.png" alt="Canva Logo" class="canva-logo">
+    <img *ngIf="logoPath" [src]="logoPath"  alt="Canva Logo" class="canva-logo">
   </div>
 
   <nav class="navigation-links">

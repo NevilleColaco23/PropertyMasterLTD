@@ -1,32 +1,32 @@
 ﻿using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories.Common;
 using MyWarehouse.Application.Common.Dependencies.DataAccess;
-using System.Data;
 using MyWarehouse.Application.Common.Menus.MenuQueries;
+using System.Data;
 using MyWarehouse.Application.Common.Menus.DTO;
 
 namespace MyWarehouse.Application.Common.Menus
 {
-    public class GetMenuListQuery : ListQueryModel<GetMenuPermissionMappingListDTO>
+    public class GetInitialDataForLandingPageQuery : ListQueryModel<GetMenuPermissionMappingListDTO>
     {
         public int userId { get; init; }
     }
 
-    public class GetMenuListQueryHandler : IRequestHandler<GetMenuListQuery, IListResponseModel<GetMenuPermissionMappingListDTO>>
+    public class GetInitialDataForLandingPageQueryHandler : IRequestHandler<GetInitialDataForLandingPageQuery, IListResponseModel<GetMenuPermissionMappingListDTO>>
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public GetMenuListQueryHandler(IUnitOfWork unitOfWork)
+        public GetInitialDataForLandingPageQueryHandler(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IListResponseModel<GetMenuPermissionMappingListDTO>> Handle(GetMenuListQuery request,
+        public async Task<IListResponseModel<GetMenuPermissionMappingListDTO>> Handle(GetInitialDataForLandingPageQuery request,
             CancellationToken cancellationToken)
         {
             DataTable templateTable = new();
 
             var menuList = _unitOfWork.MenuPermissions?.GetListBy<GetMenuPermissionMappingListDTO>(MongoCollections.MenuPermissionsCollection
-            ,new GetMenuListQueryByUserId(1)); //currentUserService == null ? 1 : Convert.ToInt32(currentUserService.UserId
+            , new GetMenuListQueryByUserId(1));
 
             var response = new ListResponseModel<GetMenuPermissionMappingListDTO>
             {

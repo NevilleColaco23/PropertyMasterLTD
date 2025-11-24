@@ -74,8 +74,46 @@ namespace MyWarehouse.Application.Common.Menus.MenuQueries
         // 6. Filter only visible menus (using the isVisible from the menu document)
         new BsonDocument(MongoStages.MATCH, new BsonDocument("isVisible", true)),
 
-        // 7. Sort by order (using the order from the menu document)
-        new BsonDocument(MongoStages.SORT, new BsonDocument("order", 1))
+        // 7. Lookup Property documents whose AccessList contains this userId
+        //    and that are Active.
+        new BsonDocument(MongoStages.LOOKUP, new BsonDocument
+        {
+            { "from", "Property" },
+            { "let", new BsonDocument("uid", "$userId") },
+            { "pipeline", new BsonArray
+                {
+                    new BsonDocument(MongoStages.MATCH,
+                        new BsonDocument("$expr",
+                            new BsonDocument("$in",
+                                new BsonArray { "$$uid", "$AccessList" }
+                            )
+                        )
+                    ),
+                    new BsonDocument(MongoStages.MATCH, new BsonDocument("Active", true)),
+                    new BsonDocument(MongoStages.PROJECT, new BsonDocument
+                    {
+                        { "_id", 1 },
+                        { "Name", 1 },
+                        { "Rooms", 1 },
+                        { "CompanyLogoURL", 1 },
+                        { "AccessList", 1 },
+                        { "Active", 1 }
+                    })
+                }
+            },
+            { "as", "property" }
+        }),
+
+        // 9. Convert property array to a single object (or null).
+        new BsonDocument(MongoStages.ADDFIELDS, new BsonDocument
+        {
+            { "property", new BsonDocument("$arrayElemAt", new BsonArray { "$property", 0 }) }
+        }),
+
+        // 10. Sort by order (using the order from the menu document)
+        new BsonDocument(MongoStages.SORT, new BsonDocument("order", 1)),
+
+        
     };
         }
 
@@ -88,3 +126,69 @@ namespace MyWarehouse.Application.Common.Menus.MenuQueries
         public IReadOnlyList<Common.Dependencies.DataAccess.NamedQueryParameter> Parameters => null;
     }
 }
+
+//db.getCollection("MenuPermissions").aggregate([
+//  {
+//    "$match": {
+//        "userId": 1,
+//      "isActive": true,
+//      "accessLevel": { "$ne": "hidden" }
+//    }
+//},
+
+//  {
+//    "$lookup": {
+//        "from": "Menus",
+//      "localField": "menuId",
+//      "foreignField": "_id",
+//      "as": "menu"
+//    }
+//},
+
+//  { "$unwind": "$menu" },
+
+//  {
+//    "$replaceRoot": {
+//        "newRoot": { "$mergeObjects": ["$$ROOT", "$menu"] }
+//    }
+//},
+
+//  {
+//    "$project": {
+//        "_id": "$_id",
+//      "userId": "$userId",
+//      "isActive": "$isActive",
+//      "accessLevel": "$accessLevel",
+//      "menuId": "$menuId",
+//      "label": "$label",
+//      "path": "$path",
+//      "order": "$order",
+//      "hasDropdown": "$hasDropdown",
+//      "subItems": "$subItems",
+//      "isVisible": "$isVisible",
+//      "menuCreatedAt": "$createdAt",
+//      "menuUpdatedAt": "$updatedAt"
+//    }
+//},
+
+//  { "$match": { "isVisible": true } },
+
+//  // Lookup Property documents whose AccessList contains the current userId
+//  {
+//    "$lookup": {
+//        "from": "Property",
+//      "let": { "uid": "$userId" },
+//      "pipeline": [
+//        { "$match": { "$expr": { "$in": ["$$uid", "$AccessList"] } } },
+//        { "$match": { "Active": true } }, 
+//        { "$project": { "_id": 1, "Name": 1, "Rooms": 1, "CompanyLogoURL": 1, "AccessList": 1, "Active": 1 } }
+//      ],
+//      "as": "property"
+//    }
+//},
+
+//  // Convert the property array to a single object (first match) or null
+//  { "$addFields": { "property": { "$arrayElemAt": ["$property", 0] } } },
+
+//  { "$sort": { "order": 1 } }
+//])

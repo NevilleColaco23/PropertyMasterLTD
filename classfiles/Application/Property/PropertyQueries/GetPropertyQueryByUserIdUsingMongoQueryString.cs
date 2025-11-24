@@ -23,7 +23,6 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
     {
         return new BsonArray
         {
-            new BsonDocument(MongoStages.MATCH, new BsonDocument("_id", propertyId)),
             new BsonDocument(MongoStages.LOOKUP, new BsonDocument
             {
             { MongoStages.FROM, "Property" },
@@ -46,7 +45,8 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
                                 { "as", "room" },
                                 { "cond", new BsonDocument(MongoStages.EQ, new BsonArray { "$$room.Active", true }) }
                             })
-                        }
+                        },
+                        { "CompanyLogoURL", 1 }
                     })
                 }
             },
@@ -58,7 +58,8 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
             { "_id", 0 },
             { "Name", "$PropertyList.Name" },
             { "Id", "$PropertyList._id" },
-            { "Rooms", "$PropertyList.Rooms" }
+            { "Rooms", "$PropertyList.Rooms" },
+            { "CompanyLogoURL", "$PropertyList.CompanyLogoURL" }
         })
 
         };

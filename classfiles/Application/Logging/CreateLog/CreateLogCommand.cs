@@ -6,7 +6,6 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
 {
     public class CreateLogCommand : IRequest<int>
     {
-
         public int Id { get; init; }
         public string AccessLog { get; init; } = null!;
         public int User { get; init; }

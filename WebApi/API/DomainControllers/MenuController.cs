@@ -1,5 +1,6 @@
 ﻿using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories.Common;
 using MyWarehouse.Application.Common.Menus;
+using MyWarehouse.Application.Common.Menus.DTO;
 using MyWarehouse.Application.Common.Searchbox;
 
 namespace MyWarehouse.WebApi.API.DomainControllers
@@ -20,6 +21,10 @@ namespace MyWarehouse.WebApi.API.DomainControllers
 
         [HttpGet("search")]
         public async Task<ActionResult<IListResponseModel<GetSearchResultsDTO>>> GetSearchResults([FromQuery] GetSearchResultsQuery query)
+            => Ok(await _mediator.Send(query));
+
+        [HttpGet("GetinitialData")]
+        public async Task<ActionResult<IListResponseModel<GetMenuListDTO>>> GetinitialData([FromQuery] GetInitialDataForLandingPageQuery query)
             => Ok(await _mediator.Send(query));
     }
 }

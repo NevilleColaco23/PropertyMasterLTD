@@ -56,7 +56,7 @@ export class LoginFormComponent  {
     
     this.loggingService.logPageNavigation(`loginSuccess`, LOG_LOGIN_SUCCESS, `User logged in successfully with email: ${email}`);
         
-    this.router.navigate(['/propertyLanding']).then(navigated => {});
+    this.router.navigate(['/propertySelector']).then(navigated => {});
 
         timer(5000).subscribe(() => this.localLoginState = LocalLoginState.None); // In case user logs out without navigating elsewhere; the 'success' would still be visible.
         this.loginForm.enable();

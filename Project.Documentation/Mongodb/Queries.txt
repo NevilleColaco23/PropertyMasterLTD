@@ -1,0 +1,9 @@
+﻿# To add field to all documents
+db.getCollection("Property").updateMany(
+  {}, // Select all documents
+  {
+    $set: {
+      CompanyLogoURL: "http" 
+    }
+  }
+)

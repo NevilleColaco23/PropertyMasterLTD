@@ -1,13 +1,12 @@
 import { Component, ViewChildren, QueryList, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { takeUntil, Subject, catchError, map } from 'rxjs';
-import { Router } from '@angular/router';
 import { AppConfig } from '../../Appconfig';
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { GetSearchResultsDTO } from '../../core/search-box-autocomplete/search-box-autocomplete.component';
-import { HttpParams } from '@angular/common/http';
-import { LOG_LOGIN_SUCCESS, LOG_LOGOUT } from '../../Common/Constants/Constants';
+import { LOG_LOGOUT } from '../../Common/Constants/Constants';
 import { LoggingService } from '../../core/auth/services/logging.service';
 
 @Component({
@@ -18,15 +17,11 @@ import { LoggingService } from '../../core/auth/services/logging.service';
 export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
   @ViewChildren(MatMenuTrigger) megaMenuTriggerRefs!: QueryList<MatMenuTrigger>;
   @ViewChild('searchInput') searchInputRef!: ElementRef<HTMLInputElement>;
-
   searchQuery: string = '';
   hardcodedValues: string[] = [];
-
-
   filteredSuggestions: string[] = [];
   showSuggestionsList: boolean = false;
   activeSuggestionIndex: number = -1;
-
   dropdownOptions: any[] = [];
   selectedCountry: string = '';
   private closeMenuTimeout: any;
@@ -34,8 +29,8 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
   activeMenuItem: any | null = null;
   private pathAPI : string;
-
   navItems: any[] = [];
+  logoPath: string | null = null;
 
   constructor(
     private router: Router, private config: AppConfig
@@ -43,22 +38,21 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
   ) {this.pathAPI = this.config.setting['PathAPI'];}
 
 onSearchSelected(selectedResult: GetSearchResultsDTO) {
-  this.searchQuery = selectedResult.label; // Or selectedResult.path, depending on your filter's needs
-  console.log('Search result selected from child:', selectedResult);
+  this.searchQuery = selectedResult.label;
 
-  // Handle navigation here in the parent
   this.router.navigateByUrl(selectedResult.path);
 
-  this.applyFilter(); // Your existing filter logic
+  this.applyFilter();
 }
 
 getMenuItems() {
  let params = new HttpParams().set('userId', 10); //TODO : to remove. get userid from token on server
 
-  return this.http.get<any>(this.pathAPI + 'v1/menu/GetListByUserId', { params }).pipe(
+  return this.http.get<any>(this.pathAPI + 'v1/menu/GetinitialData', { params }).pipe(
     map(response => {
+      this.logoPath = response.results[0]?.property?.companyLogoURL || '';
       return response;
-    }),
+    }),   
     catchError((err) => this.errorHandling.handleError(err))
   );
 }

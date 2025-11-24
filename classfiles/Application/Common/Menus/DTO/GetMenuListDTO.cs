@@ -1,4 +1,4 @@
-﻿namespace MyWarehouse.Application.Common.Menus
+﻿namespace MyWarehouse.Application.Common.Menus.DTO
 {
     public class GetMenuListDTO
     {
