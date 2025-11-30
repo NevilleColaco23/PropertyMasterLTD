@@ -1,0 +1,3 @@
+﻿netstat -ano | findstr :4200
+
+taskkill /PID 39880 /F
