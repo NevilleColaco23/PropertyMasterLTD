@@ -2,15 +2,20 @@ import { Component, ViewChildren, QueryList, ViewChild, ElementRef, AfterViewIni
 import { Router } from '@angular/router';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { takeUntil, Subject, catchError, map } from 'rxjs';
-import { AppConfig } from '../../Appconfig';
+import { AppConfig } from '../../app.config';
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { GetSearchResultsDTO } from '../../core/search-box-autocomplete/search-box-autocomplete.component';
 import { LOG_LOGOUT } from '../../Common/Constants/Constants';
 import { LoggingService } from '../../core/auth/services/logging.service';
+import { RouterLink, RouterLinkActive } from '@angular/router'; 
+import { SearchBoxAutocompleteComponent } from '../../core/search-box-autocomplete/search-box-autocomplete.component';
+import { SystemMessagesSnackbarComponent } from '../../core/system-messages-snackbar/system-messages-snackbar.component';
+import { RouterOutlet  } from '@angular/router';
 
 @Component({
   selector: 'app-property-landing',
+  imports: [RouterLink, RouterOutlet, SearchBoxAutocompleteComponent, SystemMessagesSnackbarComponent],
   templateUrl: './property-landing.component.html',
   styleUrls: ['./property-landing.component.css']
 })

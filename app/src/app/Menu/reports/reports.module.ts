@@ -2,39 +2,24 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReportsRoutingModule } from './reports-routing.module';
-import { ReportsComponent } from '../reports/reports.component';
 // Angular Material Imports
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatCardModule } from '@angular/material/card'; // For a nice container
-import { MatProgressBarModule } from '@angular/material/progress-bar'; // For loading indicator
-import { MatFormFieldModule } from '@angular/material/form-field'; // For search input
 import { MatInputModule } from '@angular/material/input'; // For search input
-import { MatIconModule } from '@angular/material/icon'; // For search icon
 // For data fetching
 import { HttpClientModule } from '@angular/common/http'; // Make sure this is imported if not already in app module
-import { AppConfig } from '../../Appconfig'; // Assuming you have AppConfig for API path
+import { AppConfig } from '../../app.config'; // Assuming you have AppConfig for API path
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatExpansionModule } from '@angular/material/expansion';
 
 @NgModule({
-  declarations: [ ReportsComponent],
+  declarations: [],
   imports: [
     CommonModule,
     ReportsRoutingModule,
-    MatTableModule,
-    MatPaginatorModule,
     MatSortModule,
     MatCardModule,
-    MatProgressBarModule,
-    MatFormFieldModule,
     MatInputModule,
-    MatIconModule,
-    MatCheckboxModule,
     HttpClientModule,
-    MatExpansionModule
   ],
   providers: [
     // Provide AppConfig and ErrorHandlingCommonServiceService here

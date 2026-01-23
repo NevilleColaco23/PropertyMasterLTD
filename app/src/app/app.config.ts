@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-@Injectable()
+@Injectable({
+  providedIn: 'root' // This makes the class and its IP config available app-wide
+})
 
 export class AppConfig {
     private _config: { [key: string]: string };
@@ -8,10 +10,10 @@ export class AppConfig {
             PathAPI: 'https://localhost:44346/'
         };
     }
-    get setting():{ [key: string]: string } {
+    get setting(): { [key: string]: string } {
         return this._config;
     }
-    get(key: any) {
+    get(key: string) {
         return this._config[key];
     }
-};
+}

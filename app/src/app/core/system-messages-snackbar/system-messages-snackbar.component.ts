@@ -3,8 +3,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { AppConfig } from '../../Appconfig';
+import { AppConfig } from '../../app.config';
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 interface Booking {
   id: number;
@@ -13,6 +14,8 @@ interface Booking {
 
 @Component({
   selector: 'app-system-messages-snackbar',
+  standalone: true,
+  imports: [MatProgressSpinnerModule],
   templateUrl: './system-messages-snackbar.component.html',
   styleUrl: './system-messages-snackbar.component.css'
 })

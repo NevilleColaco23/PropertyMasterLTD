@@ -1,9 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { CreateUserComponent } from './create-user.component'; // Assuming your component is named create-user.component
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 
 const routes: Routes = [
   {
@@ -13,7 +10,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [MatFormFieldModule, MatButtonModule, MatCardModule, RouterModule.forChild(routes)],
+  imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
 export class CreateUserRoutingModule { }

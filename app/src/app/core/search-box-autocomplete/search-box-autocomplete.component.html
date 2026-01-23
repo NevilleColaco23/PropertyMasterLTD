@@ -10,13 +10,20 @@
     (keydown)="onKeyDown($event)"
   />
 
-  <div class="suggestion-box" *ngIf="searchSuggestions.length > 0 || isLoadingSuggestions">
-    <div *ngIf="isLoadingSuggestions">Loading...</div>
+@if (searchSuggestions.length > 0 || isLoadingSuggestions) {
+  <div class="suggestion-box">
+    @if (isLoadingSuggestions) {
+      <div>Loading...</div>
+    }
     <ul>
-      <li *ngFor="let suggestion of searchSuggestions; let i = index"
-    [class.active]="i === selectedSuggestionIndex"
-    (click)="onSuggestionClick(suggestion)">
-     {{ suggestion.displayLabel }} </li>
+      @for (suggestion of searchSuggestions; track suggestion.displayLabel; let i = $index) {
+        <li 
+          [class.active]="i === selectedSuggestionIndex"
+          (click)="onSuggestionClick(suggestion)">
+          {{ suggestion.displayLabel }}
+        </li>
+      }
     </ul>
   </div>
+}
 </div>

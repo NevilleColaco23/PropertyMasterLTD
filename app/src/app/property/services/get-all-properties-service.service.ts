@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AppConfig } from '../../Appconfig';
+import { AppConfig } from '../../app.config';
 import { HttpClient } from '@angular/common/http';
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { Observable } from 'rxjs';

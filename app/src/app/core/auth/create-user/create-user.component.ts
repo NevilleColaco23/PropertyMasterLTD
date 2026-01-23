@@ -1,10 +1,16 @@
 import { Component } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../auth/services/auth.service';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
+import { ReactiveFormsModule } from '@angular/forms';
 
 
 @Component({
   selector: 'app-create-user',
+  standalone: true,
+  imports: [MatCardModule,MatFormFieldModule,MatButtonModule,ReactiveFormsModule],
   templateUrl: './create-user.component.html',
   styleUrl: './create-user.component.css'
 })

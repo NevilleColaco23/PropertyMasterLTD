@@ -5,10 +5,13 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Email</mat-label>
       <input matInput type="email" formControlName="email" required autocomplete="email" />
-      <mat-error *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
-        Please enter a valid email address
-      </mat-error>
-    </mat-form-field>
+
+    @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+    <mat-error >
+            Please enter a valid email address
+          </mat-error>
+    }
+      </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Password</mat-label>
@@ -16,9 +19,13 @@
       <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" [attr.aria-label]="'Toggle password visibility'" type="button">
         <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
       </button>
-      <mat-error *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+
+      @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+
+      <mat-error >
         Password is required
       </mat-error>
+      }
     </mat-form-field>
 
     <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid">

@@ -1,44 +1,39 @@
 <header class="main-header">
   <div class="logo">
-    <!-- Ensure this path is correct for your Canva logo -->
-    <img *ngIf="logoPath" [src]="logoPath"  alt="Canva Logo" class="canva-logo">
+    @if (logoPath) {
+      <img [src]="logoPath" alt="Canva Logo" class="canva-logo">
+    }
   </div>
 
   <nav class="navigation-links">
-    <!-- Iterate over main navigation items -->
-    <div class="nav-item-wrapper" *ngFor="let item of navItems">
-      <!-- Main navigation link -->
-      <a [routerLink]="item.path" class="nav-item">
-        {{ item.label }}
-        <!-- Display dropdown arrow only if it has sub-items -->
-        <span *ngIf="item.hasDropdown && item.subItems?.length" class="arrow-down"></span>
-      </a>
+    <!-- Modern @for loop replaces *ngFor -->
+    @for (item of navItems; track item.label) {
+      <div class="nav-item-wrapper">
+        <a [routerLink]="item.path" class="nav-item">
+          {{ item.label }}
+          @if (item.hasDropdown && item.subItems?.length) {
+            <span class="arrow-down"></span>
+          }
+        </a>
 
-      <!-- Mega Menu Panel for dropdowns -->
-      <!-- Only show if item.hasDropdown is true AND there are subItems -->
-      <div class="mega-menu-panel" *ngIf="item.hasDropdown && item.subItems?.length">
-        <div class="mega-menu-content">
-          <!--
-            Instead of creating a new 'mega-menu-column' for each 'sub' item,
-            we'll create one column (or more if you add grouping logic)
-            and then list all sub-items within it.
-            The '<h3>' for each 'sub' was redundant as 'sub' itself is a link.
-          -->
-          <div class="mega-menu-column">
-            <!-- Optional: A heading for the entire dropdown section,
-                 e.g., "Design Spotlight Options" -->
-            <!-- <h3 *ngIf="item.label !== 'Canva Logo'">{{ item.label }} Options</h3> -->
-
-            <ul>
-              <!-- Iterate over subItems to create list items (links) -->
-              <li *ngFor="let sub of item.subItems">
-                <a [routerLink]="sub.subPath">{{ sub.subLabel }}</a>
-              </li>
-            </ul>
+        @if (item.hasDropdown && item.subItems?.length) {
+          <div class="mega-menu-panel">
+            <div class="mega-menu-content">
+              <div class="mega-menu-column">
+                <ul>
+                  <!-- Modern @for for sub-items -->
+                  @for (sub of item.subItems; track sub.subLabel) {
+                    <li>
+                      <a [routerLink]="sub.subPath">{{ sub.subLabel }}</a>
+                    </li>
+                  }
+                </ul>
+              </div>
+            </div>
           </div>
-        </div>
+        }
       </div>
-    </div>
+    }
   </nav>
 
   <app-search-box-autocomplete
@@ -46,10 +41,13 @@
   </app-search-box-autocomplete>
 
   <div class="example-button-row">
-    <button mat-button="filled" (click)="signOut()">Sign Out</button>
+    <!-- Using the 2026 MatButton updated syntax -->
+    <button mat-flat-button (click)="signOut()">Sign Out</button>
   </div>
 </header>
+
 <app-system-messages-snackbar></app-system-messages-snackbar>
+
 <main>
   <router-outlet></router-outlet>
 </main>

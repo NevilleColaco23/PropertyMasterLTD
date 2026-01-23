@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { LoggingService } from './core/auth/services/logging.service';
-import { Router } from '@angular/router';
+import { RouterOutlet  } from '@angular/router';
+import { LoaderComponent } from './core/loader/loader.component'; 
 
 interface WeatherForecast {
   date: string;
@@ -11,14 +12,15 @@ interface WeatherForecast {
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  imports: [RouterOutlet, LoaderComponent], 
+  templateUrl: './app.html',
+  styleUrl: './app.css'
 })
 export class AppComponent implements OnInit {
   public forecasts: WeatherForecast[] = [];
 
   //The service must be injected here to ensure immediate initialization.
-  constructor(private loggingService: LoggingService, private router: Router) { }
+  constructor(private loggingService: LoggingService) { }
 
   ngOnInit() {}
     

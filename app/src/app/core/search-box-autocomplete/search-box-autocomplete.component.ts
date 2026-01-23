@@ -1,11 +1,13 @@
-import { Component,  ElementRef,  ViewChild,  AfterViewInit,  OnDestroy, Output, EventEmitter } from '@angular/core';
+import { Component,  ElementRef,  ViewChild,  AfterViewInit,  OnDestroy, Output, EventEmitter,model  } from '@angular/core';
 import { debounceTime,  distinctUntilChanged,  Subject,  takeUntil,  catchError,  map,  of,} from 'rxjs';
 import { Router } from '@angular/router';
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { HttpClient } from "@angular/common/http";
-import { AppConfig } from '../../Appconfig';
-import { LOG_LOGOUT, LOG_SEARCH } from '../../Common/Constants/Constants';
+import { AppConfig } from '../../app.config';
+import { LOG_SEARCH } from '../../Common/Constants/Constants';
 import { LoggingService } from '../../core/auth/services/logging.service';
+import { ReactiveFormsModule, FormsModule  } from '@angular/forms';
+
 export interface ApiResponse<T> {
   pageIndex: number;
   pageSize: number;
@@ -28,6 +30,7 @@ export interface GetSearchResultsDTO {
 
 @Component({
   selector: 'app-search-box-autocomplete',
+  imports: [ReactiveFormsModule, FormsModule],
   templateUrl: './search-box-autocomplete.component.html',
   styleUrl: './search-box-autocomplete.component.css'
 })

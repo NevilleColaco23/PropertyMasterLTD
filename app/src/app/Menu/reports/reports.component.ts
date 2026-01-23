@@ -4,10 +4,18 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import {catchError, map,of } from 'rxjs';
-import { AppConfig } from '../../Appconfig';
+import { AppConfig } from '../../app.config';
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { LoggingService } from '../../core/auth/services/logging.service';
 import { LOG_DELETE_BOOKING, LOG_EDIT_GRID, LOG_EDIT_VIEW } from '../../Common/Constants/Constants';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatProgressBarModule } from '@angular/material/progress-bar'; // For loading indicator
+import { MatFormFieldModule } from '@angular/material/form-field'; // For search input
+import { MatTableModule } from '@angular/material/table';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatIconModule } from '@angular/material/icon'; // For search icon
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { DatePipe, CurrencyPipe } from '@angular/common'; 
 
 export interface Booking {
   _id: string;
@@ -21,6 +29,8 @@ export interface Booking {
 
 @Component({
   selector: 'app-reports',
+  imports: [MatExpansionModule, MatProgressBarModule, MatFormFieldModule, MatTableModule, MatCheckboxModule, MatIconModule
+    , MatPaginatorModule, DatePipe, CurrencyPipe],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.css'
 })

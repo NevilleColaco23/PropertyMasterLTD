@@ -1,10 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { FormControl, ReactiveFormsModule  } from '@angular/forms';
 import { GetAllPropertiesServiceService, PropertyModel } from '../services/get-all-properties-service.service';
 import { Router } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+
 
 @Component({
   selector: 'app-property-selection',
+  imports: [MatSelectModule, MatFormFieldModule, ReactiveFormsModule],
   templateUrl: './property-selection.component.html',
   styleUrls: ['./property-selection.component.css']
 })

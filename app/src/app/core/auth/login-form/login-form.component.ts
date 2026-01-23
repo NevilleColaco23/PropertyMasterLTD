@@ -6,8 +6,14 @@ import { timer } from 'rxjs';
 import { Router } from '@angular/router';
 import { LoaderService } from '../../../core/auth/services/loader-service.service';
 import { finalize } from 'rxjs/operators';
-import { LOG_EDIT_GRID, LOG_LOGIN_SUCCESS } from '../../../Common/Constants/Constants';
+import { LOG_LOGIN_SUCCESS } from '../../../Common/Constants/Constants';
 import { LoggingService } from '../../../core/auth/services/logging.service';
+import { MatCardModule } from '@angular/material/card';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon'; // For search icon
+import { MatDivider } from '@angular/material/divider'; // For search icon
+
 
 enum LocalLoginState {
   None,
@@ -19,6 +25,8 @@ enum LocalLoginState {
 
 @Component({
   selector: 'app-login-form',
+  standalone: true,
+  imports: [MatCardModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatDivider],
   templateUrl: './login-form.component.html',
   styleUrl: './login-form.component.css'
 })
