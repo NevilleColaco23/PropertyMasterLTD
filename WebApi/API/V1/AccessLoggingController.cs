@@ -13,7 +13,7 @@ namespace MyWarehouse.Infrastructure.API.V1
 
         public AccessLoggingController(IMediator mediator) => _mediator = mediator;
 
-        [HttpPost]
+        [HttpPost("accessLog")]
         public async Task<ActionResult<int>> Create(CreateLogCommand command)
             => Ok(await _mediator.Send(command));
     }

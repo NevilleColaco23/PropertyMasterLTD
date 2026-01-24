@@ -5,7 +5,6 @@ import { ErrorHandlingService } from '../../core/system-messages-snackbar/servic
 import { Observable } from 'rxjs';
 import { map,catchError } from 'rxjs/operators';
 
-
 export interface PropertyModel {
   name: string;
 }
@@ -27,7 +26,6 @@ export class GetAllPropertiesServiceService {
 
   return this.http.get<any>(this.pathAPI + 'v1/property').pipe(
     map(response => {
-      console.log( "Response: " + response);
       if (Array.isArray(response.results)) {
         return response.results.map((property: any) => ({
           id: property.id,

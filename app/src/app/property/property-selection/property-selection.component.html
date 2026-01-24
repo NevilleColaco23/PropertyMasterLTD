@@ -3,9 +3,11 @@
     <mat-label>Select Properties  </mat-label>
     <mat-select [formControl]="toppings" multiple [compareWith]="compareProperties">
       <mat-select-trigger>{{ selectedLabel }}</mat-select-trigger>
-      <mat-option *ngFor="let topping of toppingList; trackBy: trackById" [value]="topping">
-        {{ topping.name }}
-      </mat-option>
+      @for (topping of toppingList; track topping.name) {
+        <mat-option [value]="topping">
+          {{ topping.name }}
+        </mat-option>
+      }
     </mat-select>
   </mat-form-field>
 
