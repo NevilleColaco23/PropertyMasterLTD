@@ -1,19 +1,19 @@
-import { Injectable } from '@angular/core';
-@Injectable({
-  providedIn: 'root' // This makes the class and its IP config available app-wide
-})
+//This is a INTERFACE for application configuration
 
-export class AppConfig {
-    private _config: { [key: string]: string };
-    constructor() {
-        this._config = { 
-            PathAPI: 'https://localhost:44346/'
-        };
+import { ApplicationConfig } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { routes } from './app.routes';
+import { APP_CONFIG } from './app.config.token';
+
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    {
+      provide: APP_CONFIG,
+      useValue: {
+        apiUrl: 'https://localhost:44346/'
+      }
     }
-    get setting(): { [key: string]: string } {
-        return this._config;
-    }
-    get(key: string) {
-        return this._config[key];
-    }
-}
+  ]
+};

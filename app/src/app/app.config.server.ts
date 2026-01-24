@@ -1,13 +1,12 @@
 import { mergeApplicationConfig, ApplicationConfig } from '@angular/core';
 import { provideServerRendering, withRoutes } from '@angular/ssr';
-import { AppConfig } from './app.config'; 
-import { serverRoutes } from './app.routes.server';
+import { appConfig } from './app.config'; 
 
 const serverConfig: ApplicationConfig = {
   providers: [
-    provideServerRendering(withRoutes(serverRoutes))
+    provideServerRendering()
   ]
 };
 
-// Use the lowercase constant here
-export const config = mergeApplicationConfig({ providers: [AppConfig] }, serverConfig);
+// Merge the client config with server config
+export const config = mergeApplicationConfig(appConfig, serverConfig);

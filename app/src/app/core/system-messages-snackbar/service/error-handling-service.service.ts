@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Observable, of } from 'rxjs';
 
+// This service is used across using old class based injection.Angular sees ErrorHandlingService is a class with the @Injectable() decorator.
+//TypeScript can read the class type from the parameter. Angular automatically knows what to inject
+
 @Injectable({
   providedIn: 'root'
 })

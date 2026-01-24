@@ -8,7 +8,6 @@ import { MatCardModule } from '@angular/material/card'; // For a nice container
 import { MatInputModule } from '@angular/material/input'; // For search input
 // For data fetching
 import { HttpClientModule } from '@angular/common/http'; // Make sure this is imported if not already in app module
-import { AppConfig } from '../../app.config'; // Assuming you have AppConfig for API path
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 
 @NgModule({
@@ -22,10 +21,6 @@ import { ErrorHandlingService } from '../../core/system-messages-snackbar/servic
     HttpClientModule,
   ],
   providers: [
-    // Provide AppConfig and ErrorHandlingCommonServiceService here
-    // if they are specifically used by components in this module and not globally provided.
-    // If they are provided in root ('AppModule'), you don't need them here.
-    AppConfig,
     ErrorHandlingService
   ]
 })

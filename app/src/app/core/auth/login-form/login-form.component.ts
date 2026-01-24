@@ -13,6 +13,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon'; // For search icon
 import { MatDivider } from '@angular/material/divider'; // For search icon
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 
 
 enum LocalLoginState {
@@ -26,7 +28,7 @@ enum LocalLoginState {
 @Component({
   selector: 'app-login-form',
   standalone: true,
-  imports: [MatCardModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatDivider],
+  imports: [MatCardModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatDivider, MatInputModule, MatButtonModule],
   templateUrl: './login-form.component.html',
   styleUrl: './login-form.component.css'
 })
@@ -40,7 +42,9 @@ export class LoginFormComponent  {
   localLoginState = LocalLoginState.None;
   get localLoginStates() { return LocalLoginState; }
 
-  constructor(private as: AuthService, private fb: FormBuilder,private router: Router,private loaderService: LoaderService,private loggingService: LoggingService) {
+  constructor(private as: AuthService, private fb: FormBuilder,private router: Router,private loaderService: LoaderService
+    ,private loggingService: LoggingService) {
+
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],password: ['', Validators.required]
     });

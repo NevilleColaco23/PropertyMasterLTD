@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { AuthenticationSuccessData } from '../model/login-data';
 import {BehaviorSubject, Observable, of } from 'rxjs';
 import {HttpClient, HttpResponse} from '@angular/common/http';
@@ -6,11 +6,16 @@ import { environment } from '../../../../environments/environment';
 import { tap,catchError } from 'rxjs/operators';
 import { shareReplay } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
+
 @Injectable({
   providedIn: 'root'
 })
+
 export class AuthService {
-  
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId); 
+
   public signInState: Observable<AuthenticationSuccessData | null>;
   private _signInState = new BehaviorSubject<AuthenticationSuccessData | null>(null);
 
@@ -18,12 +23,14 @@ export class AuthService {
     this.signInState = this._signInState.asObservable();
     console.log('PRODUCTION:', environment.production);
 
-    const userData = this.getStoredUserData();
-
-    if (userData != null) { 
-      this._signInState.next(userData);
-      this.checkTokenExpirationAndSignOut();
-    }   
+    // Only access localStorage in the browser
+    if (this.isBrowser) {
+      const userData = this.getStoredUserData();
+      if (userData != null) { 
+        this._signInState.next(userData);
+        this.checkTokenExpirationAndSignOut();
+      }
+    } 
     }
 
 

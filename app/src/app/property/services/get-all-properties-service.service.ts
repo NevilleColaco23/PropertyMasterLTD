@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { AppConfig } from '../../app.config';
+import { Injectable, Inject } from '@angular/core';
+import { APP_CONFIG, AppConfig } from '../../app.config.token';
 import { HttpClient } from '@angular/common/http';
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { Observable } from 'rxjs';
@@ -19,9 +19,9 @@ export class GetAllPropertiesServiceService {
   public event: any;
   private pathAPI : string;
 
-  constructor(private http: HttpClient, private config: AppConfig,private errorHandling: ErrorHandlingService) {
-    this.pathAPI = this.config.setting['PathAPI'];
-  }
+  constructor(private http: HttpClient, private errorHandling : ErrorHandlingService, @Inject(APP_CONFIG) private appConfig: AppConfig
+  ) { this.pathAPI = this.appConfig.apiUrl; }
+
 
   getDropdownOptions(): Observable<PropertyModel[]> {
 

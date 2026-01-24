@@ -1,9 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, Inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { AppConfig } from '../../app.config';
+import { APP_CONFIG, AppConfig } from '../../app.config.token';
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
@@ -26,16 +26,10 @@ export class SystemMessagesSnackbarComponent {
 
   // Inject the service directly into the constructor
   constructor(
-    private http: HttpClient, 
-    private snackBar: MatSnackBar,
-    private errorHandling: ErrorHandlingService,
-    private appConfig: AppConfig,
-  ) {
-    this.pathAPI = this.appConfig.setting['PathAPI'];
-  }
+    private http: HttpClient, private snackBar: MatSnackBar, private errorHandling: ErrorHandlingService, @Inject(APP_CONFIG) private appConfig: AppConfig
+  ) { this.pathAPI = this.appConfig.apiUrl; }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void { }
 
   getSystemMessage(): void {
     this.isLoading.set(true);

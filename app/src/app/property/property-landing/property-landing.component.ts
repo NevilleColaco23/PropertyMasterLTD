@@ -1,8 +1,8 @@
-import { Component, ViewChildren, QueryList, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, ViewChildren, QueryList, ViewChild, ElementRef, AfterViewInit, OnDestroy, Inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { takeUntil, Subject, catchError, map } from 'rxjs';
-import { AppConfig } from '../../app.config';
+import { APP_CONFIG, AppConfig } from '../../app.config.token';
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { GetSearchResultsDTO } from '../../core/search-box-autocomplete/search-box-autocomplete.component';
@@ -38,9 +38,9 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
   logoPath: string | null = null;
 
   constructor(
-    private router: Router, private config: AppConfig
-    ,private http: HttpClient, private errorHandling: ErrorHandlingService, private loggingService: LoggingService
-  ) {this.pathAPI = this.config.setting['PathAPI'];}
+    private router: Router,private http: HttpClient, private errorHandling: ErrorHandlingService, private loggingService: LoggingService
+    , @Inject(APP_CONFIG) private appConfig: AppConfig
+  ) { this.pathAPI = this.appConfig.apiUrl; }
 
 onSearchSelected(selectedResult: GetSearchResultsDTO) {
   this.searchQuery = selectedResult.label;

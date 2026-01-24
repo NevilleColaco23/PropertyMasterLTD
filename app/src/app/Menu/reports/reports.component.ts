@@ -1,10 +1,9 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit,Inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import {catchError, map,of } from 'rxjs';
-import { AppConfig } from '../../app.config';
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { LoggingService } from '../../core/auth/services/logging.service';
 import { LOG_DELETE_BOOKING, LOG_EDIT_GRID, LOG_EDIT_VIEW } from '../../Common/Constants/Constants';
@@ -16,6 +15,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon'; // For search icon
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { DatePipe, CurrencyPipe } from '@angular/common'; 
+import { APP_CONFIG, AppConfig } from '../../app.config.token';
 
 export interface Booking {
   _id: string;
@@ -60,10 +60,10 @@ export class ReportsComponent implements OnInit, AfterViewInit {
 
   constructor(
     private http: HttpClient,
-    private appConfig: AppConfig,
     private errorHandling: ErrorHandlingService,private loggingService: LoggingService
-  ) {
-    this.pathAPI = this.appConfig.setting['PathAPI'];
+    ,@Inject(APP_CONFIG) private appConfig: AppConfig) {
+
+    this.pathAPI = this.appConfig.apiUrl;
   }
 
   ngOnInit(): void {

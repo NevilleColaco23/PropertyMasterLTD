@@ -1,9 +1,9 @@
-import { Component,  ElementRef,  ViewChild,  AfterViewInit,  OnDestroy, Output, EventEmitter,model  } from '@angular/core';
+import { Component,  ElementRef,  ViewChild,  AfterViewInit,  OnDestroy, Output, EventEmitter,Inject  } from '@angular/core';
 import { debounceTime,  distinctUntilChanged,  Subject,  takeUntil,  catchError,  map,  of,} from 'rxjs';
 import { Router } from '@angular/router';
 import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
 import { HttpClient } from "@angular/common/http";
-import { AppConfig } from '../../app.config';
+import { APP_CONFIG, AppConfig } from '../../app.config.token';
 import { LOG_SEARCH } from '../../Common/Constants/Constants';
 import { LoggingService } from '../../core/auth/services/logging.service';
 import { ReactiveFormsModule, FormsModule  } from '@angular/forms';
@@ -47,9 +47,8 @@ export class SearchBoxAutocompleteComponent implements AfterViewInit, OnDestroy 
   @ViewChild('searchBoxWrapper') searchBoxWrapper!: ElementRef;
 
   constructor(private router: Router, private errorHandling: ErrorHandlingService,private http: HttpClient
-  ,private config: AppConfig, private loggingService: LoggingService) {
-      this.pathAPI = this.config.setting['PathAPI'];
-    }
+  ,private loggingService: LoggingService, @Inject(APP_CONFIG) private appConfig: AppConfig
+  ) { this.pathAPI = this.appConfig.apiUrl; }
 
   ngAfterViewInit(): void {
     document.addEventListener('click', this.onDocumentClick.bind(this));

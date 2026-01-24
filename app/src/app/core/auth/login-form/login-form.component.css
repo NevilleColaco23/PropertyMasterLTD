@@ -1,27 +1,52 @@
+/* login.component.css */
 .login-card {
   max-width: 400px;
   margin: 50px auto;
   padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.login-card h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
 }
 
 .full-width {
   width: 100%;
+  margin-bottom: 16px;
 }
 
-button {
-  margin-top: 15px;
+/* Login button styling */
+.login-button {
+  width: 100%;
+  margin-top: 8px;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 500;
 }
+
+/* Password toggle button - remove any margin */
+.password-toggle {
+  margin: 0 !important;
+}
+
+/* Register section */
 .register-section {
-  display: flex; /* Make the container a flex container */
-  justify-content: center; /* Center items along the main axis (horizontally by default) */
-  align-items: center; /* (Optional) Center items along the cross axis (vertically if it were a column) */
-  margin-top: 20px;
-  flex-direction: column; /* Added this to stack the button and any other content vertically if needed */
-  gap: 10px; /* Adds space between flex items (e.g., if you add a <p> tag) */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
+  padding: 16px 0;
 }
 
-/* You might also want to center the heading within the card actions if it's there */
+.register-button {
+  font-size: 14px;
+}
+
 .register-heading {
   text-align: center;
-  width: 100%; /* Ensure it takes full width to center its text */
+  width: 100%;
+  margin: 0;
+  color: #666;
 }
