@@ -19,7 +19,7 @@ export class PropertySelectionComponent implements OnInit {
   toppings = new FormControl<PropertyModel[] | null>([]);
   toppingList: PropertyModel[] = [];
 
-  constructor(private propertyService: GetAllPropertiesServiceService, private router: Router) {}
+  constructor(private propertyService: GetAllPropertiesServiceService, private router: Router) {  }
 
   ngOnInit(): void {
     this.propertyService.getDropdownOptions().subscribe({
@@ -49,7 +49,6 @@ export class PropertySelectionComponent implements OnInit {
 
    applySelection(): void {
     const selected = this.toppings.value ?? [];
-    console.log('Apply clicked. Selected items:', selected);
 
   this.router.navigate(['/propertyLanding']).then(navigated => {});
 

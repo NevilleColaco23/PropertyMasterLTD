@@ -19,6 +19,6 @@ export class LoggingService {
 
   logPageNavigation(url: string, action : string, detail: string): void {
     const log = { AccessLog: url, timestamp: new Date(), Action: action, Detail: detail };
-    this.http.post(`${environment.apiUrl}/accessLog`, log).subscribe();
+    this.http.post(`${environment.apiUrl}/accessLog/accessLog`, log).subscribe();
   }
 }
