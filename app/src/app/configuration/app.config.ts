@@ -2,9 +2,8 @@
 
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { routes } from './app.routes';
-import { APP_CONFIG } from './app.config.token';
-
+import { routes } from '../app.routes';
+import { APP_CONFIG } from '../configuration/app.config.token';
 
 export const appConfig: ApplicationConfig = {
   providers: [

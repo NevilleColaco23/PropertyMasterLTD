@@ -1,15 +1,15 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
-import { AuthenticationSuccessData } from '../model/login-data';
 import {BehaviorSubject, Observable, of } from 'rxjs';
 import {HttpClient, HttpResponse} from '@angular/common/http';
-import { environment } from '../../../../environments/environment';
-import { tap,catchError } from 'rxjs/operators';
-import { shareReplay } from 'rxjs/operators';
+import { tap,catchError,shareReplay } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 
+import { AuthenticationSuccessData } from '../model/login-data';
+import { environment } from '../../../environments/environment';
+
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root' //makes it a singleton app-wide, no module registration needed.
 })
 
 export class AuthService {

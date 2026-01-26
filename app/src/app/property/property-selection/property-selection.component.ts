@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule  } from '@angular/forms';
 import { GetAllPropertiesServiceService, PropertyModel } from '../services/get-all-properties-service.service';
 import { Router } from '@angular/router';
@@ -18,11 +18,12 @@ export class PropertySelectionComponent implements OnInit {
 
   toppings = new FormControl<PropertyModel[] | null>([]);
   toppingList: PropertyModel[] = [];
+  private loaderService = inject(GetAllPropertiesServiceService);
 
-  constructor(private propertyService: GetAllPropertiesServiceService, private router: Router) {  }
+  constructor( private router: Router) {  }
 
   ngOnInit(): void {
-    this.propertyService.getDropdownOptions().subscribe({
+    this.loaderService.getDropdownOptions().subscribe({
       next: (data) => this.toppingList = data || [],
       error: err => console.error(err)
     });

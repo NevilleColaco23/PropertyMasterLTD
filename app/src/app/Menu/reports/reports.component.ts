@@ -2,11 +2,9 @@ import { Component, OnInit, ViewChild, AfterViewInit,Inject } from '@angular/cor
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
-import { MatSort, Sort } from '@angular/material/sort';
+import { MatSort, Sort, MatSortModule } from '@angular/material/sort';
+import { MatInputModule } from '@angular/material/input';
 import {catchError, map,of } from 'rxjs';
-import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
-import { LoggingService } from '../../core/auth/services/logging.service';
-import { LOG_DELETE_BOOKING, LOG_EDIT_GRID, LOG_EDIT_VIEW } from '../../Common/Constants/Constants';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatProgressBarModule } from '@angular/material/progress-bar'; // For loading indicator
 import { MatFormFieldModule } from '@angular/material/form-field'; // For search input
@@ -14,8 +12,12 @@ import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon'; // For search icon
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { DatePipe, CurrencyPipe } from '@angular/common'; 
-import { APP_CONFIG, AppConfig } from '../../app.config.token';
+import { DatePipe, CurrencyPipe, CommonModule } from '@angular/common'; 
+
+import { APP_CONFIG, AppConfig } from '../../configuration/app.config.token';
+import { ErrorHandlingService } from '../../core/system/service/error-handling-service.service';
+import { LoggingService } from '../../core/system/service/logging.service';
+import { LOG_DELETE_BOOKING, LOG_EDIT_GRID, LOG_EDIT_VIEW } from '../../common/Constants/Constants';
 
 export interface Booking {
   _id: string;
@@ -30,7 +32,7 @@ export interface Booking {
 @Component({
   selector: 'app-reports',
   imports: [MatExpansionModule, MatProgressBarModule, MatFormFieldModule, MatTableModule, MatCheckboxModule, MatIconModule
-    , MatPaginatorModule, DatePipe, CurrencyPipe],
+    , MatPaginatorModule, DatePipe, CurrencyPipe, CommonModule, MatInputModule, MatSortModule],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.css'
 })
@@ -142,7 +144,6 @@ onSortChange(sort: Sort): void {
     this.http.get<any>(this.pathAPI + 'v1/Bookings/GetBookings', { params: params })
       .pipe(
         map(response => {
-          console.log('API Response:', response);
 
           if (!response || !response.results) {
             this.errorHandling.handleError('Invalid API response format.');

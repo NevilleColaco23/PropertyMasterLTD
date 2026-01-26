@@ -1,11 +1,11 @@
-import { Component,  ElementRef,  ViewChild,  AfterViewInit,  OnDestroy, Output, EventEmitter,Inject  } from '@angular/core';
+import { Component,  ElementRef,  ViewChild,  AfterViewInit,  OnDestroy, Output, EventEmitter,Inject,inject  } from '@angular/core';
 import { debounceTime,  distinctUntilChanged,  Subject,  takeUntil,  catchError,  map,  of,} from 'rxjs';
 import { Router } from '@angular/router';
-import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
+import { ErrorHandlingService } from '../../system/service/error-handling-service.service';
 import { HttpClient } from "@angular/common/http";
-import { APP_CONFIG, AppConfig } from '../../app.config.token';
-import { LOG_SEARCH } from '../../Common/Constants/Constants';
-import { LoggingService } from '../../core/auth/services/logging.service';
+import { APP_CONFIG, AppConfig } from '../../../configuration/app.config.token';
+import { LOG_SEARCH } from '../../../common/Constants/Constants';
+import { LoggingService } from '../../system/service/logging.service';
 import { ReactiveFormsModule, FormsModule  } from '@angular/forms';
 
 export interface ApiResponse<T> {
@@ -42,12 +42,14 @@ export class SearchBoxAutocompleteComponent implements AfterViewInit, OnDestroy 
   private pathAPI : string;
   private searchInputChanged$ = new Subject<string>();
   private destroy$ = new Subject<void>();
-@Output() searchSelected = new EventEmitter<GetSearchResultsDTO>();
+  @Output() searchSelected = new EventEmitter<GetSearchResultsDTO>();
 
   @ViewChild('searchBoxWrapper') searchBoxWrapper!: ElementRef;
 
-  constructor(private router: Router, private errorHandling: ErrorHandlingService,private http: HttpClient
-  ,private loggingService: LoggingService, @Inject(APP_CONFIG) private appConfig: AppConfig
+  private errorHandlingService = inject(ErrorHandlingService);
+  private loggingService = inject(LoggingService);
+
+  constructor(private router: Router, private http: HttpClient, @Inject(APP_CONFIG) private appConfig: AppConfig
   ) { this.pathAPI = this.appConfig.apiUrl; }
 
   ngAfterViewInit(): void {
@@ -80,7 +82,7 @@ export class SearchBoxAutocompleteComponent implements AfterViewInit, OnDestroy 
   this.getSearchSuggestionsFromApi(query)
     .pipe(
       catchError((err) => {
-        this.errorHandling.handleError(err);
+        this.errorHandlingService.handleError(err);
         return of([]);
       }),
       takeUntil(this.destroy$)
@@ -114,7 +116,7 @@ map(response => {
             });
           }),
         catchError(err => {
-          this.errorHandling.handleError(err);
+          this.errorHandlingService.handleError(err);
           return of([]); // Return an empty observable array on error
         }),
         takeUntil(this.destroy$) // Ensure takeUntil is the last RxJS operator before subscribe

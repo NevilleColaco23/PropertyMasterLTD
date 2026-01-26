@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { environment } from '../../../../environments/environment';
-import { LOG_PAGE_NAVIGATION} from '../../../Common/Constants/Constants';
+import { environment } from '../../../environments/environment';
+import { LOG_PAGE_NAVIGATION} from '../../../common/Constants/Constants';
 
 @Injectable({
   providedIn: 'root'

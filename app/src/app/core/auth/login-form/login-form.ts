@@ -1,13 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { AuthService } from '../services/auth.service';
-import { timer } from 'rxjs';
-import { Router } from '@angular/router';
-import { LoaderService } from '../../../core/auth/services/loader-service.service';
-import { finalize } from 'rxjs/operators';
-import { LOG_LOGIN_SUCCESS } from '../../../Common/Constants/Constants';
-import { LoggingService } from '../../../core/auth/services/logging.service';
 import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -15,6 +7,16 @@ import { MatIconModule } from '@angular/material/icon'; // For search icon
 import { MatDivider } from '@angular/material/divider'; // For search icon
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { Router } from '@angular/router';
+import { timer } from 'rxjs';
+import { finalize } from 'rxjs/operators';
+
+import { AuthService } from '../services/auth.service'; //Tip: this services is injected based on classic method - constructor injection
+import { LoaderService } from '../../../core/auth/services/loader-service.service'; //Tip: this services is injected using inject() function (popular in standalone) (NEW)
+import { LOG_LOGIN_SUCCESS } from '../../../common/Constants/Constants';
+import { LoggingService } from '../../system/service/logging.service';
+
 
 
 enum LocalLoginState {
@@ -29,9 +31,10 @@ enum LocalLoginState {
   selector: 'app-login-form',
   standalone: true,
   imports: [MatCardModule, ReactiveFormsModule, MatFormFieldModule, MatIconModule, MatDivider, MatInputModule, MatButtonModule],
-  templateUrl: './login-form.component.html',
-  styleUrl: './login-form.component.css'
+  templateUrl: './login-form.html',
+  styleUrl: './login-form.css'
 })
+
 export class LoginFormComponent  {
   hidePassword = true;
   faSpinner = faSpinner;
@@ -41,9 +44,9 @@ export class LoginFormComponent  {
 
   localLoginState = LocalLoginState.None;
   get localLoginStates() { return LocalLoginState; }
+  private loaderService = inject(LoaderService);
 
-  constructor(private as: AuthService, private fb: FormBuilder,private router: Router,private loaderService: LoaderService
-    ,private loggingService: LoggingService) {
+  constructor(private as: AuthService, private fb: FormBuilder,private router: Router,private loggingService: LoggingService) {
 
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],password: ['', Validators.required]
@@ -52,8 +55,9 @@ export class LoginFormComponent  {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      this.loaderService.show();
-      const loginData = this.loginForm.value;
+    this.loaderService.show();
+
+    const loginData = this.loginForm.value;
       
     this.localLoginState = LocalLoginState.Waiting;
     this.loginForm.disable();

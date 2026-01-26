@@ -1,8 +1,8 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable, map, catchError } from "rxjs";
-import { environment } from '../../../../environments/environment';
-import { ErrorHandlingService } from '../../../core/system-messages-snackbar/service/error-handling-service.service';
+import { environment } from '../../../environments/environment';
+import { ErrorHandlingService } from '../../system/service/error-handling-service.service';
 
 export interface AuthenticationSuccessData {
     accessToken: string;

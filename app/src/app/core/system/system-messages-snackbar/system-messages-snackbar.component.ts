@@ -1,10 +1,10 @@
-import { Component, signal, Inject } from '@angular/core';
+import { Component, signal, Inject, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { APP_CONFIG, AppConfig } from '../../app.config.token';
-import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
+import { APP_CONFIG, AppConfig } from '../../../configuration/app.config.token';
+import { ErrorHandlingService } from '../../system/service/error-handling-service.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 interface Booking {
@@ -19,14 +19,16 @@ interface Booking {
   templateUrl: './system-messages-snackbar.component.html',
   styleUrl: './system-messages-snackbar.component.css'
 })
+
 export class SystemMessagesSnackbarComponent {
  isLoading = signal(false);
   dataSource: Booking[] = [];
   private pathAPI: string;
+  private errorHandling = inject(ErrorHandlingService);
 
   // Inject the service directly into the constructor
   constructor(
-    private http: HttpClient, private snackBar: MatSnackBar, private errorHandling: ErrorHandlingService, @Inject(APP_CONFIG) private appConfig: AppConfig
+    private http: HttpClient, private snackBar: MatSnackBar, @Inject(APP_CONFIG) private appConfig: AppConfig
   ) { this.pathAPI = this.appConfig.apiUrl; }
 
   ngOnInit(): void { }

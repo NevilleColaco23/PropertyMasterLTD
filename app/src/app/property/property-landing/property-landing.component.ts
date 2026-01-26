@@ -2,14 +2,13 @@ import { Component, ViewChildren, QueryList, ViewChild, ElementRef, AfterViewIni
 import { Router, RouterOutlet, RouterLink } from '@angular/router';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { takeUntil, Subject, catchError, map } from 'rxjs';
-import { APP_CONFIG, AppConfig } from '../../app.config.token';
+import { APP_CONFIG, AppConfig } from '../../configuration/app.config.token';
 import { HttpClient, HttpParams } from "@angular/common/http";
-import { ErrorHandlingService } from '../../core/system-messages-snackbar/service/error-handling-service.service';
-import { GetSearchResultsDTO } from '../../core/search-box-autocomplete/search-box-autocomplete.component';
-import { LOG_LOGOUT } from '../../Common/Constants/Constants';
-import { LoggingService } from '../../core/auth/services/logging.service';
-import { SearchBoxAutocompleteComponent } from '../../core/search-box-autocomplete/search-box-autocomplete.component';
-import { SystemMessagesSnackbarComponent } from '../../core/system-messages-snackbar/system-messages-snackbar.component';
+import { ErrorHandlingService } from '../../core/system/service/error-handling-service.service';
+import { GetSearchResultsDTO, SearchBoxAutocompleteComponent } from '../../core/auth/search-box-autocomplete/search-box-autocomplete.component';
+import { LOG_LOGOUT } from '../../common/Constants/Constants';
+import { LoggingService } from '../../core/system/service/logging.service';
+import { SystemMessagesSnackbarComponent } from '../../core/system/system-messages-snackbar/system-messages-snackbar.component';
 import { MatButtonModule } from '@angular/material/button';
 
 
