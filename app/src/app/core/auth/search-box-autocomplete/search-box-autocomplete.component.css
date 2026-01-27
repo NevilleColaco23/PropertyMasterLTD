@@ -1,59 +1,126 @@
-.search-box-wrapper {
-    position: relative;
-    /* Adjust width as needed for your layout */
-    width: 250px; /* Example width */
-    display: inline-block; /* Or block, depending on layout */
+/* Container = input + attached button */
+.ib-search {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 46px; /* input | button */
+  height: 40px;
+
+  width: 100%;
+  max-width: 560px; /* fits the header nicely */
 }
 
-.search-box {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px; /* Slightly rounded corners */
-    box-sizing: border-box; /* Ensures padding/border don't increase total width */
-    font-size: 16px;
+/* Input (rectangular, not pill) */
+.ib-search__input {
+  height: 40px;
+  width: 100%;
+  padding: 0 12px;
+  font-size: 14px;
+
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  border-right: 0;
+  border-radius: 2px 0 0 2px;
+  outline: none;
+
+  background: #fff;
+  color: #111827;
+  box-sizing: border-box;
 }
 
-.suggestion-box {
-    position: absolute;
-    top: 100%; /* Position right below the input */
-    left: 0;
-    width: 100%;
-    z-index: 1000; /* Ensures it's on top of other content */
-
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-top: none; /* Create a seamless look with the input border */
-    border-radius: 0 0 4px 4px; /* Rounded corners only at the bottom */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
-
-    max-height: 200px; /* Limit height and add scroll if needed */
-    overflow-y: auto;
+.ib-search__input::placeholder {
+  color: rgba(17, 24, 39, 0.55);
 }
 
-.suggestion-box ul {
-    list-style: none; /* Remove bullet points */
-    padding: 0;       /* Remove default padding */
-    margin: 0;        /* Remove default margin */
+.ib-search__input:focus {
+  border-color: #2b6cff;
+  box-shadow: 0 0 0 2px rgba(43, 108, 255, 0.16);
 }
 
-.suggestion-box li {
-    padding: 10px 12px;
-    cursor: pointer;
-    color: #333;
-    font-size: 14px;
-    transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transition */
+/* Attached blue search button */
+.ib-search__button {
+  height: 40px;
+  width: 46px;
+
+  border: 1px solid #2b6cff;
+  border-radius: 0 2px 2px 0;
+  background: #2b6cff;
+
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0;
 }
 
-.suggestion-box li:hover,
-.suggestion-box li.active {
-    background-color: #f0f0f0; /* Light background on hover/active */
-    color: #007bff; /* Blue text for highlight */
+.ib-search__button:hover {
+  background: #1f57d6;
+  border-color: #1f57d6;
 }
 
-.suggestion-box div[ngIf="isLoadingSuggestions"] {
-    padding: 10px 12px;
-    color: #666;
-    text-align: center;
-    font-style: italic;
+.ib-search__button:active {
+  transform: translateY(1px);
+}
+
+/* CSS-only magnifier icon (no MatIcon needed) */
+.ib-search__icon {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  position: relative;
+  display: inline-block;
+}
+
+.ib-search__icon::after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 2px;
+  background: #fff;
+  right: -8px;
+  bottom: -4px;
+  transform: rotate(45deg);
+  border-radius: 1px;
+}
+
+/* Suggestions dropdown */
+.ib-search__suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14);
+  border-radius: 6px;
+
+  z-index: 4000;
+  overflow: hidden;
+}
+
+.ib-search__loading {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: rgba(17, 24, 39, 0.65);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.ib-search__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.ib-search__item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.ib-search__item:hover,
+.ib-search__item--active {
+  background: rgba(43, 108, 255, 0.08);
 }

@@ -1,29 +1,42 @@
-<div class="search-box-wrapper" #searchBoxWrapper>
+<div class="ib-search" #searchBoxWrapper>
   <input
     #searchInput
     type="text"
-    class="search-box"
-    placeholder="Search..."
+    class="ib-search__input"
+    placeholder="Search from millions of products"
     [(ngModel)]="searchQuery"
     (ngModelChange)="onSearchQueryChanged($event)"
     (focus)="onSearchFocus()"
     (keydown)="onKeyDown($event)"
   />
 
-@if (searchSuggestions.length > 0 || isLoadingSuggestions) {
-  <div class="suggestion-box">
-    @if (isLoadingSuggestions) {
-      <div>Loading...</div>
-    }
-    <ul>
-      @for (suggestion of searchSuggestions; track suggestion.displayLabel; let i = $index) {
-        <li 
-          [class.active]="i === selectedSuggestionIndex"
-          (click)="onSuggestionClick(suggestion)">
-          {{ suggestion.displayLabel }}
-        </li>
+  <!-- Attached blue button (Infibeam style) -->
+  <button
+    type="button"
+    class="ib-search__button"
+    aria-label="Search"
+    (click)="onSearchFocus()"
+  >
+    <span class="ib-search__icon" aria-hidden="true"></span>
+  </button>
+
+  @if (searchSuggestions.length > 0 || isLoadingSuggestions) {
+    <div class="ib-search__suggestions">
+      @if (isLoadingSuggestions) {
+        <div class="ib-search__loading">Loading...</div>
       }
-    </ul>
-  </div>
-}
+
+      <ul class="ib-search__list">
+        @for (suggestion of searchSuggestions; track suggestion.displayLabel; let i = $index) {
+          <li
+            class="ib-search__item"
+            [class.ib-search__item--active]="i === selectedSuggestionIndex"
+            (click)="onSuggestionClick(suggestion)"
+          >
+            {{ suggestion.displayLabel }}
+          </li>
+        }
+      </ul>
+    </div>
+  }
 </div>
