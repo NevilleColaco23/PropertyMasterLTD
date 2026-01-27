@@ -1,18 +1,22 @@
 <header class="main-header">
   <div class="logo">
     @if (logoPath) {
-      <img [src]="logoPath" alt="Canva Logo" class="canva-logo">
+      <img [src]="logoPath" alt="Company Logo" class="canva-logo">
     }
   </div>
 
-  <nav class="navigation-links">
-    <!-- Modern @for loop replaces *ngFor -->
+  <nav class="navigation-links" aria-label="Primary navigation">
     @for (item of navItems; track item.label) {
       <div class="nav-item-wrapper">
-        <a [routerLink]="item.path" class="nav-item">
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="nav-item--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="nav-item"
+        >
           {{ item.label }}
           @if (item.hasDropdown && item.subItems?.length) {
-            <span class="arrow-down"></span>
+            <span class="arrow-down" aria-hidden="true"></span>
           }
         </a>
 
@@ -21,7 +25,6 @@
             <div class="mega-menu-content">
               <div class="mega-menu-column">
                 <ul>
-                  <!-- Modern @for for sub-items -->
                   @for (sub of item.subItems; track sub.subLabel) {
                     <li>
                       <a [routerLink]="sub.subPath">{{ sub.subLabel }}</a>
@@ -36,18 +39,24 @@
     }
   </nav>
 
-  <app-search-box-autocomplete
-    (searchSelected)="onSearchSelected($event)">
-  </app-search-box-autocomplete>
+  <div class="header-actions">
+    <app-search-box-autocomplete (searchSelected)="onSearchSelected($event)">
+    </app-search-box-autocomplete>
 
-  <div class="example-button-row">
-    <!-- Using the 2026 MatButton updated syntax -->
-    <button mat-flat-button (click)="signOut()">Sign Out</button>
+    <div class="header-buttons">
+      <button mat-button class="header-btn" type="button" (click)="goToProfile()">
+        My Profile
+      </button>
+
+      <button mat-button class="header-btn header-btn--danger" type="button" (click)="signOut()">
+        Sign Out
+      </button>
+    </div>
   </div>
 </header>
 
 <app-system-messages-snackbar></app-system-messages-snackbar>
 
-<main>
+<main class="app-main">
   <router-outlet></router-outlet>
 </main>
