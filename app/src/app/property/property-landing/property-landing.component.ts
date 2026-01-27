@@ -1,4 +1,4 @@
-import { Component, ViewChildren, QueryList, ViewChild, ElementRef, AfterViewInit, OnDestroy, Inject } from '@angular/core';
+import { Component, ViewChildren, QueryList, ViewChild, ElementRef, AfterViewInit, OnDestroy, inject } from '@angular/core';
 import { Router, RouterOutlet, RouterLink } from '@angular/router';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { takeUntil, Subject, catchError, map } from 'rxjs';
@@ -35,11 +35,11 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
   private pathAPI : string;
   navItems: any[] = [];
   logoPath: string | null = null;
+  private appConfig = inject<AppConfig>(APP_CONFIG);
 
   constructor(
     private router: Router,private http: HttpClient, private errorHandling: ErrorHandlingService, private loggingService: LoggingService
-    , @Inject(APP_CONFIG) private appConfig: AppConfig
-  ) { this.pathAPI = this.appConfig.apiUrl; }
+    ) { this.pathAPI = this.appConfig.apiUrl; }
 
 onSearchSelected(selectedResult: GetSearchResultsDTO) {
   this.searchQuery = selectedResult.label;
