@@ -23,13 +23,19 @@ export class PropertySelectionComponent implements OnInit {
   constructor( private router: Router) {  }
 
   ngOnInit(): void {
-    this.loaderService.getDropdownOptions().subscribe({
-      next: (data) => this.toppingList = data || [],
-      error: err => console.error(err)
-    });
+  this.loaderService.getDropdownOptions().subscribe({
+    next: (data) => {
+      this.toppingList = data || [];
 
-    this.toppings.valueChanges.subscribe(v => console.log('selection changed', v));
-  }
+      if (this.toppingList.length > 0 && (this.toppings.value?.length ?? 0) === 0) {
+        this.toppings.setValue([this.toppingList[0]]);
+      }
+    },
+    error: err => console.error(err)
+  });
+
+  this.toppings.valueChanges.subscribe(v => console.log('selection changed', v));
+}
 
   get selectedLabel(): string {
     const vals = this.toppings.value ?? [];

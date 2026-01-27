@@ -1,7 +1,6 @@
 import {
-  Component, ViewChildren, QueryList, ViewChild, ElementRef,
-  AfterViewInit, OnDestroy, inject
-} from '@angular/core';
+  Component, ViewChildren, QueryList, ViewChild, ElementRef,  AfterViewInit, OnDestroy, inject,OnInit
+,ChangeDetectorRef } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { takeUntil, Subject, catchError, map } from 'rxjs';
@@ -27,7 +26,7 @@ import { MatButtonModule } from '@angular/material/button';
   templateUrl: './property-landing.component.html',
   styleUrls: ['./property-landing.component.css']
 })
-export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
+export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChildren(MatMenuTrigger) megaMenuTriggerRefs!: QueryList<MatMenuTrigger>;
   @ViewChild('searchInput') searchInputRef!: ElementRef<HTMLInputElement>;
 
@@ -54,10 +53,22 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
     private router: Router,
     private http: HttpClient,
     private errorHandling: ErrorHandlingService,
-    private loggingService: LoggingService
+    private loggingService: LoggingService,private cdr: ChangeDetectorRef
   ) {
     this.pathAPI = this.appConfig.apiUrl;
   }
+
+  ngOnInit(): void {
+  this.getMenuItems().subscribe({
+    next: (data) => {
+      this.navItems = data.results || [];
+
+      // Force the template to update immediately
+      this.cdr.detectChanges(); //issue 21.1
+    },
+    error: (err) => console.error('Error occurred while fetching menu items:', err)
+  });
+}
 
   onSearchSelected(selectedResult: GetSearchResultsDTO) {
     this.searchQuery = selectedResult.label;
@@ -82,15 +93,8 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy {
     );
   }
 
-  ngAfterViewInit() {
-    this.megaMenuTriggerRefs.changes.pipe(takeUntil(this.destroy$)).subscribe(() => {});
-
-    this.getMenuItems().subscribe({
-      next: (data) => {
-        this.navItems = data.results || [];
-      },
-      error: (err) => console.error('Error occurred while fetching menu items:', err)
-    });
+  ngAfterViewInit(): void {
+     this.megaMenuTriggerRefs.changes.pipe(takeUntil(this.destroy$)).subscribe(() => {});
   }
 
   ngOnDestroy() {
