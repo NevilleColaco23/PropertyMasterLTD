@@ -91,18 +91,21 @@ public class AccountController : ControllerBase
             return BadRequest("Sign-up data is required.");
         }
 
-        if (string.IsNullOrEmpty(signUpDto.Username) || string.IsNullOrEmpty(signUpDto.Email) || string.IsNullOrEmpty(signUpDto.Password))
+        if (string.IsNullOrEmpty(signUpDto.Username) || string.IsNullOrEmpty(signUpDto.Email) || string.IsNullOrEmpty(signUpDto.Password)
+            || string.IsNullOrEmpty(signUpDto.Phone))
         {
-            return BadRequest("Username, email, and password are required.");
+            return BadRequest("Username, email, and password and phone are required.");
         }
 
         var user = new IdentityUser
         {
             UserName = signUpDto.Username,
-            Email = signUpDto.Email
+            Email = signUpDto.Email,
+            PasswordHash = signUpDto.Password,
+            PhoneNumber = signUpDto.Phone
         };
 
-        var result = await _userService.SignUp(signUpDto.Username, signUpDto.Email,signUpDto.Password,""); //check if internal identity function can be used
+        var result = await _userService.SignUp(signUpDto.Username, signUpDto.Email,signUpDto.Password,signUpDto.Phone); //check if internal identity function can be used
         
         
         return result.result switch

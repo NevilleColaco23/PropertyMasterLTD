@@ -8,6 +8,13 @@ import { isPlatformBrowser } from '@angular/common';
 import { AuthenticationSuccessData } from '../model/login-data';
 import { environment } from '../../../environments/environment';
 
+export interface SignUpDto {
+  username: string;
+  email: string;
+  password: string;
+  phone: string;
+}
+
 @Injectable({
   providedIn: 'root' //makes it a singleton app-wide, no module registration needed.
 })
@@ -51,14 +58,14 @@ export class AuthService {
       );
   }
   
-public signUp(username : string,email :string,password:string,phone:string){
+public signUp(data: SignUpDto){
   const signUpmodel = {
-    username: username,
-    password: password,
-    email:email,
-    phonenumber: phone
+    username: data.username,
+    password: data.password,
+    email: data.email,
+    Phone: data.phone
   };
-  
+  console.log('SignUp model:', signUpmodel);
   return this._http.post<AuthenticationSuccessData>(`${environment.apiUrl}/account/SignUp`, signUpmodel, { observe: 'response' })
       .pipe(
         tap(res => {

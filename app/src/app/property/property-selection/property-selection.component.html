@@ -13,8 +13,7 @@
 
   <div class="actions">
     <button mat-raised-button color="primary"
-            (click)="applySelection()"
-            [disabled]="!toppings.value || toppings.value.length === 0">
+            (click)="applySelection()" [disabled]="!toppings.value || toppings.value.length === 0">
       Apply
     </button>
     <button mat-button type="button" (click)="clearSelection()">Clear</button>

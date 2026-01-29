@@ -101,16 +101,14 @@ public class UserService : IUserService
 
         var userId = await _mediator.Send(createUserCommand);
 
-        UserActivationMailTemplateModel model = new();
-        model.Message = "Test Email Body";
-        model.Dated = DateTime.Now;
-        var mailService = ResourceLocator.Get<IMailService>();
-        mailService.SendMail(   model, "BidInviteTemplate", "nevillecolaco94@gmail.com", null, null, //pass model here
-                                    "Test", null, null);
-        //int userId = 0;
-
-        //if (!string.IsNullOrEmpty(userId))
-        //    return (SignUpResult.Failed, null);
+        //UserActivationMailTemplateModel model = new();
+        //model.Message = "Test Email Body";
+        //model.Dated = DateTime.Now;
+        //var mailService = ResourceLocator.Get<IMailService>();
+        //mailService.SendMail(   model, "BidInviteTemplate", "nevillecolaco94@gmail.com", null, null, //pass model here
+        //                            "Test", null, null);
+        
+        
         if (userId == 0)
             return (SignUpResult.Failed, null);
 

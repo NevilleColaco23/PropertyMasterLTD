@@ -49,7 +49,7 @@ namespace MyWarehouse.Domain.Users
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("User Name cannot be empty.");
 
-            PhoneNumber = value;
+            UserName = value;
         }
 
         [MemberNotNull(nameof(Email))]
@@ -82,7 +82,7 @@ namespace MyWarehouse.Domain.Users
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("Phone Number cannot be empty.");
 
-            UserName = value;
+            PhoneNumber = value;
         }
     }
     public class PropertyAccessList

@@ -1,0 +1,117 @@
+<mat-card class="user-card">
+  <mat-card-header class="card-header centered-header">
+  <mat-card-title>Create New User</mat-card-title>
+  <mat-card-subtitle>Enter details to create an account.</mat-card-subtitle>
+</mat-card-header>
+
+  <mat-card-content>
+    <form class="user-form" [formGroup]="form" (ngSubmit)="submit()">
+
+      <!-- SECTION: Account -->
+      <div class="section">
+       <!-- replace inside each section -->
+<div class="section-head">
+  <div class="section-title">Account details</div>
+  <div class="section-subtitle">Basic information used to identify the user.</div>
+</div>
+
+        <div class="two-col">
+          <mat-form-field appearance="outline">
+            <mat-label>User name</mat-label>
+            <input matInput formControlName="username" autocomplete="username"/>
+            <mat-error *ngIf="f.username.touched && f.username.hasError('required')">Username is required</mat-error>
+            <mat-error *ngIf="f.username.touched && f.username.hasError('minlength')">Min 3 characters</mat-error>
+            <mat-error *ngIf="f.username.touched && f.username.hasError('maxlength')">Max 30 characters</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" autocomplete="email"/>
+            <mat-error *ngIf="f.email.touched && f.email.hasError('required')">Email is required</mat-error>
+            <mat-error *ngIf="f.email.touched && f.email.hasError('email')">Enter a valid email</mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <!-- SECTION: Security -->
+      <div class="section">
+        <div class="section-title">Security</div>
+        <div class="section-subtitle">Choose a strong password for the account.</div>
+
+        <div class="two-col">
+          <mat-form-field appearance="outline">
+            <mat-label>Password</mat-label>
+            <input
+              matInput
+              [type]="hidePassword ? 'password' : 'text'"
+              formControlName="password"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              mat-icon-button
+              matSuffix
+              (click)="hidePassword = !hidePassword"
+              [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'"
+            >
+              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-hint>Minimum 8 characters</mat-hint>
+            <mat-error *ngIf="f.password.touched && f.password.hasError('required')">Password is required</mat-error>
+            <mat-error *ngIf="f.password.touched && f.password.hasError('minlength')">Min 8 characters</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Confirm password</mat-label>
+            <input
+              matInput
+              [type]="hideConfirmPassword ? 'password' : 'text'"
+              formControlName="confirmPassword"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              mat-icon-button
+              matSuffix
+              (click)="hideConfirmPassword = !hideConfirmPassword"
+              [attr.aria-label]="hideConfirmPassword ? 'Show password' : 'Hide password'"
+            >
+              <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+
+            <mat-error *ngIf="f.confirmPassword.touched && f.confirmPassword.hasError('required')">
+              Please confirm your password
+            </mat-error>
+            <mat-error *ngIf="f.confirmPassword.touched && form.hasError('passwordMismatch')">
+              Passwords do not match
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <!-- SECTION: Contact -->
+      <div class="section">
+        <div class="section-title">Contact</div>
+        <div class="section-subtitle">Used for account recovery and notifications.</div>
+
+        <mat-form-field class="full" appearance="outline">
+          <mat-label>Phone number</mat-label>
+          <input matInput formControlName="phone" autocomplete="tel" />
+          <mat-hint>Example: +1 (555) 123-4567</mat-hint>
+          <mat-error *ngIf="f.phone.touched && f.phone.hasError('required')">Phone number is required</mat-error>
+          <mat-error *ngIf="f.phone.touched && f.phone.hasError('pattern')">Enter a valid phone number</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="actions">
+        <button mat-stroked-button type="button" (click)="goToLogin()">Back</button>
+        <button mat-stroked-button type="button" (click)="form.reset()">Reset</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Create user</button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
