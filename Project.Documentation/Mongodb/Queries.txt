@@ -7,3 +7,9 @@ db.getCollection("Property").updateMany(
     }
   }
 )
+
+
+# To delete documents with _id greater than 3
+db.Users.deleteMany({ 
+  _id: { $gt: 3 } 
+});

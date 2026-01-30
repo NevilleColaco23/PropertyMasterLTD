@@ -15,7 +15,7 @@ public interface IRepository<TEntity, in TId> where TEntity : IEntity<TId>
 
     Task<IEnumerable<TEntity>> GetFiltered(Expression<Func<TEntity, bool>> filter, bool readOnly = false);
 
-    void Add(TEntity entity);
+    Task<TEntity> Add(TEntity entity, CancellationToken ct = default);
 
     void Remove(TEntity entity);
 

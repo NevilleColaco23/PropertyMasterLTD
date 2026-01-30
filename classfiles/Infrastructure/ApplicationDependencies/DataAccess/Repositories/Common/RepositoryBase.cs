@@ -44,8 +44,11 @@ internal abstract class RepositoryBaseEf<TEntity, TId> : IRepository<TEntity, TI
             .ProjectTo<TDto>(_mapper.ConfigurationProvider)
             .SingleOrDefaultAsync();
 
-    public virtual void Add(TEntity entity)
-        => _set.Add(entity);
+    public virtual Task<TEntity> Add(TEntity entity, CancellationToken ct = default)
+    {
+        _set.Add(entity);
+        return Task.FromResult(entity);
+    }
 
     public virtual void AddRange(IEnumerable<TEntity> entities)
         => _set.AddRange(entities);

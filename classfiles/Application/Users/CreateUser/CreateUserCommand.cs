@@ -28,10 +28,11 @@ namespace MyWarehouse.Application.Users.CreateUser
              phoneNumber: request.PhoneNumber
              );
 
-            _unitOfWork.Users.Add(newUser);
+            var newuserCreated = _unitOfWork.Users.Add(newUser);
             await _unitOfWork.SaveChanges();
 
-            return newUser.Id;
+            var test = newUser.Id;
+            return newuserCreated.Id;
         }
     }
 }

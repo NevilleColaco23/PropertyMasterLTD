@@ -42,7 +42,7 @@ public abstract class RepositoryBaseMongo<TDocument, TId> : IRepository<TDocumen
         throw new NotImplementedException();
     }
 
-    public async void Add(TDocument entity)
+    public async Task<TDocument> Add(TDocument entity, CancellationToken ct = default)
     {
         if (entity == null)
         {
@@ -61,7 +61,8 @@ public abstract class RepositoryBaseMongo<TDocument, TId> : IRepository<TDocumen
 
         try
         {
-            await Collection.InsertOneAsync(entity);
+            await Collection.InsertOneAsync(entity, cancellationToken: ct);
+            return entity;
         }
         catch (Exception ex)
         {
