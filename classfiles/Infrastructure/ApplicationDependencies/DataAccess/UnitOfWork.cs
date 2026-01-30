@@ -21,9 +21,10 @@ internal class UnitOfWork : IUnitOfWork
     public IMenuPermissionRepository MenuPermissions { get; }
     public IBookingsRepository Bookings { get; }
     public ISystemMessagesRepository SystemMessages { get; }
+    public IEmailOutboxRepository EmailOutbox { get; }
 
     public UnitOfWork(ApplicationDbContext dbContext, IPartnerRepository partners, IProductRepository products, ITransactionRepository transactions, IPropertyRepository properties
-        , IAccessLogRepository accessLogs, IUsersRepository users, IMenuRepository menus, IMenuPermissionRepository menusPermissions, IBookingsRepository bookings, ISystemMessagesRepository systemMessages)
+        , IAccessLogRepository accessLogs, IUsersRepository users, IMenuRepository menus, IMenuPermissionRepository menusPermissions, IBookingsRepository bookings, ISystemMessagesRepository systemMessages,IEmailOutboxRepository emailOutbox)
     {
         _dbContext = dbContext;
         Partners = partners;
@@ -36,6 +37,7 @@ internal class UnitOfWork : IUnitOfWork
         MenuPermissions = menusPermissions;
         Bookings = bookings;
         SystemMessages = systemMessages;
+        EmailOutbox = emailOutbox;
     }
 
     public void Dispose()

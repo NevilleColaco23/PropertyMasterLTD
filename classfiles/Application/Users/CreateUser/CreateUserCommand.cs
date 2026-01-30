@@ -1,5 +1,4 @@
-﻿using MongoDB.Driver;
-using MyWarehouse.Application.Common.Dependencies.DataAccess;
+﻿using MyWarehouse.Application.Common.Dependencies.DataAccess;
 
 namespace MyWarehouse.Application.Users.CreateUser
 {
@@ -32,6 +31,24 @@ namespace MyWarehouse.Application.Users.CreateUser
             await _unitOfWork.SaveChanges();
 
             var test = newUser.Id;
+
+            // Queue activation email (outbox)
+            // NOTE: you'll later replace token=TODO with real token/link generation
+            var activationUrl =
+                $"https://your-frontend-domain.com/activate?email={Uri.EscapeDataString(newUser.Email)}&token=TODO";
+
+            var outbox = new Domain.System_Related.EmailOutbox.EmailOutbox(
+                id: 1, // IMPORTANT: only if your EmailOutbox uses int _id; otherwise remove this for ObjectId
+                to: newUser.Email,
+                subject: "Activate your account",
+                bodyHtml: $@"<p>Activate: <a href=""{activationUrl}"">link</a></p>",
+                type: "activation",
+                userId: newUser.Id
+            );
+
+            _unitOfWork.EmailOutbox.Add(outbox);
+            await _unitOfWork.SaveChanges();
+
             return newuserCreated.Id;
         }
     }

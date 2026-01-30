@@ -18,6 +18,7 @@ internal static class Startup
 {
     public static void ConfigureServices(this IServiceCollection services, IConfiguration _)
     {
+        //NOTE: Also update IUnitOfWork class constructor when adding new repositories
         services.AddScoped<ICounterService, CounterService>();
         services.AddScoped<IProductRepository, ProductRepositoryEf>();
         services.AddScoped<IPartnerRepository, PartnerRepositoryEf>();
@@ -29,6 +30,7 @@ internal static class Startup
         services.AddScoped<IMenuPermissionRepository, MenuPermissionRepositoryMongo>();
         services.AddScoped<IBookingsRepository, BookingsRepositoryMongo>();
         services.AddScoped<ISystemMessagesRepository, SystemMessagesRepositoryMongo>();
+        services.AddScoped<IEmailOutboxRepository, EmailOutboxRepositoryMongo>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddTransient<IDateTime, DateTimeService>();

@@ -3,7 +3,7 @@ using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories.Common
 
 namespace MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories
 {
-    public interface ISystemMessagesRepository : IRepository<MyWarehouse.Domain.System_Related.System_Messages.SystemMessages, ObjectId>
+    public interface IEmailOutboxRepository : IRepository<Domain.System_Related.EmailOutbox.EmailOutbox, int>
     {
     }
 }

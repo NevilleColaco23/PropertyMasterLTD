@@ -12,4 +12,5 @@ public static class MongoCollections
     public const string MenuPermissionsCollection = "MenuPermissions";
     public const string BookingsCollection = "bookings";
     public const string SystemMessagesCollection = "systemMessages";
+    public const string EmailOutboxCollection = "EmailOutbox";
 }
