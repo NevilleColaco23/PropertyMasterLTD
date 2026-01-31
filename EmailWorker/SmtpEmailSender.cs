@@ -40,7 +40,7 @@ namespace EmailWorker
 
             using var client = new SmtpClient
             {
-                Timeout = 100000 // 100s; make it explicit
+                Timeout = 20000 // 100s; make it explicit
             };
 
             try
