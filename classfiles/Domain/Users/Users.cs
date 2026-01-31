@@ -28,6 +28,9 @@ namespace MyWarehouse.Domain.Users
         public int AccessFailedCount { get; set; }
         public int Version { get; set; }
         public DateTime CreatedOn { get; set; }
+        public string EmailConfirmationTokenHash { get; set; }
+        public DateTime EmailConfirmationTokenExpiresAtUtc { get; set; }
+        public DateTime EmailConfirmationTokenCreatedAtUtc { get; set; }
         public List<PropertyAccessList> PropertyAccessList { get; set; }
 
         private Users()

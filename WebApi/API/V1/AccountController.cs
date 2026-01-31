@@ -5,6 +5,7 @@ using MyWarehouse.Infrastructure.Authentication.External.Services;
 using MyWarehouse.Infrastructure.Authentication.Dtos;
 using MyWarehouse.Infrastructure.Authentication.Models.Dtos;
 using MyWarehouse.WebApi.Authentication.Dtos;
+using Azure.Core;
 
 namespace MyWarehouse.Infrastructure.API.V1;
 
@@ -118,5 +119,22 @@ public class AccountController : ControllerBase
             }),
             _ => throw new InvalidEnumArgumentException("Sign up failed. Please try again.")
         };
+    }
+
+    [AllowAnonymous]
+    [HttpPost("ConfirmEmail")]
+    public async Task<ActionResult<SignUpResponseDto>> ConfirmEmail([FromQuery] int userId, [FromQuery] string token, CancellationToken ct)
+    {
+        if (userId <= 0 || string.IsNullOrWhiteSpace(token))
+            return BadRequest("userId and token are required.");
+
+        var ok = await _mediator.Send(new ConfirmEmailCommand
+        {
+            UserId = userId,
+            Token = token
+        }, ct);
+
+        return ok ? Ok("Email activated successfully.") : BadRequest("Invalid or expired activation link.");
+
     }
 }

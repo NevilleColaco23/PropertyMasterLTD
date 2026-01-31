@@ -41,7 +41,7 @@ private router = inject(Router);
   form = this.fb.group(
     {
       username: ['nevillecolaco', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
-      email: ['nevillecolaco@gmail.com', [Validators.required, Validators.email]],
+      email: ['nevillecolaco19@gmail.com', [Validators.required, Validators.email]],
       password: ['12345678', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['12345678', [Validators.required]],
       phone: ['+1 (555) 123-4567', [Validators.required, Validators.pattern(/^\+?[0-9\s\-()]{7,20}$/)]],

@@ -50,6 +50,12 @@ internal abstract class RepositoryBaseEf<TEntity, TId> : IRepository<TEntity, TI
         return Task.FromResult(entity);
     }
 
+    public virtual Task<TEntity> Update(TEntity entity, CancellationToken ct = default)
+    {
+        _set.Update(entity);
+        return Task.FromResult(entity);
+    }
+
     public virtual void AddRange(IEnumerable<TEntity> entities)
         => _set.AddRange(entities);
 

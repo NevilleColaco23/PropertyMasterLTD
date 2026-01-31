@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
-using MyWarehouse.Domain.Common;
+using MongoDB.Bson;
 
-namespace MyWarehouse.Domain.System_Related.EmailOutbox
+namespace EmailWorker
 {
     public enum EmailOutboxStatus
     {
@@ -11,8 +11,9 @@ namespace MyWarehouse.Domain.System_Related.EmailOutbox
         Failed = 3
     }
 
-    public class EmailOutbox : IEntity<int>
+    public class EmailOutboxMessage
     {
+        [BsonId]
         public int Id { get; set; }
 
         [BsonElement("type")]
@@ -27,7 +28,6 @@ namespace MyWarehouse.Domain.System_Related.EmailOutbox
         [BsonElement("bodyHtml")]
         public string BodyHtml { get; set; } = default!;
 
-        // Stored as integer in Mongo by default (0,1,2,3) matching your sample
         [BsonElement("status")]
         public EmailOutboxStatus Status { get; set; } = EmailOutboxStatus.Pending;
 
@@ -52,25 +52,10 @@ namespace MyWarehouse.Domain.System_Related.EmailOutbox
         [BsonIgnoreIfNull]
         public DateTime? SentAtUtc { get; set; }
         public int UserId { get; set; }
+    }
 
-        // For Mongo deserialization
-        private EmailOutbox() { }
-
-        public EmailOutbox( string to, string subject, string bodyHtml, string type = "activation", int userId = 0)
-        {
-            Type = type;
-            To = to;
-            Subject = subject;
-            BodyHtml = bodyHtml;
-
-            Status = EmailOutboxStatus.Pending;
-            Attempts = 0;
-            NextRunAtUtc = DateTime.UtcNow;
-            LockedUntilUtc = null;
-            LastError = null;
-            CreatedAtUtc = DateTime.UtcNow;
-            SentAtUtc = null;
-            UserId = userId;
-        }
+    public static class EmailOutboxCollection
+    {
+        public const string Name = "EmailOutbox";
     }
 }

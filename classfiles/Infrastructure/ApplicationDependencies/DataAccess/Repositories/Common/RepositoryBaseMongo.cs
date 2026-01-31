@@ -70,6 +70,35 @@ public abstract class RepositoryBaseMongo<TDocument, TId> : IRepository<TDocumen
         }
     }
 
+    public async Task<TDocument> Update(TDocument entity, CancellationToken ct = default)
+    {
+        if (entity == null)
+        {
+            throw new ArgumentNullException(nameof(entity));
+        }
+
+        try
+        {
+            var filter = Builders<TDocument>.Filter.Eq(x => x.Id, entity.Id);
+
+            var result = await Collection.ReplaceOneAsync(
+                filter,
+                entity,
+                new ReplaceOptions { IsUpsert = false },
+                ct);
+
+            if (result.MatchedCount == 0)
+                throw new KeyNotFoundException($"Document with Id={entity.Id} not found.");
+
+
+            return entity;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("An error occurred while adding the document to the collection.", ex);
+        }
+    }
+
     public void AddRange(IEnumerable<TDocument> entities)
     {
         throw new NotImplementedException();

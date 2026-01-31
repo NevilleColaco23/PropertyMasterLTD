@@ -1,5 +1,6 @@
 ﻿using MyWarehouse.Application.Common.Dependencies.DataAccess;
 
+
 namespace MyWarehouse.Application.Users.CreateUser
 {
     public class CreateUserCommand : IRequest<int>
@@ -20,6 +21,7 @@ namespace MyWarehouse.Application.Users.CreateUser
 
         public async Task<int> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
+            #region Save user
             var newUser = new Domain.Users.Users(
              username: request.UserName.Trim(),
              email: request.Email.Trim(),
@@ -27,18 +29,29 @@ namespace MyWarehouse.Application.Users.CreateUser
              phoneNumber: request.PhoneNumber
              );
 
-            var newuserCreated = _unitOfWork.Users.Add(newUser);
+            var newuserCreated = await _unitOfWork.Users.Add(newUser);
+            await _unitOfWork.SaveChanges();
+            #endregion
+
+
+            var test = newuserCreated.Id; //TODO: 
+
+            // Generate token and store HASH on user
+            var rawToken = EmailConfirmationToken.GenerateRawToken();
+            var tokenHash = EmailConfirmationToken.HashToken(rawToken);
+
+            newuserCreated.EmailConfirmationTokenHash = tokenHash;
+            newuserCreated.EmailConfirmationTokenExpiresAtUtc = DateTime.UtcNow.AddHours(24);
+
+           
+            await _unitOfWork.Users.Update(newuserCreated); 
             await _unitOfWork.SaveChanges();
 
-            var test = newUser.Id;
-
-            // Queue activation email (outbox)
-            // NOTE: you'll later replace token=TODO with real token/link generation
             var activationUrl =
-                $"https://your-frontend-domain.com/activate?email={Uri.EscapeDataString(newUser.Email)}&token=TODO";
+                $"https://your-frontend-domain.com/activate?userId={newuserCreated.Id}&token={Uri.EscapeDataString(rawToken)}";
 
             var outbox = new Domain.System_Related.EmailOutbox.EmailOutbox(
-                id: 1, // IMPORTANT: only if your EmailOutbox uses int _id; otherwise remove this for ObjectId
+                //id: 1, // IMPORTANT: try to remove
                 to: newUser.Email,
                 subject: "Activate your account",
                 bodyHtml: $@"<p>Activate: <a href=""{activationUrl}"">link</a></p>",

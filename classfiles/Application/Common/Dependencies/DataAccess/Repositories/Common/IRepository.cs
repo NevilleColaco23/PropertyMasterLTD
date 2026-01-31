@@ -17,6 +17,8 @@ public interface IRepository<TEntity, in TId> where TEntity : IEntity<TId>
 
     Task<TEntity> Add(TEntity entity, CancellationToken ct = default);
 
+    Task<TEntity> Update(TEntity entity, CancellationToken ct = default);
+
     void Remove(TEntity entity);
 
     /// <summary>
