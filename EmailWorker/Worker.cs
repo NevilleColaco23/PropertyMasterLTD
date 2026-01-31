@@ -48,26 +48,24 @@ namespace EmailWorker
             var now = DateTime.UtcNow;
             var lockUntil = now.AddMinutes(2);
 
+            // Claim:
+            // 1) Pending and due to run
+            // 2) OR previously claimed (Processing) but lock expired (worker crashed / timeout)
             var filter = Builders<EmailOutboxMessage>.Filter.Or(
                 Builders<EmailOutboxMessage>.Filter.And(
                     Builders<EmailOutboxMessage>.Filter.Eq(x => x.Status, EmailOutboxStatus.Pending),
                     Builders<EmailOutboxMessage>.Filter.Lte(x => x.NextRunAtUtc, now)
                 ),
                 Builders<EmailOutboxMessage>.Filter.And(
-                    Builders<EmailOutboxMessage>.Filter.Eq(x => x.Status, EmailOutboxStatus.Pending), //change
+                    Builders<EmailOutboxMessage>.Filter.Eq(x => x.Status, EmailOutboxStatus.Processing),
                     Builders<EmailOutboxMessage>.Filter.Lte(x => x.LockedUntilUtc, now)
                 )
             );
 
-            //var update = Builders<EmailOutboxMessage>.Update
-            //    .Set(x => x.Status, EmailOutboxStatus.Processing)
-            //    .Set(x => x.LockedUntilUtc, lockUntil)
-            //    .Inc(x => x.Attempts, 1);
-
             var update = Builders<EmailOutboxMessage>.Update
-              .Set(x => x.Status, EmailOutboxStatus.Pending)
-              .Set(x => x.LockedUntilUtc, lockUntil)
-              .Inc(x => x.Attempts, 1);
+                .Set(x => x.Status, EmailOutboxStatus.Processing)
+                .Set(x => x.LockedUntilUtc, lockUntil)
+                .Inc(x => x.Attempts, 1);
 
             return _collection.FindOneAndUpdateAsync(
                 filter,

@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy everything (simplest). If your repo is huge, we can optimize later.
+# Copy everything 
 COPY . .
 
 # Publish the worker

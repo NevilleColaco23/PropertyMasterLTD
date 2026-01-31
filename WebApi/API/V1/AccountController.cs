@@ -121,20 +121,20 @@ public class AccountController : ControllerBase
         };
     }
 
-    [AllowAnonymous]
-    [HttpPost("ConfirmEmail")]
-    public async Task<ActionResult<SignUpResponseDto>> ConfirmEmail([FromQuery] int userId, [FromQuery] string token, CancellationToken ct)
-    {
-        if (userId <= 0 || string.IsNullOrWhiteSpace(token))
-            return BadRequest("userId and token are required.");
+    //[AllowAnonymous]
+    //[HttpPost("ConfirmEmail")]
+    //public async Task<ActionResult<SignUpResponseDto>> ConfirmEmail([FromQuery] int userId, [FromQuery] string token, CancellationToken ct)
+    //{
+    //    if (userId <= 0 || string.IsNullOrWhiteSpace(token))
+    //        return BadRequest("userId and token are required.");
 
-        var ok = await _mediator.Send(new ConfirmEmailCommand
-        {
-            UserId = userId,
-            Token = token
-        }, ct);
+    //    var ok = await _mediator.Send(new ConfirmEmailCommand
+    //    {
+    //        UserId = userId,
+    //        Token = token
+    //    }, ct);
 
-        return ok ? Ok("Email activated successfully.") : BadRequest("Invalid or expired activation link.");
+    //    return ok ? Ok("Email activated successfully.") : BadRequest("Invalid or expired activation link.");
 
-    }
+    //}
 }
