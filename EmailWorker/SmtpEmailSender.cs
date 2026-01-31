@@ -46,7 +46,7 @@ namespace EmailWorker
             try
             {
                 _logger.LogInformation("SMTP connecting to {Host}:{Port}...", _settings.Host, _settings.Port);
-                await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.StartTls, ct);
+                await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.SslOnConnect, ct);
 
                 _logger.LogInformation("SMTP authenticating as {User}...", _settings.Username);
                 await client.AuthenticateAsync(_settings.Username, _settings.Password, ct);
