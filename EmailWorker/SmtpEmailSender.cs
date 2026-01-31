@@ -22,7 +22,13 @@ namespace EmailWorker
     public sealed class SmtpEmailSender : IEmailSender
     {
         private readonly SmtpSettings _settings;
-        public SmtpEmailSender(SmtpSettings settings) => _settings = settings;
+        private readonly ILogger<SmtpEmailSender> _logger;
+
+        public SmtpEmailSender(SmtpSettings settings, ILogger<SmtpEmailSender> logger)
+        {
+            _settings = settings;
+            _logger = logger;
+        }
 
         public async Task SendHtmlAsync(string to, string subject, string htmlBody, CancellationToken ct)
         {
@@ -32,11 +38,30 @@ namespace EmailWorker
             message.Subject = subject;
             message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
 
-            using var client = new SmtpClient();
-            await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.StartTls, ct);
-            await client.AuthenticateAsync(_settings.Username, _settings.Password, ct);
-            await client.SendAsync(message, ct);
-            await client.DisconnectAsync(true, ct);
+            using var client = new SmtpClient
+            {
+                Timeout = 100000 // 100s; make it explicit
+            };
+
+            try
+            {
+                _logger.LogInformation("SMTP connecting to {Host}:{Port}...", _settings.Host, _settings.Port);
+                await client.ConnectAsync(_settings.Host, _settings.Port, SecureSocketOptions.StartTls, ct);
+
+                _logger.LogInformation("SMTP authenticating as {User}...", _settings.Username);
+                await client.AuthenticateAsync(_settings.Username, _settings.Password, ct);
+
+                _logger.LogInformation("SMTP sending to {To}...", to);
+                await client.SendAsync(message, ct);
+
+                _logger.LogInformation("SMTP sent to {To}. Disconnecting...", to);
+                await client.DisconnectAsync(true, ct);
+            }
+            catch
+            {
+                try { if (client.IsConnected) await client.DisconnectAsync(true, ct); } catch { /* ignore */ }
+                throw;
+            }
         }
     }
 }
