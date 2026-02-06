@@ -1,5 +1,7 @@
 using EmailWorker;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using Resend;
 
 //var builder = Host.CreateApplicationBuilder(args);
 //builder.Services.AddHostedService<Worker>();
@@ -7,18 +9,16 @@ using MongoDB.Driver;
 //var host = builder.Build();
 //host.Run();
 
-
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         var config = context.Configuration;
 
-        // Connection string from appsettings.json -> ConnectionStrings:MongoDb
+        // Mongo
         var mongoUri = config.GetConnectionString("MongoDb");
         if (string.IsNullOrWhiteSpace(mongoUri))
             throw new InvalidOperationException("Missing connection string 'ConnectionStrings:MongoDb' in appsettings.json.");
 
-        // Database name from appsettings.json -> AppSettings:MongoDbDatabaseName
         var dbName = config["AppSettings:MongoDbDatabaseName"];
         if (string.IsNullOrWhiteSpace(dbName))
             throw new InvalidOperationException("Missing AppSettings:MongoDbDatabaseName in appsettings.json.");
@@ -26,18 +26,33 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoUri));
         services.AddSingleton(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(dbName));
 
-        var smtpSection = config.GetSection("Smtp");
-        var smtp = new SmtpSettings
+        // Resend options (singleton-friendly)
+        services.Configure<ResendClientOptions>(options =>
         {
-            Host = smtpSection["Host"] ?? "smtp.gmail.com",
-            Port = 587,//int.TryParse(smtpSection["Port"], out var p) ? p : 587,
-            Username = smtpSection["Username"] ?? throw new InvalidOperationException("Missing Smtp:Username in appsettings.json."),
-            Password = smtpSection["Password"] ?? throw new InvalidOperationException("Missing Smtp:Password in appsettings.json."),
-            From = smtpSection["From"] ?? throw new InvalidOperationException("Missing Smtp:From in appsettings.json.")
-        };
+            options.ApiToken = config["Resend:ApiKey"] ?? config["RESEND_API_KEY"];
+            if (string.IsNullOrWhiteSpace(options.ApiToken))
+                throw new InvalidOperationException("Missing Resend:ApiKey (or RESEND_API_KEY).");
+        });
 
-        services.AddSingleton(smtp);
-        services.AddSingleton<IEmailSender, SmtpEmailSender>();
+        // Resend client (singleton)
+        services.AddSingleton(sp =>
+        {
+            var cfg = sp.GetRequiredService<IConfiguration>();
+            var apiKey = cfg["Resend:ApiKey"] ?? cfg["RESEND_API_KEY"];
+
+            if (string.IsNullOrWhiteSpace(apiKey))
+                throw new InvalidOperationException("Missing Resend:ApiKey (or RESEND_API_KEY).");
+
+            var optionsSnapshot = new StaticOptionsSnapshot<ResendClientOptions>(
+                new ResendClientOptions { ApiToken = apiKey }
+            );
+
+            var httpClient = new HttpClient();
+
+            return new ResendClient(optionsSnapshot, httpClient);
+        });
+
+        services.AddSingleton<IEmailSender, ResendEmailSender>();
 
         services.AddHostedService<Worker>();
     })
