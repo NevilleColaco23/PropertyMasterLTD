@@ -30,7 +30,7 @@ var host = Host.CreateDefaultBuilder(args)
         var smtp = new SmtpSettings
         {
             Host = smtpSection["Host"] ?? "smtp.gmail.com",
-            Port = int.TryParse(smtpSection["Port"], out var p) ? p : 587,
+            Port = 587,//int.TryParse(smtpSection["Port"], out var p) ? p : 587,
             Username = smtpSection["Username"] ?? throw new InvalidOperationException("Missing Smtp:Username in appsettings.json."),
             Password = smtpSection["Password"] ?? throw new InvalidOperationException("Missing Smtp:Password in appsettings.json."),
             From = smtpSection["From"] ?? throw new InvalidOperationException("Missing Smtp:From in appsettings.json.")
