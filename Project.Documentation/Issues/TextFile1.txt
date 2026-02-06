@@ -1,1 +1,0 @@
-﻿21.1 The top menus are not loading on page load. only i click any button, the top menu appears.

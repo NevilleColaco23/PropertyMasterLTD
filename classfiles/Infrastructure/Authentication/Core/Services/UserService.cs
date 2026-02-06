@@ -37,11 +37,8 @@ public class UserService : IUserService
                 return (MySignInResult.Failed, null);
             }
 
-            // Don't use SignInManager.PasswordSignInAsync(), because that sets usele
-            //
-            //
-            // ss cookies.
-            // But 'CheckPasswordSignInAsync' doesn't. Yep, it's confusing. Good thing we have access to the source code. :D
+            // Don't use SignInManager.PasswordSignInAsync(), because that sets useless cookies.
+            // But 'CheckPasswordSignInAsync' doesn't. Yep, it's confusing. Good thing we have access to the source code
             var result = await _signInManager.CheckPasswordSignInAsync(user, password, true);
 
             if (!result.Succeeded)

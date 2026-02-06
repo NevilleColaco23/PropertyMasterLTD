@@ -93,7 +93,18 @@
 
       <mat-divider></mat-divider>
 
-      <!-- SECTION: Contact -->
+      <div class="section">
+        <div class="section-title">Contact</div>
+        <div class="section-subtitle">Used for account recovery and notifications.</div>
+
+        <mat-form-field class="full" appearance="outline">
+          <mat-label>Property code</mat-label>
+          <input matInput formControlName="propertyCode" />
+          <mat-hint>123A</mat-hint>
+          <mat-error *ngIf="f.propertyCode.touched && f.propertyCode.hasError('required')">Property code is required</mat-error>
+        </mat-form-field>
+      </div>
+
       <div class="section">
         <div class="section-title">Contact</div>
         <div class="section-subtitle">Used for account recovery and notifications.</div>

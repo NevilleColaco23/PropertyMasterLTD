@@ -10,6 +10,12 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { map } from 'rxjs/internal/operators/map';
+import { Observable } from 'rxjs/internal/Observable';
+import { catchError } from 'rxjs/internal/operators/catchError';
+import { environment } from '../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
+import { ErrorHandlingService } from '../../system/service/error-handling-service.service';
 
 function passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
   const password = group.get('password')?.value;
@@ -32,11 +38,12 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
 export class CreateUserComponent {
 private authService = inject(AuthService);
 private router = inject(Router);
+private errorHandling = inject(ErrorHandlingService);
 
   hidePassword = true;
   hideConfirmPassword = true;
   private fb = inject(FormBuilder);
-
+  private pathAPI: string = environment.apiUrl;
 
   form = this.fb.group(
     {
@@ -45,12 +52,12 @@ private router = inject(Router);
       password: ['12345678', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['12345678', [Validators.required]],
       phone: ['+1 (555) 123-4567', [Validators.required, Validators.pattern(/^\+?[0-9\s\-()]{7,20}$/)]],
-    },
+      propertyCode: ['123AAAA'],
+    }, 
     { validators: passwordMatchValidator }
   );
 
-  constructor() {}
-
+  constructor(private http: HttpClient) {}
 
   goToLogin() {
   console.log('Going to login...');

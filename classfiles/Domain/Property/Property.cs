@@ -16,12 +16,14 @@ namespace MyWarehouse.Domain.Property
         [BsonElement("Rooms")]
         public List<Room> Rooms { get; set; }
         public string CompanyLogoURL { get; set; }
+        public string PropertyCode { get; set; }
 
         public Property(string name,bool isActive, List<Room> rooms)
         {
             Name = name;
             Active = isActive;
             Rooms = rooms;
+            PropertyCode = Helper.Generate8CharCode();
         }
 
         public class Room 

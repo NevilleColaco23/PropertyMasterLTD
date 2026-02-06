@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MyWarehouse.Application.Common.Dependencies.DataAccess;
+using MyWarehouse.Domain.Property;
 using System.Data;
 
 namespace MyWarehouse.Application.Common.Bookings.BookingsQuery
@@ -12,8 +13,10 @@ namespace MyWarehouse.Application.Common.Bookings.BookingsQuery
         private readonly int _pageSize;
         private readonly string _orderBy;
         private readonly int _sortDirection;
+        private readonly bool _getAllProperties;
 
-        public GetBookingsMongoQuery(string bookingId, string filterString, int pageIndex, int pageSize, string orderBy, int sortDirection)
+        public GetBookingsMongoQuery(string bookingId, string filterString, int pageIndex, int pageSize, string orderBy, int sortDirection
+            ,bool getAllProperties = false)
         {
             _bookingId = bookingId;
             _filterString = filterString;
@@ -21,6 +24,7 @@ namespace MyWarehouse.Application.Common.Bookings.BookingsQuery
             _pageSize = pageSize;
             _orderBy = orderBy;
             _sortDirection = sortDirection;
+            _getAllProperties = getAllProperties;
         }
 
         public BsonArray? BsonPipeline => GetBookingsPipeline();
@@ -29,26 +33,40 @@ namespace MyWarehouse.Application.Common.Bookings.BookingsQuery
         {
             var pipeline = new BsonArray();
 
+            // Build a single match document with optional conditions
+            var matchDoc = new BsonDocument();
+
+            // Conditionally apply propertyId filter
+            if (_getAllProperties)
+            {
+                matchDoc.Add("propertyId", new BsonDocument("$in", new BsonArray { 1, 1 })); //TODO: Adjust this as needed for "all properties" logic
+            }
+
+            // Conditionally apply text/number search filter
             if (!string.IsNullOrWhiteSpace(_filterString))
             {
                 var orConditions = new BsonArray
         {
-            // Case-insensitive search on string fields
-            new BsonDocument("bookingId", new BsonDocument("$regex", new BsonRegularExpression(_filterString, "i"))),
-            new BsonDocument("roomNumber", new BsonDocument("$regex", new BsonRegularExpression(_filterString, "i"))),
+            new BsonDocument("bookingId",
+                new BsonDocument("$regex", new BsonRegularExpression(_filterString, "i"))),
+            new BsonDocument("roomNumber",
+                new BsonDocument("$regex", new BsonRegularExpression(_filterString, "i"))),
         };
 
-                // Attempt to parse the filter string as a long for numeric fields
-                if (long.TryParse(_filterString, out long guestIdToSearch))
+                if (long.TryParse(_filterString, out var guestIdToSearch))
                 {
                     orConditions.Add(new BsonDocument("guestId", guestIdToSearch));
                 }
 
-                var matchStage = new BsonDocument("$match", new BsonDocument("$or", orConditions));
-                pipeline.Add(matchStage);
+                matchDoc.Add("$or", orConditions);
             }
 
-            // Always add the $facet stage
+            // Only add $match if we actually have something to match on
+            if (matchDoc.ElementCount > 0)
+            {
+                pipeline.Add(new BsonDocument("$match", matchDoc));
+            }
+
             pipeline.Add(new BsonDocument("$facet", new BsonDocument
     {
         { "results", new BsonArray
