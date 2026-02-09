@@ -6,3 +6,14 @@ The following steps were used to generate this project:
 - Update project file to add a reference to the frontend project and set SPA properties.
 - Add project to the startup projects list.
 - Write this file.
+
+## Changes
+
+### 2026-02-09 - User ID API Implementation
+- Added User model with Id, Name, and Email fields
+- Added Users collection to MongoDbContext
+- Created UserController with three endpoints:
+  - GET /user - Get all users
+  - GET /user/{id} - Get user by ID
+  - POST /user - Create a new user
+
