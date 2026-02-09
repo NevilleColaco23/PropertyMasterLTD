@@ -11,10 +11,10 @@ namespace testAngularAPI.Server.Model
         public string? Id { get; set; }
 
         [BsonElement("Name")]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         [BsonElement("Email")]
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
         public User(string name, string email)
         {

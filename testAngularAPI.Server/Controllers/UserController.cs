@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using testAngularAPI.Server.Mongo;
 using testAngularAPI.Server.Model;
 using MongoDB.Driver;
+using System.Security.Claims;
 
 namespace testAngularAPI.Server.Controllers
 {
@@ -16,6 +18,46 @@ namespace testAngularAPI.Server.Controllers
         {
             _logger = logger;
             _context = context;
+        }
+
+        /// <summary>
+        /// Get the currently authenticated user's information
+        /// </summary>
+        [Authorize]
+        [HttpGet("me", Name = "GetCurrentUser")]
+        public async Task<ActionResult<User>> GetCurrentUser()
+        {
+            try
+            {
+                // Get the user ID from the JWT token claims
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized(new { message = "User ID not found in token" });
+                }
+
+                var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+                var user = await _context.Users.Find(filter).FirstOrDefaultAsync();
+
+                if (user == null)
+                {
+                    return NotFound(new { message = $"User with ID {userId} not found" });
+                }
+
+                return Ok(new
+                {
+                    userId = user.Id,
+                    name = user.Name,
+                    email = user.Email,
+                    message = "This is the active user accessing the API"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching current user");
+                return StatusCode(500, "An error occurred while fetching user information");
+            }
         }
 
         /// <summary>
