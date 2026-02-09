@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using testAngularAPI.Server.Mongo;
 using MongoDB.Driver;
+using testAngularAPI.Server.Extensions;
 
 namespace testAngularAPI.Server.Controllers
 {
@@ -23,10 +24,17 @@ namespace testAngularAPI.Server.Controllers
             _context = context;
         }
 
-
         [HttpGet(Name = "GetWeatherForecast")]
         public async Task<IEnumerable<WeatherForecast>> Get()
         {
+            // EXAMPLE: How to get user ID in an API endpoint
+            // This demonstrates accessing the authenticated user's ID
+            var userId = User.GetUserId();
+            var username = User.GetUsername();
+
+            // Log the user information for debugging
+            _logger.LogInformation("Weather forecast requested by UserId: {UserId}, Username: {Username}", userId, username);
+
             // Fetch all users from MongoDB
             var users = await _context.Properties.Find(_ => true).ToListAsync();
 
