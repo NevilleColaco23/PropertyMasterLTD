@@ -20,12 +20,18 @@ namespace testAngularAPI.Server.Controllers
         }
 
         /// <summary>
-        /// Generates a test JWT token for development/testing purposes.
-        /// In production, this would be replaced with proper authentication logic.
+        /// Generates a test JWT token for development/testing purposes ONLY.
+        /// WARNING: This endpoint should NOT be available in production!
         /// </summary>
         [HttpPost("generate-test-token")]
         public IActionResult GenerateTestToken([FromBody] TestTokenRequest request)
         {
+            // Security: Only allow in development environment
+            if (!_configuration.GetValue<bool>("IsDevelopment", false))
+            {
+                return NotFound(); // Hide endpoint in production
+            }
+
             if (string.IsNullOrEmpty(request.UserId))
             {
                 return BadRequest(new { message = "UserId is required" });
@@ -40,7 +46,7 @@ namespace testAngularAPI.Server.Controllers
             };
 
             var jwtSettings = _configuration.GetSection("Jwt");
-            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["Key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(

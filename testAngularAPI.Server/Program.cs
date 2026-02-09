@@ -15,7 +15,7 @@ builder.Services.AddSingleton<MongoDbContext>();
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key is not configured"));
+var key = Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key is not configured"));
 
 builder.Services.AddAuthentication(options =>
 {
