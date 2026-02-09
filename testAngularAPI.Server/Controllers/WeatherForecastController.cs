@@ -35,16 +35,16 @@ namespace testAngularAPI.Server.Controllers
             // Log the user information for debugging
             _logger.LogInformation("Weather forecast requested by UserId: {UserId}, Username: {Username}", userId, username);
 
-            // Fetch all users from MongoDB
-            var users = await _context.Properties.Find(_ => true).ToListAsync();
+            // Fetch all properties from MongoDB
+            var properties = await _context.Properties.Find(_ => true).ToListAsync();
 
-            // Use user names as summaries
-            var summaries = users.Select(u => u.Name).ToArray();
+            // Use property names as summaries
+            var summaries = properties.Select(p => p.Name).ToArray();
 
             // Handle case where MongoDB is empty
             if (summaries.Length == 0)
             {
-                summaries = new[] { "No Users Found" };
+                summaries = new[] { "No Properties Found" };
             }
 
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
