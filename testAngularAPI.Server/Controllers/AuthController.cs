@@ -26,6 +26,8 @@ namespace testAngularAPI.Server.Controllers
 
         /// <summary>
         /// Login endpoint to authenticate user and get JWT token
+        /// Note: This is a simplified demo that only validates email existence.
+        /// In production, implement proper password hashing and validation.
         /// </summary>
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginRequest request)
@@ -86,9 +88,18 @@ namespace testAngularAPI.Server.Controllers
         }
     }
 
+    /// <summary>
+    /// Login request model.
+    /// Note: Password field is included for API contract completeness but not validated in this demo.
+    /// In production, implement proper password hashing (BCrypt, Argon2) and validation.
+    /// </summary>
     public class LoginRequest
     {
         public required string Email { get; set; }
-        public string? Password { get; set; } // Not used in this simple example
+        
+        /// <summary>
+        /// Password field (not validated in this simplified demo)
+        /// </summary>
+        public string? Password { get; set; }
     }
 }

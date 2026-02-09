@@ -86,10 +86,29 @@ The user ID is extracted from the JWT token claims (`ClaimTypes.NameIdentifier`)
 ## JWT Configuration
 
 JWT settings are configured in `appsettings.json`:
-- **Key**: Secret key for signing tokens (should be kept secure in production)
+- **Key**: Secret key for signing tokens
 - **Issuer**: Token issuer
 - **Audience**: Token audience
 - **ExpiryInMinutes**: Token expiration time
+
+⚠️ **IMPORTANT SECURITY NOTE**: The JWT key in `appsettings.json` is for development/demo purposes only!
+
+### Production Security Requirements:
+1. **NEVER commit secret keys to source control**
+2. **Use secure configuration storage**:
+   - Azure Key Vault
+   - AWS Secrets Manager
+   - Environment Variables
+   - User Secrets for development (`dotnet user-secrets`)
+3. **Use strong, randomly generated keys** (at least 256 bits)
+4. **Enable HTTPS** (RequireHttpsMetadata is environment-aware)
+
+Example using environment variables:
+```bash
+export Jwt__Key="your-production-secret-key-here"
+export Jwt__Issuer="your-issuer"
+export Jwt__Audience="your-audience"
+```
 
 ## Example Usage
 
@@ -109,12 +128,14 @@ curl -X GET http://localhost:5128/user/me \
   -H "Authorization: Bearer TOKEN"
 ```
 
-## Security Note
+## Additional Security Notes
 
 This is a simplified implementation for demonstration purposes. In production:
-- Implement proper password hashing (e.g., using BCrypt)
+- Implement proper password hashing (e.g., using BCrypt, Argon2)
 - Use HTTPS
-- Store JWT secret in secure configuration (Azure Key Vault, AWS Secrets Manager, etc.)
+- Store JWT secret in secure configuration (see above)
 - Implement refresh tokens
 - Add rate limiting
 - Validate password strength
+- Implement account lockout after failed login attempts
+- Add logging and monitoring for security events
