@@ -6,6 +6,7 @@ import {HttpClient, HttpResponse} from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { tap } from 'rxjs/operators';
 import { shareReplay } from 'rxjs/operators';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root'
@@ -113,6 +114,44 @@ public signUp(username : string,email :string,password:string){
 
   public getUserToken() {
     return localStorage.getItem('auth_tokenString');
+  }
+
+  public getUserId(): string | null {
+    const token = this.getUserToken();
+    if (!token) {
+      return null;
+    }
+
+    try {
+      // Remove 'Bearer ' prefix if present
+      const tokenString = token.startsWith('Bearer ') ? token.substring(7) : token;
+      
+      // Decode the JWT token
+      const decoded: any = jwtDecode(tokenString);
+      
+      // Return userId from the token claims
+      // The userId can be in different claim names depending on implementation
+      return decoded.userId || decoded.sub || decoded.nameid || null;
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return null;
+    }
+  }
+
+  public getDecodedToken(): any | null {
+    const token = this.getUserToken();
+    if (!token) {
+      return null;
+    }
+
+    try {
+      // Remove 'Bearer ' prefix if present
+      const tokenString = token.startsWith('Bearer ') ? token.substring(7) : token;
+      return jwtDecode(tokenString);
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return null;
+    }
   }
 
   public getValidityDays() {

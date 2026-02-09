@@ -11,6 +11,7 @@ export interface AuthenticationSuccessData {
     expiresIn: number;
     username: string;
     email: string;
+    userId: string;
     isExternalLogin: string;
     externalAuthenticationProvider: string;
   }
