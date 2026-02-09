@@ -1,16 +1,54 @@
 # How to Get User ID in API
 
-This document explains how to retrieve the authenticated user's ID in API endpoints.
+This document explains how to retrieve the authenticated user's ID in API endpoints when using JWT authentication.
 
 ## Overview
 
-The application provides multiple ways to access user information (including user ID) in API controllers through the ASP.NET Core authentication system.
+The application uses **JWT (JSON Web Token) authentication** configured in `Program.cs`. User information (including user ID) is extracted from JWT claims that are automatically populated by ASP.NET Core when a valid JWT token is provided in the request.
+
+## JWT Authentication Setup
+
+The API is configured with JWT Bearer authentication:
+
+```csharp
+// In Program.cs
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = jwtSettings["Audience"],
+            ValidateLifetime = true
+        };
+    });
+```
+
+JWT settings are configured in `appsettings.json`:
+- **Key**: Secret key for signing tokens
+- **Issuer**: Token issuer (testAngularAPI)
+- **Audience**: Token audience (testAngularAPIUsers)
+- **ExpiryInMinutes**: Token lifetime (60 minutes)
+
+## How JWT Tokens Work
+
+When a client authenticates, they receive a JWT token containing claims (user information). This token is included in subsequent requests via the Authorization header:
+
+```
+Authorization: Bearer <jwt-token>
+```
+
+ASP.NET Core automatically validates the token and populates the `User` ClaimsPrincipal with the claims from the JWT token.
 
 ## Methods to Get User ID
 
 ### Method 1: Using Extension Methods (Recommended)
 
-The project includes `ClaimsPrincipalExtensions` that provide convenient methods to extract user information:
+The project includes `ClaimsPrincipalExtensions` that provide convenient methods to extract user information from JWT claims:
 
 ```csharp
 using testAngularAPI.Server.Extensions;
@@ -79,14 +117,20 @@ public IActionResult GetData()
 
 ## Key Components
 
-### 1. ClaimsPrincipalExtensions.cs
+### 1. JWT Authentication (Program.cs)
+
+JWT Bearer authentication is configured to validate tokens and extract claims automatically.
+
+### 2. ClaimsPrincipalExtensions.cs
 
 Located in `testAngularAPI.Server/Extensions/ClaimsPrincipalExtensions.cs`
 
-This file contains extension methods for `ClaimsPrincipal` that make it easy to extract:
+This file contains extension methods for `ClaimsPrincipal` that make it easy to extract user information from JWT claims:
 - User ID (from NameIdentifier, sub, userId, or id claims)
 - Username (from Name or username claims)
 - Email (from Email claim)
+
+These methods check multiple common JWT claim types to ensure compatibility with different JWT token formats.
 
 ### 2. User Model
 
@@ -102,16 +146,17 @@ Defines the User entity with:
 Located in `testAngularAPI.Server/Controllers/UserController.cs`
 
 Provides example endpoints demonstrating how to:
-- Get current user information (`GET /api/user/me`)
-- Get user profile (`GET /api/user/profile`)
-- Perform actions with user ID (`POST /api/user/action`)
+- Get current user information from JWT (`GET /api/user/me`)
+- Get user profile with authentication check (`GET /api/user/profile`)
+- Perform actions with user ID from JWT (`POST /api/user/action`)
 
 ## Example Usage
 
-### Get Current User Information
+### Get Current User Information (from JWT token)
 
 ```bash
 GET /api/user/me
+Authorization: Bearer <your-jwt-token>
 ```
 
 Response:
@@ -126,10 +171,11 @@ Response:
 }
 ```
 
-### Get User Profile
+### Get User Profile (from JWT token)
 
 ```bash
 GET /api/user/profile
+Authorization: Bearer <your-jwt-token>
 ```
 
 Response:
@@ -141,25 +187,61 @@ Response:
 }
 ```
 
+## JWT Token Structure
+
+When creating JWT tokens (typically in your authentication/login endpoint), include these standard claims:
+
+```csharp
+var claims = new[]
+{
+    new Claim(ClaimTypes.NameIdentifier, user.Id),  // User ID
+    new Claim(ClaimTypes.Name, user.Username),       // Username
+    new Claim(ClaimTypes.Email, user.Email),         // Email
+    // Add other claims as needed
+};
+
+var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings["Key"]));
+var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+var token = new JwtSecurityToken(
+    issuer: jwtSettings["Issuer"],
+    audience: jwtSettings["Audience"],
+    claims: claims,
+    expires: DateTime.UtcNow.AddMinutes(Convert.ToInt32(jwtSettings["ExpiryInMinutes"])),
+    signingCredentials: credentials
+);
+
+var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+```
+
 ## Authentication Setup
 
-For the user ID to be available, ensure that:
+The JWT authentication is already configured in your repository:
 
-1. **Authentication is configured** in `Program.cs`:
+1. **JWT Bearer Authentication** is configured in `Program.cs`:
    ```csharp
-   builder.Services.AddAuthentication(...);
-   app.UseAuthentication();
+   builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+       .AddJwtBearer(options => { ... });
+   
+   app.UseAuthentication();  // This must come before UseAuthorization
    app.UseAuthorization();
    ```
 
-2. **JWT tokens or cookies include user claims**:
-   - NameIdentifier (standard claim for user ID)
-   - Name (for username)
-   - Email (for email address)
-
-3. **Requests include authentication headers**:
+2. **JWT settings** are in `appsettings.json`:
+   ```json
+   {
+     "Jwt": {
+       "Key": "YourSuperSecretKeyThatIsAtLeast32CharactersLongForHS256",
+       "Issuer": "testAngularAPI",
+       "Audience": "testAngularAPIUsers",
+       "ExpiryInMinutes": 60
+     }
+   }
    ```
-   Authorization: Bearer <your-jwt-token>
+
+3. **Requests must include JWT token** in the Authorization header:
+   ```
+   Authorization: Bearer <jwt-token>
    ```
 
 ## Common Claim Types
@@ -179,20 +261,68 @@ When working with user claims, here are the standard claim types:
 3. **Log user actions** with user ID for audit trails
 4. **Handle missing claims gracefully** (claims may not always be present)
 5. **Validate user authorization** for sensitive operations
+6. **Protect sensitive JWT keys** - Store the JWT Key in environment variables or Azure Key Vault in production
 
-## Testing Without Authentication
+## Testing with JWT Authentication
 
-For development/testing without a full authentication system:
+### Without Authentication
 
-You can test the endpoints using tools like Swagger, Postman, or curl. Without authentication, the user ID will be null or empty, which is expected behavior.
+Without a JWT token, the endpoints will return empty/null user information or 401 Unauthorized (depending on the endpoint):
 
-To properly test with authentication, you need to:
-1. Set up JWT authentication or another authentication mechanism
-2. Include valid authentication tokens in requests
-3. Ensure tokens contain the necessary claims (user ID, username, email)
+```bash
+curl http://localhost:5000/api/user/me
+# Returns: { "userId": null, "username": null, ..., "isAuthenticated": false }
+
+curl http://localhost:5000/api/user/profile
+# Returns: { "message": "User ID not found. Please ensure you are authenticated." }
+```
+
+### With Authentication
+
+To test with JWT authentication:
+
+1. **Create a login/authentication endpoint** that generates JWT tokens with user claims
+2. **Get a JWT token** from your authentication endpoint
+3. **Include the token in requests**:
+
+```bash
+curl -H "Authorization: Bearer <your-jwt-token>" http://localhost:5000/api/user/me
+```
+
+### Example: Creating JWT Tokens for Testing
+
+You can create a simple endpoint to generate test tokens (for development only):
+
+```csharp
+[HttpPost("test-token")]
+public IActionResult GenerateTestToken([FromBody] string userId)
+{
+    var claims = new[]
+    {
+        new Claim(ClaimTypes.NameIdentifier, userId),
+        new Claim(ClaimTypes.Name, "test-user"),
+        new Claim(ClaimTypes.Email, "test@example.com")
+    };
+    
+    var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]));
+    var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+    
+    var token = new JwtSecurityToken(
+        issuer: _configuration["Jwt:Issuer"],
+        audience: _configuration["Jwt:Audience"],
+        claims: claims,
+        expires: DateTime.UtcNow.AddMinutes(60),
+        signingCredentials: credentials
+    );
+    
+    return Ok(new { token = new JwtSecurityTokenHandler().WriteToken(token) });
+}
+```
 
 ## See Also
 
+- `Program.cs` - JWT authentication configuration
+- `appsettings.json` - JWT settings (Key, Issuer, Audience)
 - `WeatherForecastController.cs` - Shows user ID usage in an existing controller
 - `ClaimsPrincipalExtensions.cs` - Extension methods source code
 - `UserController.cs` - Complete examples of user ID usage
