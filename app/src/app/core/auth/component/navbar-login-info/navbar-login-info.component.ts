@@ -16,6 +16,7 @@ export class NavbarLoginInfoComponent implements OnInit, OnDestroy {
   isLoggedIn: boolean = false;
   username!: string;
   email!: string;
+  userId!: string | null;
   externalLogin!: string;
   validityDays!: number;
 
@@ -30,6 +31,7 @@ export class NavbarLoginInfoComponent implements OnInit, OnDestroy {
       if (this.isLoggedIn) {
         this.username = userData.username;
         this.email = userData.email;
+        this.userId = this.as.getUserId();
         this.externalLogin = userData.externalAuthenticationProvider;
         this.validityDays = Math.round(this.as.getValidityDays());
       }

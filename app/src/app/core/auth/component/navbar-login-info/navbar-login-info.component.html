@@ -25,6 +25,9 @@
             <span>You're using a local user account connected to the following email address: <strong>{{email}}</strong>.</span>
           }
         </p>
+        @if (userId) {
+          <p>Your user ID: <strong>{{userId}}</strong></p>
+        }
         <p>Your login session is valid for <strong>{{validityDays}} more days</strong>.</p>
         <p>Would you like to <a [routerLink]="['/']" (click)="signOut(); modal.dismiss('')">log out</a>?</p>
       </div>
