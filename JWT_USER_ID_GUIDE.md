@@ -131,13 +131,19 @@ ngOnInit() {
 
 ## Security Considerations
 
+⚠️ **IMPORTANT**: This implementation is designed for development and demonstration purposes.
+
+For a complete guide on security best practices and production deployment, please see [SECURITY.md](./SECURITY.md).
+
+### Quick Security Notes:
+
 1. **Token Storage**: JWT tokens are stored in localStorage. For higher security requirements, consider using httpOnly cookies.
 
 2. **Token Validation**: The backend validates JWT tokens on protected endpoints using the configured JWT authentication middleware.
 
-3. **Password Hashing**: The current implementation uses SHA256 for password hashing. For production, consider using BCrypt or Argon2.
+3. **Password Hashing**: The current implementation uses SHA256 for password hashing. **This is NOT secure for production.** See [SECURITY.md](./SECURITY.md) for proper password hashing with BCrypt or Argon2.
 
-4. **Secret Key**: The JWT secret key is stored in `appsettings.json`. For production, use environment variables or a secure key vault.
+4. **Secret Key**: The JWT secret key is stored in `appsettings.Development.json` for development. For production, use environment variables or a secure key vault. See [SECURITY.md](./SECURITY.md) for details.
 
 ## Testing the Implementation
 
