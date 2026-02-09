@@ -38,6 +38,8 @@ namespace testAngularAPI.Server.Controllers
             }
 
             // Verify password (in production, use proper password hashing like BCrypt)
+            // SECURITY NOTE: This simple hash comparison is vulnerable to timing attacks.
+            // Consider using BCrypt.Net-Next or similar library with built-in secure comparison.
             if (user.Password != HashPassword(request.Password))
             {
                 return Unauthorized(new { message = "Invalid username or password" });
@@ -132,7 +134,19 @@ namespace testAngularAPI.Server.Controllers
 
         private static string HashPassword(string password)
         {
-            // Simple hashing for demonstration - in production use BCrypt or similar
+            // SECURITY WARNING: SHA256 is NOT suitable for password hashing!
+            // This is a simple implementation for demonstration purposes only.
+            // 
+            // For production, use a proper password hashing algorithm such as:
+            // - BCrypt (recommended): Install BCrypt.Net-Next package
+            // - Argon2 (recommended): Install Konscious.Security.Cryptography.Argon2 package
+            // - PBKDF2: Use Rfc2898DeriveBytes from System.Security.Cryptography
+            //
+            // These algorithms automatically handle salting and are designed to be slow
+            // to prevent brute force attacks.
+            //
+            // Example with BCrypt:
+            // return BCrypt.Net.BCrypt.HashPassword(password);
             using var sha256 = SHA256.Create();
             var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
             return Convert.ToBase64String(hashedBytes);

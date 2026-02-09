@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
 import { tap } from 'rxjs/operators';
 import { shareReplay } from 'rxjs/operators';
 import { jwtDecode } from 'jwt-decode';
+import { JwtPayload } from '../models/jwt-payload';
 
 @Injectable({
   providedIn: 'root'
@@ -127,7 +128,7 @@ public signUp(username : string,email :string,password:string){
       const tokenString = token.startsWith('Bearer ') ? token.substring(7) : token;
       
       // Decode the JWT token
-      const decoded: any = jwtDecode(tokenString);
+      const decoded: JwtPayload = jwtDecode<JwtPayload>(tokenString);
       
       // Return userId from the token claims
       // The userId can be in different claim names depending on implementation
@@ -138,7 +139,7 @@ public signUp(username : string,email :string,password:string){
     }
   }
 
-  public getDecodedToken(): any | null {
+  public getDecodedToken(): JwtPayload | null {
     const token = this.getUserToken();
     if (!token) {
       return null;
@@ -147,7 +148,7 @@ public signUp(username : string,email :string,password:string){
     try {
       // Remove 'Bearer ' prefix if present
       const tokenString = token.startsWith('Bearer ') ? token.substring(7) : token;
-      return jwtDecode(tokenString);
+      return jwtDecode<JwtPayload>(tokenString);
     } catch (error) {
       console.error('Error decoding JWT token:', error);
       return null;
