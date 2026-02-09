@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using MyWarehouse.Application.Dependencies.Services;
+﻿using MyWarehouse.Application.Dependencies.Services;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Principal; // For generic IIdentity/IPrincipal
@@ -20,7 +19,7 @@ public class CurrentUserService : ICurrentUserService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public string? UserId
+    public string UserId
     {
         get
         {
@@ -31,9 +30,13 @@ public class CurrentUserService : ICurrentUserService
                 return DefaultNonUserMoniker;
             }
 
+            var isAuthenticated = httpContext.User.Identity.IsAuthenticated;
+            Console.WriteLine($"IsAuthenticated: {isAuthenticated}");
+
             string? userId = httpContext.User?.FindFirstValue(ClaimTypes.NameIdentifier)
                            ?? httpContext.User?.FindFirstValue(JwtRegisteredClaimNames.Sub);
 
+            // Always return a non-null value to match the interface
             return userId ?? UknownUserMoniker;
         }
     }

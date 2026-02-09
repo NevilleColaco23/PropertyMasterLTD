@@ -5,7 +5,7 @@ using MyWarehouse.Application.Common.Searchbox;
 
 namespace MyWarehouse.WebApi.API.DomainControllers
 {
-    //[Authorize]
+    [Authorize]
     [ApiController]
     [ApiVersion("1.0")]
     [Route("v{v:apiVersion}/menu")]

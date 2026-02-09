@@ -25,21 +25,22 @@ export class GetAllPropertiesServiceService {
 
 
   getDropdownOptions(): Observable<PropertyModel[]> {
-
-  return this.http.get<any>(this.pathAPI + 'v1/property').pipe(
-    map(response => {
-      if (Array.isArray(response.results)) {
-        return response.results.map((property: any) => ({
-          id: property.id,
-          name: property.name,
-          rooms: property.rooms ?? []
-        }));
-      } else {
-        console.error('Unexpected response format: results is not an array');
-        return [];
-      }
-    }),
-    catchError(this.errorHandling.handleError)
-  );
+  return this.http
+    .get<any>(this.pathAPI + 'v1/property')
+    .pipe(
+      map(response => {
+        if (Array.isArray(response.results)) {
+          return response.results.map((property: any) => ({
+            id: property.id,
+            name: property.name,
+            rooms: property.rooms ?? []
+          }));
+        } else {
+          console.error('Unexpected response format: results is not an array');
+          return [];
+        }
+      }),
+      catchError(this.errorHandling.handleError)
+    );
 }
 }

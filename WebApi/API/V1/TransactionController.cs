@@ -5,7 +5,7 @@ using MyWarehouse.Application.Transactions.GetTransactionsList;
 
 namespace MyWarehouse.Infrastructure.API.V1;
 
-//[Authorize]
+[Authorize]
 [ApiController]
 [ApiVersion("1.0")]
 [Route("v{v:apiVersion}/transactions")]

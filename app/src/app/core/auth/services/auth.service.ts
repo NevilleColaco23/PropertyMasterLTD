@@ -79,6 +79,7 @@ public signUp(data: SignUpDto){
 }
 
   private signIn(data: AuthenticationSuccessData) {
+    console.log('Signing in user:', `${data.tokenType} ${data.accessToken}`);
     const expiresAt = new Date();
     expiresAt.setTime(Date.now() + (data.expiresIn * 1000));
 
@@ -139,6 +140,9 @@ public signUp(data: SignUpDto){
   }
 
   public getUserToken() {
+    if (!this.isBrowser) {
+      return null;
+    }
     return localStorage.getItem('auth_tokenString');
   }
 
