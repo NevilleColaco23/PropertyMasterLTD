@@ -3,6 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { Subscription, timer } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import { AuthenticationSuccessData } from '../../models/login-data/login-data';
 import { Router } from '@angular/router';
 
@@ -82,16 +83,27 @@ export class LoginFormComponent implements OnInit, OnDestroy {
     this.localLoginState = LocalLoginState.Waiting;
     this.form.disable();
 
-    this.as.authenticate(this.form.value.username, this.form.value.password).subscribe(
+    this.as.authenticate(this.form.value.username, this.form.value.password).pipe(
+      finalize(() => {
+        // Use finalize() to ensure form is re-enabled whether the request succeeds or fails
+        // This is more reliable than duplicating the enable() call in both success and error handlers
+        this.form.enable();
+      })
+    ).subscribe(
       _ => {
         this.localLoginState = LocalLoginState.Success;
-        timer(5000).subscribe(() => this.localLoginState = LocalLoginState.None); // In case user logs out without navigating elsewhere; the 'success' would still be visible.
-        this.form.enable();
+        
+        // Note: In a more complete implementation, you would navigate to another page here:
+        // this.router.navigate(['/propertySelector']).then(navigated => {});
+        // However, this app uses conditional rendering (*ngIf) based on auth state
+        // instead of router navigation, so the PropertyIndexComponent will automatically
+        // be shown when authentication succeeds and updates the signInState.
+        
+        // Clear success state after 5 seconds in case user logs out without navigating elsewhere
+        timer(5000).subscribe(() => this.localLoginState = LocalLoginState.None);
       },
       err => {
-
-        this.form.enable();
-
+        // Form is automatically re-enabled by finalize() above
         if (err.status == 401)
           this.localLoginState = LocalLoginState.ErrorWrongData;
         else
