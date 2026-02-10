@@ -219,6 +219,8 @@ timer(5000).subscribe(() => this.localLoginState = LocalLoginState.None)
 
 The code shown in the problem statement demonstrates several improvements:
 
+**Note:** The code examples in the "Proposed Improvements" section use `email` as the parameter name (as shown in the original problem statement), but the actual implementation uses `username`. This documentation preserves the original terminology from the problem statement while the implementation adapts it to the existing codebase conventions.
+
 ### 1. Using finalize() Operator
 
 **Current code problem**: Form enable logic is duplicated in success and error handlers
