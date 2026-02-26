@@ -7,8 +7,10 @@ services:
       - "8080:80"
     depends_on:
       - mongo
+      - rabbitmq
     environment:
       - MONGODB_URI=mongodb://mongo:27017/ListingDB
+      - RabbitMQ__Host=rabbitmq
 
   mongo:
     image: mongo:6
@@ -17,6 +19,22 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  accesslog-worker:
+    build:
+      context: ..
+      dockerfile: Utilities/AccessLogWorker/Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - RabbitMQ__Host=rabbitmq
 
 volumes:
   mongo-data:
