@@ -12,7 +12,7 @@ using MyWarehouse.Infrastructure.SignalR;
 using MyWarehouse.Infrastructure.Services;
 using System.Net.Mail;
 using System.Net;
-
+ 
 namespace MyWarehouse.Infrastructure;
 
 [ExcludeFromCodeCoverage]
