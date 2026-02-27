@@ -31,6 +31,10 @@ WORKDIR /app
 # Copy published output from build stage
 COPY --from=build /app/publish .
 
+# Copy entrypoint script
+COPY WebApi/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Railway provides PORT environment variable - we'll use it at runtime
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV Logging__Console__FormatterName=Simple
@@ -38,8 +42,5 @@ ENV Logging__LogLevel__Default=Information
 ENV Logging__LogLevel__Microsoft=Information
 ENV Logging__LogLevel__Microsoft.Hosting.Lifetime=Information
 
-# Don't set ASPNETCORE_URLS here - it will be set by Railway Variables
-# using the injected $PORT variable
-
-# Start the API
-CMD ASPNETCORE_URLS=http://*:${PORT:-8080} dotnet MyWarehouse.WebApi.dll
+# Start the API using entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]
