@@ -31,7 +31,14 @@ WORKDIR /app
 # Copy published output from build stage
 COPY --from=build /app/publish .
 
+# Set environment variables for better logging
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV Logging__Console__FormatterName=Simple
+ENV Logging__LogLevel__Default=Information
+ENV Logging__LogLevel__Microsoft=Information
+ENV Logging__LogLevel__Microsoft.Hosting.Lifetime=Information
+
 EXPOSE 80
 
-# Start the API
+# Start the API with verbose output
 ENTRYPOINT ["dotnet", "MyWarehouse.WebApi.dll"]
