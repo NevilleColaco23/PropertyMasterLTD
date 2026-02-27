@@ -85,7 +85,13 @@ public class Startup
         app.UseDefaultFiles(); // this enables serving index.html by default
         // Enable serving static files from wwwroot
         app.UseStaticFiles();
-        app.UseMyRequestLogging();
+
+        // TEMPORARY: Disable Serilog request logging in Production (missing DiagnosticContext)
+        if (Environment.IsDevelopment())
+        {
+            app.UseMyRequestLogging();
+        }
+
         app.UseHttpsRedirection();
         app.UseRouting();
         app.UseMyCorsConfiguration();
