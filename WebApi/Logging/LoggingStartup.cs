@@ -11,15 +11,13 @@ internal static class LoggingStartup
 {
     public static IHostBuilder AddMySerilogLogging(this IHostBuilder webBuilder)
     {
-        return webBuilder.UseSerilog((context, services, loggerCfg) =>
+        return webBuilder.UseSerilog((context, loggerCfg) =>
         {
             loggerCfg
                 .MinimumLevel.Information()
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("EnvironmentName", context.HostingEnvironment.EnvironmentName)
-                .Enrich.WithMachineName()
-                .ReadFrom.Configuration(context.Configuration)
-                .ReadFrom.Services(services);
+                .Enrich.WithMachineName();
 
             if (context.HostingEnvironment.IsDevelopment())
             {

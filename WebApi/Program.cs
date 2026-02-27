@@ -27,7 +27,7 @@ public static class Program
             Console.WriteLine("✅ WebApplication.CreateBuilder completed");
 
             builder.Host
-                //.AddMySerilogLogging() // Temporarily disabled for Railway debugging
+                .AddMySerilogLogging() // Notice: Logging overrides.
                 .ConfigureAppConfiguration((context, config) =>
                 {
                     // ConfigureWebHostDefaults only adds secrets if environment is Develop.
