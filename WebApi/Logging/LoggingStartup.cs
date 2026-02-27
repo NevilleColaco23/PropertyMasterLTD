@@ -27,9 +27,8 @@ internal static class LoggingStartup
             }
             else
             {
-                // TEMPORARILY SHOW ALL LOGS TO DEBUG RAILWAY DEPLOYMENT
+                // TEMPORARY: Show all logs in Production for debugging Railway deployment
                 loggerCfg
-                .MinimumLevel.Information()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
                 .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Information);
