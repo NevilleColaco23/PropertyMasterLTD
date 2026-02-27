@@ -5,12 +5,12 @@ WORKDIR /src
 # Copy solution and project files for restore
 COPY *.sln .
 COPY WebApi/*.csproj WebApi/
+COPY Messaging.Shared/*.csproj Messaging.Shared/
 COPY classfiles/Application/*.csproj classfiles/Application/
 COPY classfiles/Infrastructure/*.csproj classfiles/Infrastructure/
 COPY classfiles/Domain/*.csproj classfiles/Domain/
 COPY classfiles/MongoDBBackend/*.csproj classfiles/MongoDBBackend/
 COPY classfiles/SampleData/*.csproj classfiles/SampleData/
-# Add more COPY lines if you reference more projects
 
 # Restore dependencies
 RUN dotnet restore WebApi/WebApi.csproj

@@ -20,12 +20,13 @@ namespace MyWarehouse.Domain.AccessLog
         public string Log { get; protected set; }
         public string Action { get; protected set; }
         public string Details { get; protected set; }
+        public string Source { get; protected set; }
 
         [BsonElement("User")]
         public int UserID { get; set; }
         public DateTime TimeStamp { get; set; }
 
-        public AccessLog(int id, string log, int user,DateTime time, string action, string details)
+        public AccessLog(int id, string log, int user, DateTime time, string action, string details, string source = "Direct")
         {
             Id = id;
             Log = log;
@@ -33,9 +34,10 @@ namespace MyWarehouse.Domain.AccessLog
             TimeStamp = time;
             Action = action;
             Details = details;
+            Source = source;
         }
 
-        public AccessLog(int id, string log, string user, DateTime? time, string action, string details)
+        public AccessLog(int id, string log, string user, DateTime? time, string action, string details, string source = "Direct")
         {
             Id = id;
             Log = log;
@@ -43,6 +45,7 @@ namespace MyWarehouse.Domain.AccessLog
             this.time = time;
             Action = action;
             Details = details;
+            Source = source;
         }
     }
 }

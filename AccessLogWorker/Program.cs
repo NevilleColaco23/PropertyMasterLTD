@@ -2,11 +2,10 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using AccessLogWorker;
+using AccessLogWorker.Services;
 using Messaging.Shared;
 using MyWarehouse.Application.Services;
-using MyWarehouse.Application.Common.Dependencies.DataAccess;
 using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories;
-using MyWarehouse.Infrastructure.ApplicationDependencies.DataAccess;
 using MyWarehouse.Infrastructure.ApplicationDependencies.DataAccess.Repositories.Mongo;
 using AutoMapper;
 
@@ -68,6 +67,9 @@ builder.Services.AddSingleton<ICounterService, CounterService>();
 
 // Register AccessLogRepository (handles Add with CounterService)
 builder.Services.AddScoped<IAccessLogRepository, AccessLogRepositoryMongo>();
+
+// Register message processor service (scoped - proper separation of concerns)
+builder.Services.AddScoped<IAccessLogMessageProcessor, AccessLogMessageProcessor>();
 
 // Register the RabbitMQ consumer worker service.
 builder.Services.AddHostedService<Worker>();

@@ -62,7 +62,8 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
                 user: parsedUserId,
                 time: request.TimeStamp,
                 action: request.Action,
-                details: request.Detail
+                details: request.Detail,
+                source: "Direct"
                 );
 
                 _rabbitMqPublisher.PublishAccessLogEvent(evt);

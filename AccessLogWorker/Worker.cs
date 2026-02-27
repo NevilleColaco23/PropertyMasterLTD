@@ -1,10 +1,9 @@
 using System.Text;
 using System.Text.Json;
+using AccessLogWorker.Services;
 using Messaging.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories;
-using MyWarehouse.Domain.AccessLog;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -79,30 +78,11 @@ namespace AccessLogWorker
 
                         if (logEvent != null)
                         {
-                            _logger.LogInformation("Creating AccessLog entry for event: {Path}", logEvent.Path);
-
-                            // Parse UserId from string to int
-                            int.TryParse(logEvent.UserId, out int userId);
-
-                            // Create AccessLog domain entity (same as CreateLogCommand)
-                            var logEntry = new AccessLog(
-                                id: 0, // Repository.Add() will auto-generate using CounterService
-                                log: logEvent.Path ?? "",
-                                user: userId,
-                                time: logEvent.TimestampUtc,
-                                action: logEvent.Method ?? "N/A",
-                                details: $"Status: {logEvent.StatusCode}, Duration: {logEvent.DurationMs}ms, TraceId: {logEvent.TraceId}, IP: {logEvent.ClientIp}, Agent: {logEvent.UserAgent}"
-                            );
-
-                            // Create a scope to resolve scoped services (same pattern as BackgroundService processing)
+                            // Create a scope and use the message processor service (proper DI pattern)
                             using (var scope = _serviceScopeFactory.CreateScope())
                             {
-                                var accessLogRepository = scope.ServiceProvider.GetRequiredService<IAccessLogRepository>();
-
-                                // Use repository.Add() - same as CreateLogCommand via UnitOfWork
-                                await accessLogRepository.Add(logEntry, stoppingToken);
-
-                                _logger.LogInformation("✅ Successfully saved log event to MongoDB with ID: {Id}", logEntry.Id);
+                                var messageProcessor = scope.ServiceProvider.GetRequiredService<IAccessLogMessageProcessor>();
+                                await messageProcessor.ProcessMessageAsync(logEvent, stoppingToken);
                             }
                         }
                         else
@@ -121,7 +101,6 @@ namespace AccessLogWorker
                 };
 
                 await _channel.BasicConsumeAsync(_options.Queue, false, consumer, cancellationToken: stoppingToken);
-                _logger.LogInformation("Started consuming messages from queue: {Queue}", _options.Queue);
 
                 await Task.Delay(Timeout.Infinite, stoppingToken);
             }
