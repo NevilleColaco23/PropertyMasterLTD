@@ -27,9 +27,12 @@ internal static class LoggingStartup
             }
             else
             {
+                // TEMPORARILY SHOW ALL LOGS TO DEBUG RAILWAY DEPLOYMENT
                 loggerCfg
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Error);
+                .MinimumLevel.Information()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+                .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Information);
             }
 
             var logglySettings = context.Configuration.GetMyOptions<LogglySettings>();
