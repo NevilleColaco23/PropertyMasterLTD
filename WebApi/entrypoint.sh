@@ -13,6 +13,14 @@ echo "=================================="
 export ASPNETCORE_URLS="http://0.0.0.0:${PORT:-8080}"
 
 echo "Starting WebApi on ${ASPNETCORE_URLS}"
+echo "Executing: dotnet MyWarehouse.WebApi.dll"
+echo "=================================="
 
-# Start the application
-exec dotnet MyWarehouse.WebApi.dll
+# Start the application and capture any errors
+dotnet MyWarehouse.WebApi.dll 2>&1 || {
+    echo "=================================="
+    echo "ERROR: Application failed to start!"
+    echo "Exit code: $?"
+    echo "=================================="
+    exit 1
+}
