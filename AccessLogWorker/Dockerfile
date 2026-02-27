@@ -8,6 +8,7 @@ COPY ["classfiles/Domain/Domain.csproj", "classfiles/Domain/"]
 COPY ["classfiles/Application/Application.csproj", "classfiles/Application/"]
 COPY ["classfiles/Infrastructure/Infrastructure.csproj", "classfiles/Infrastructure/"]
 COPY ["classfiles/MongoDBBackend/MongoDBBackend.csproj", "classfiles/MongoDBBackend/"]
+COPY ["classfiles/SampleData/SampleData.csproj", "classfiles/SampleData/"]
 
 # Restore dependencies
 RUN dotnet restore "AccessLogWorker/AccessLogConsumerWorker.csproj"

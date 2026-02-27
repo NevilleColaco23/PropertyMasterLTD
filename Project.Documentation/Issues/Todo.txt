@@ -1,3 +1,5 @@
 ﻿21.1 The top menus are not loading on page load. only i click any button, the top menu appears.
 
 31.1 all data to be based on propertyID
+
+27.2 Remove unwanted project copying during deployment
