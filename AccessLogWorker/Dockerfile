@@ -5,6 +5,9 @@ WORKDIR /src
 COPY ["AccessLogWorker/AccessLogConsumerWorker.csproj", "AccessLogWorker/"]
 COPY ["Messaging.Shared/Messaging.Shared.csproj", "Messaging.Shared/"]
 COPY ["classfiles/Domain/Domain.csproj", "classfiles/Domain/"]
+COPY ["classfiles/Application/Application.csproj", "classfiles/Application/"]
+COPY ["classfiles/Infrastructure/Infrastructure.csproj", "classfiles/Infrastructure/"]
+COPY ["classfiles/MongoDBBackend/MongoDBBackend.csproj", "classfiles/MongoDBBackend/"]
 
 # Restore dependencies
 RUN dotnet restore "AccessLogWorker/AccessLogConsumerWorker.csproj"
