@@ -11,20 +11,20 @@ public static class Program
 {
     public static void Main(string[] args)
     {
-        Console.WriteLine("=== PROGRAM.CS STARTING ===");
-        Console.WriteLine($"ASPNETCORE_ENVIRONMENT: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
-        Console.WriteLine($"ASPNETCORE_URLS: {Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}");
-        Console.WriteLine("Starting application...");
-
         try
         {
+            Console.WriteLine("=== PROGRAM.CS STARTING ===");
+            Console.WriteLine($"ASPNETCORE_ENVIRONMENT: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
+            Console.WriteLine($"ASPNETCORE_URLS: {Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}");
+
+            Console.WriteLine("Starting application...");
             var builder = WebApplication.CreateBuilder(args);
-            Console.WriteLine("✅ WebApplication.CreateBuilder completed");
 
             builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection("RabbitMq"));
             builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
             builder.Services.AddControllers();
-            Console.WriteLine("✅ Services configured");
+
+            Console.WriteLine("✅ WebApplication.CreateBuilder completed");
 
             builder.Host
                 .AddMySerilogLogging() // Notice: Logging overrides.
@@ -37,6 +37,8 @@ public static class Program
                     // Notice: Infrastructure hook.
                     config.AddMyInfrastructureConfiguration(context);
                 });
+
+            Console.WriteLine("✅ Services configured");
             Console.WriteLine("✅ Host configured");
 
             var startup = new Startup(builder.Configuration, builder.Environment);
@@ -55,23 +57,27 @@ public static class Program
 
             app.Lifetime.ApplicationStarted.Register(() =>
             {
-                Console.WriteLine("✅✅✅ APPLICATION FULLY STARTED ✅✅✅");
+                Console.WriteLine("Application started.");
             });
 
             Console.WriteLine("App built, now running...");
+            Console.WriteLine("✅✅✅ APPLICATION FULLY STARTED ✅✅✅");
+            Console.WriteLine("Calling app.Run() now...");
+
             app.Run();
+
+            Console.WriteLine("⚠️ app.Run() returned - this shouldn't happen!");
         }
         catch (Exception ex)
         {
-            Console.WriteLine("=== FATAL ERROR IN PROGRAM.CS ===");
-            Console.WriteLine($"Exception: {ex.GetType().Name}");
+            Console.WriteLine("❌❌❌ FATAL ERROR IN PROGRAM.CS ❌❌❌");
+            Console.WriteLine($"Exception Type: {ex.GetType().Name}");
             Console.WriteLine($"Message: {ex.Message}");
             Console.WriteLine($"StackTrace: {ex.StackTrace}");
             if (ex.InnerException != null)
             {
                 Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
             }
-            Console.WriteLine("==================================");
             throw;
         }
     }
