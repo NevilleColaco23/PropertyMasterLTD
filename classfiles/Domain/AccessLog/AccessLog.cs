@@ -10,6 +10,9 @@ namespace MyWarehouse.Domain.AccessLog
 {
     public class AccessLog : IEntity<int>
     {
+        private string user;
+        private DateTime? time;
+
         [BsonId]
         public int Id { get; set; }
 
@@ -28,6 +31,16 @@ namespace MyWarehouse.Domain.AccessLog
             Log = log;
             UserID = user;
             TimeStamp = time;
+            Action = action;
+            Details = details;
+        }
+
+        public AccessLog(int id, string log, string user, DateTime? time, string action, string details)
+        {
+            Id = id;
+            Log = log;
+            this.user = user;
+            this.time = time;
             Action = action;
             Details = details;
         }

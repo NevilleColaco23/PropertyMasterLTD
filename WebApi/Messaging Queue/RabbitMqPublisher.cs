@@ -1,9 +1,12 @@
-﻿using Messaging.Shared;
+﻿using Amazon.Runtime.Internal;
+using Azure.Core;
+using Messaging.Shared;
 using Microsoft.Extensions.Options;
+using MyWarehouse.Application.Common.Dependencies.DataAccess;
+using MyWarehouse.Domain.AccessLog;
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
-using MyWarehouse.Domain.AccessLog;
 
 namespace MyWarehouse.WebApi.Messaging_Queue
 {
@@ -92,7 +95,7 @@ namespace MyWarehouse.WebApi.Messaging_Queue
                 var evt = new Messaging.Shared.Models.AccessLogEvent
                 {
                     TimestampUtc = accessLog.TimeStamp,
-                    Method = "N/A",
+                    Method = accessLog.Details,
                     Path = accessLog.Log,
                     StatusCode = 200,
                     DurationMs = 0,
@@ -100,7 +103,8 @@ namespace MyWarehouse.WebApi.Messaging_Queue
                     Username = null,
                     TraceId = null,
                     ClientIp = null,
-                    UserAgent = null
+                    UserAgent = null,
+                    Action = accessLog.Action
                 };
 
                 var json = JsonSerializer.Serialize(evt);

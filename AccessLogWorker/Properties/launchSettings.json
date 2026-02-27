@@ -4,7 +4,7 @@
       "commandName": "Project",
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development",
-        "MONGODB_URI": "mongodb://localhost:27017/ListingDB"
+        "MONGODB_URI": "mongodb://mongo:EcMPWsskZQhygpalucMlhpEwbxaapZFL@gondola.proxy.rlwy.net:31267/ListingDB?authSource=admin"
       },
       "dotnetRunMessages": true
     },

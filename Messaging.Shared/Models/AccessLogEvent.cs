@@ -19,5 +19,7 @@ namespace Messaging.Shared.Models
         public string? TraceId { get; set; }
         public string? ClientIp { get; set; }
         public string? UserAgent { get; set; }
+        public int Id { get; set; }
+        public object Action { get; set; }
     }
 }
