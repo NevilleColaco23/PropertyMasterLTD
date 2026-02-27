@@ -16,5 +16,6 @@ namespace Messaging.Shared
         public string Exchange { get; set; } = "accesslog.exchange";
         public string Queue { get; set; } = "accesslog.queue";
         public string RoutingKey { get; set; } = "accesslog";
+        public bool UseSsl { get; set; } = false;
     }
 }

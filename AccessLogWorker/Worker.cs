@@ -28,7 +28,7 @@ namespace AccessLogWorker
         {
             try
             {
-                _logger.LogInformation("Starting AccessLogWorker - connecting to RabbitMQ at {Host}:{Port}", _options.Host, _options.Port);
+                _logger.LogInformation("Starting AccessLogWorker - connecting to RabbitMQ at {Host}:{Port} (SSL: {UseSsl})", _options.Host, _options.Port, _options.UseSsl);
 
                 var factory = new ConnectionFactory
                 {
@@ -38,6 +38,18 @@ namespace AccessLogWorker
                     Password = _options.Password,
                     VirtualHost = _options.VirtualHost
                 };
+
+                // Configure SSL for CloudAMQP
+                if (_options.UseSsl)
+                {
+                    factory.Ssl = new RabbitMQ.Client.SslOption
+                    {
+                        Enabled = true,
+                        ServerName = _options.Host,
+                        AcceptablePolicyErrors = System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch |
+                                                  System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors
+                    };
+                }
 
                 _connection = await factory.CreateConnectionAsync(cancellationToken);
                 _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);

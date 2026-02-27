@@ -24,7 +24,7 @@ namespace MyWarehouse.WebApi.Messaging_Queue
 
             try
             {
-                _logger.LogInformation("Initializing RabbitMQ connection to {Host}:{Port}", _options.Host, _options.Port);
+                _logger.LogInformation("Initializing RabbitMQ connection to {Host}:{Port} (SSL: {UseSsl})", _options.Host, _options.Port, _options.UseSsl);
 
                 var factory = new ConnectionFactory
                 {
@@ -34,6 +34,18 @@ namespace MyWarehouse.WebApi.Messaging_Queue
                     Password = _options.Password,
                     VirtualHost = _options.VirtualHost
                 };
+
+                // Configure SSL for CloudAMQP
+                if (_options.UseSsl)
+                {
+                    factory.Ssl = new RabbitMQ.Client.SslOption
+                    {
+                        Enabled = true,
+                        ServerName = _options.Host,
+                        AcceptablePolicyErrors = System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch |
+                                                  System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors
+                    };
+                }
 
                 _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
                 _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
