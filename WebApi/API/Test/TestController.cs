@@ -34,6 +34,18 @@ namespace MyWarehouse.WebApi.API.Test
                     VirtualHost = _options.VirtualHost
                 };
 
+                // Configure SSL for CloudAMQP
+                if (_options.UseSsl)
+                {
+                    factory.Ssl = new RabbitMQ.Client.SslOption
+                    {
+                        Enabled = true,
+                        ServerName = _options.Host,
+                        AcceptablePolicyErrors = System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch |
+                                                  System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors
+                    };
+                }
+
                 var connection = await factory.CreateConnectionAsync();
                 var channel = await connection.CreateChannelAsync();
 
