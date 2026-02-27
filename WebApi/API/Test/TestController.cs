@@ -9,7 +9,8 @@ using System.Text.Json;
 
 namespace MyWarehouse.WebApi.API.Test
 {
-    [Route("api/[controller]")]
+    [Route("api/v{v:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     [ApiController]
     public class TestController : ControllerBase
     {
