@@ -1,4 +1,5 @@
-﻿using MyWarehouse.Application.Common.Dependencies.DataAccess;
+﻿using Messaging.Shared;
+using MyWarehouse.Application.Common.Dependencies.DataAccess;
 using MyWarehouse.Application.Dependencies.Services;
 using MyWarehouse.Domain.AccessLog;
 
@@ -18,11 +19,14 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IRabbitMqPublisher _rabbitMqPublisher;
 
-        public CreatelogCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public CreatelogCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IRabbitMqPublisher rabbitMqPublisher,
+            IRabbitMqPublisher publisher, Microsoft.Extensions.Options.IOptions<RabbitMqOptions> options)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _rabbitMqPublisher = rabbitMqPublisher;
         }
 
         public async Task<int> Handle(CreateLogCommand request, CancellationToken cancellationToken)
@@ -35,19 +39,43 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
                 parsedUserId = 0;
             }
 
-            var logEntry = new AccessLog(
+            //var logEntry = new AccessLog(
+            //    id: request.Id,
+            //    log: request.AccessLog.Trim(),
+            //    user: parsedUserId,
+            //    time: request.TimeStamp,
+            //    action:request.Action,
+            //    details:request.Detail
+            //    );
+
+            //_unitOfWork.AccessLogs?.Add(logEntry);
+            //await _unitOfWork.SaveChanges();
+
+            //return logEntry.Id;
+
+            // Publish to RabbitMQ
+            try
+            {
+                var evt = new AccessLog(
                 id: request.Id,
                 log: request.AccessLog.Trim(),
                 user: parsedUserId,
                 time: request.TimeStamp,
-                action:request.Action,
-                details:request.Detail
+                action: request.Action,
+                details: request.Detail
                 );
 
-            _unitOfWork.AccessLogs?.Add(logEntry);
-            await _unitOfWork.SaveChanges();
+                _rabbitMqPublisher.PublishAccessLogEvent(evt);
 
-            return logEntry.Id;
+                return evt.Id;
+            }
+            catch (Exception ex)
+            {
+                // Log error, don't throw
+                // _logger?.LogError(ex, "Failed to push access log event to RabbitMQ");
+                return 0;
+            }
+
         }
     }
 }

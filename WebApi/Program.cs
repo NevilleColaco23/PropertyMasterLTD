@@ -1,5 +1,7 @@
+using Messaging.Shared;
 using MyWarehouse.Infrastructure;
 using MyWarehouse.Infrastructure.Logging;
+using MyWarehouse.WebApi.Messaging_Queue;
 using System.Reflection;
 
 namespace MyWarehouse.Infrastructure;
@@ -11,6 +13,10 @@ public static class Program
     {
         Console.WriteLine("Starting application...");
         var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection("RabbitMq"));
+        builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
+        builder.Services.AddControllers();
 
         builder.Host
             .AddMySerilogLogging() // Notice: Logging overrides.
@@ -29,6 +35,7 @@ public static class Program
         startup.ConfigureServices(builder.Services);
 
         var app = builder.Build();
+        app.MapGet("/", () => "API running!");
 
         startup.Configure(app);
 

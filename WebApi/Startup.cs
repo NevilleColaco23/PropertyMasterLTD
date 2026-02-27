@@ -74,6 +74,10 @@ public class Startup
         services.AddMyInfrastructureDependencies(Configuration, Environment);
         services.AddMyApplicationDependencies();
         services.AddSignalR();
+
+        // Register RabbitMQ configuration and publisher
+        services.Configure<Messaging.Shared.RabbitMqOptions>(Configuration.GetSection("RabbitMq"));
+        services.AddSingleton<Messaging.Shared.IRabbitMqPublisher, MyWarehouse.WebApi.Messaging_Queue.RabbitMqPublisher>();
     }
 
     public void Configure(IApplicationBuilder app)

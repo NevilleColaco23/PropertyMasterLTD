@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
     <ProjectReference Include="..\MongoDBBackend\MongoDBBackend.csproj" />
+    <ProjectReference Include="..\..\Messaging.Shared\Messaging.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

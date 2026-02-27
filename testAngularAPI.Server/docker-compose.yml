@@ -2,13 +2,40 @@ services:
   api:
     build:
       context: ..
-      dockerfile: testAngularAPI.Server/Dockerfile
+      dockerfile: WebApi/Dockerfile
     ports:
       - "8080:80"
     depends_on:
       - mongo
+      - rabbitmq
     environment:
       - MONGODB_URI=mongodb://mongo:27017/ListingDB
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__Port=5672
+      - RabbitMq__Username=admin
+      - RabbitMq__Password=admin
+      - RabbitMq__VirtualHost=/
+      - RabbitMq__Exchange=accesslog.exchange
+      - RabbitMq__Queue=accesslog.queue
+      - RabbitMq__RoutingKey=accesslog
+
+  accesslog-worker:
+    build:
+      context: ..
+      dockerfile: AccessLogWorker/Dockerfile
+    depends_on:
+      - mongo
+      - rabbitmq
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/ListingDB
+      - RabbitMq__Host=rabbitmq
+      - RabbitMq__Port=5672
+      - RabbitMq__Username=admin
+      - RabbitMq__Password=admin
+      - RabbitMq__VirtualHost=/
+      - RabbitMq__Exchange=accesslog.exchange
+      - RabbitMq__Queue=accesslog.queue
+      - RabbitMq__RoutingKey=accesslog
 
   mongo:
     image: mongo:6
@@ -18,5 +45,18 @@ services:
     volumes:
       - mongo-data:/data/db
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
 volumes:
   mongo-data:
+  rabbitmq-data:
