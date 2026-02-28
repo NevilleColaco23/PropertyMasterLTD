@@ -54,6 +54,8 @@ public class Startup
         services.AddMyVersioning();
         services.AddMyCorsConfiguration(Configuration);
 
+        services.AddHealthChecks();
+
         // Register the convention to ignore extra elements
         var conventionPack = new ConventionPack { new IgnoreExtraElementsConvention(true) };
         ConventionRegistry.Register("IgnoreExtraElements", conventionPack, type => true);
