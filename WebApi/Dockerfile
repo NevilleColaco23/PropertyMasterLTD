@@ -42,5 +42,8 @@ ENV Logging__LogLevel__Default=Information
 ENV Logging__LogLevel__Microsoft=Information
 ENV Logging__LogLevel__Microsoft.Hosting.Lifetime=Information
 
+# Expose the port Railway will route to (Railway sets $PORT dynamically)
+EXPOSE 8080
+
 # Start the API using entrypoint script
 ENTRYPOINT ["/app/entrypoint.sh"]
