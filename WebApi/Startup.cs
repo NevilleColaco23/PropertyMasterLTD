@@ -94,7 +94,12 @@ public class Startup
             app.UseMyRequestLogging();
         }
 
-        app.UseHttpsRedirection();
+        // Only use HTTPS redirection in Development - Railway handles HTTPS at proxy level
+        if (Environment.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+        }
+
         app.UseRouting();
         app.UseMyCorsConfiguration();
         app.UseMySwagger(Configuration);
