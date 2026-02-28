@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using AccessLogWorker;
@@ -21,18 +21,18 @@ builder.Services.AddSingleton<IMongoClient>(_ =>
     if (string.IsNullOrEmpty(mongoUri))
         throw new InvalidOperationException("MONGODB_URI environment variable must be set.");
 
-    Console.WriteLine($"?? Connecting to MongoDB: {mongoUri}");
+    Console.WriteLine($"🔗 Connecting to MongoDB: {mongoUri}");
     var client = new MongoClient(mongoUri);
 
     // Test connection
     try
     {
         client.GetDatabase("admin").RunCommand<BsonDocument>(new BsonDocument("ping", 1));
-        Console.WriteLine("? MongoDB connection successful!");
+        Console.WriteLine("✅ MongoDB connection successful!");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"? MongoDB connection failed: {ex.Message}");
+        Console.WriteLine($"❌ MongoDB connection failed: {ex.Message}");
         throw;
     }
 
@@ -47,7 +47,7 @@ builder.Services.AddSingleton<IMongoDatabase>(sp =>
     var mongoUrl = new MongoUrl(mongoUri);
     var dbName = mongoUrl.DatabaseName ?? "ListingDB";
 
-    Console.WriteLine($"?? Using MongoDB database: {dbName}");
+    Console.WriteLine($"📂 Using MongoDB database: {dbName}");
 
     return client.GetDatabase(dbName);
 });
@@ -76,3 +76,5 @@ builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();
 await host.RunAsync();
+
+Console.WriteLine("✅✅✅ APPLICATION FULLY STARTED ✅✅✅\nCalling app.Run() now...");
