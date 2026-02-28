@@ -20,7 +20,7 @@ COPY . .
 
 # Publish the WebApi project to the /app/publish directory
 WORKDIR /src/WebApi
-ARG CACHEBUST=2
+ARG CACHEBUST=3
 RUN dotnet publish -c Release -o /app/publish --no-restore
 RUN echo '=== FILE LISTING OF /app/publish BELOW ===' && ls -la /app/publish && echo '=== END OF FILE LISTING ==='
 
