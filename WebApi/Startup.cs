@@ -108,6 +108,7 @@ public class Startup
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapHub<ChatHub>("/chatHub");
+            endpoints.MapHealthChecks("/health");
         });
 
     }
