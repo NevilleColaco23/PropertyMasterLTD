@@ -5,18 +5,12 @@
   "compilerOptions": {
     "outDir": "./out-tsc/app",
     "baseUrl": "./",
-    "types": [
-      "node"
-    ]
+    "types": []
   },
-  "include": [
-    "src/**/*.ts"
+  "files": [
+    "src/main.ts"
   ],
-  "exclude": [
-    "src/**/*.spec.ts",
-    "src/main.server.ts",
-    "src/server.ts",
-    "src/app/app.config.server.ts",
-    "src/app/app.routes.server.ts"
+  "include": [
+    "src/**/*.d.ts"
   ]
 }
