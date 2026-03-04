@@ -1,5 +1,5 @@
 
 export const environment = {
   production: true,
-  apiUrl: '/v1'
+  apiUrl: 'https://theretreatapp.up.railway.app/v1'
 };
