@@ -6,7 +6,7 @@ const apiPort = '44346';
 const apiVersion = 'v1';
 
 export const environment = {
-  production: true,
+  production: false,
   apiUrl: `https://localhost:${apiPort}/${apiVersion}`
 };
 
