@@ -21,6 +21,17 @@ namespace MyWarehouse.WebApi.API.Test
             _options = options.Value;
         }
 
+        [HttpGet]
+        public IActionResult GetTest()
+        {
+            return Ok(new 
+            { 
+                message = "Test endpoint is working!", 
+                timestamp = DateTime.UtcNow,
+                environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+            });
+        }
+
         [HttpPost]
         public async Task<IActionResult> PublishTestAccessLog()
         {
