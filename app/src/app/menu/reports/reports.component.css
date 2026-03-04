@@ -1,0 +1,37 @@
+.reports-card {
+  margin: 20px;
+  padding: 20px;
+}
+
+.full-width-input {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.table-container {
+  overflow-x: auto; /* Enables horizontal scrolling for small screens */
+  max-width: 100%; /* Ensures it doesn't overflow its parent */
+}
+
+table {
+  width: 100%;
+  min-width: 700px; /* Ensures a minimum width for the table columns */
+}
+
+/* Optional: Style for status if you want different colors */
+/*
+td.mat-cell:has(.status-confirmed) { color: green; }
+td.mat-cell:has(.status-pending) { color: orange; }
+td.mat-cell:has(.status-cancelled) { color: red; }
+*/
+
+/* Adjust column widths if needed (example) */
+/*
+.mat-column-bookingId { flex: 0 0 100px; }
+.mat-column-customerName { flex: 0 0 180px; }
+.mat-column-serviceType { flex: 0 0 150px; }
+.mat-column-bookingDate { flex: 0 0 120px; }
+.mat-column-amount { flex: 0 0 100px; text-align: right; }
+.mat-column-status { flex: 0 0 100px; }
+.mat-column-actions { flex: 0 0 120px; text-align: center; }
+*/
