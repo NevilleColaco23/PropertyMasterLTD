@@ -16,6 +16,7 @@ public class PropertyController : ControllerBase
     public PropertyController(IMediator mediator) => _mediator = mediator;
 
     [HttpGet]
+    [AllowAnonymous]  // TEMPORARY: Remove this after testing!
     public async Task<ActionResult<IListResponseModel<GetPropertyDto>>> GetList([FromQuery] GetPropertyListQuery query)
         => Ok(await _mediator.Send(query));
 
