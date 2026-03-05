@@ -26,9 +26,9 @@ export class GetAllPropertiesServiceService {
 
   getDropdownOptions(): Observable<PropertyModel[]> {
     const params = {
-      pageIndex: '1',
-      pageSize: '100',
-      orderBy: 'name'
+      PageIndex: '1',
+      PageSize: '100',
+      OrderBy: 'name'
     };
     console.log('Fetching properties from API:', `${this.pathAPI}/property`, params);
   return this.http
