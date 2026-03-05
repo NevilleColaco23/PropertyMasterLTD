@@ -96,7 +96,7 @@ export class SearchBoxAutocompleteComponent implements AfterViewInit, OnDestroy 
 
 
   getSearchSuggestionsFromApi(query: string) {
-    return this.http.get<ApiResponse<GetSearchResultsDTO>>(`${this.pathAPI}v1/menu/search?SearchText=${query}`)
+    return this.http.get<ApiResponse<GetSearchResultsDTO>>(`${this.pathAPI}/menu/search?SearchText=${query}`)
        .pipe(
 map(response => {
 
