@@ -22,12 +22,13 @@ namespace MyWarehouse.Domain.AccessLog
         public string Details { get; protected set; }
         public string Source { get; protected set; }
         public string? IpAddress { get; protected set; }
+        public string? UserAgent { get; protected set; }
 
         [BsonElement("User")]
         public int UserID { get; set; }
         public DateTime TimeStamp { get; set; }
 
-        public AccessLog(int id, string log, int user, DateTime time, string action, string details, string source = "Direct", string? ipAddress = null)
+        public AccessLog(int id, string log, int user, DateTime time, string action, string details, string source = "Direct", string? ipAddress = null, string? userAgent = null)
         {
             Id = id;
             Log = log;
@@ -37,9 +38,10 @@ namespace MyWarehouse.Domain.AccessLog
             Details = details;
             Source = source;
             IpAddress = ipAddress;
+            UserAgent = userAgent;
         }
 
-        public AccessLog(int id, string log, string user, DateTime? time, string action, string details, string source = "Direct", string? ipAddress = null)
+        public AccessLog(int id, string log, string user, DateTime? time, string action, string details, string source = "Direct", string? ipAddress = null, string? userAgent = null)
         {
             Id = id;
             Log = log;
@@ -49,6 +51,7 @@ namespace MyWarehouse.Domain.AccessLog
             Details = details;
             Source = source;
             IpAddress = ipAddress;
+            UserAgent = userAgent;
         }
     }
 }

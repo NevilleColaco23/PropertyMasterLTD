@@ -16,11 +16,12 @@ namespace MyWarehouse.Infrastructure.API.V1
         [HttpPost("accessLog")]
         public async Task<ActionResult<int>> Create(CreateLogCommand command)
         {
-            // Get client IP address
+            // Get client IP address and User-Agent
             var ipAddress = GetClientIpAddress();
+            var userAgent = GetUserAgent();
 
-            // Create a new command with the IP address
-            var commandWithIp = new CreateLogCommand
+            // Create a new command with the IP address and User-Agent
+            var commandWithClientInfo = new CreateLogCommand
             {
                 Id = command.Id,
                 AccessLog = command.AccessLog,
@@ -28,10 +29,11 @@ namespace MyWarehouse.Infrastructure.API.V1
                 TimeStamp = command.TimeStamp,
                 Action = command.Action,
                 Detail = command.Detail,
-                IpAddress = ipAddress
+                IpAddress = ipAddress,
+                UserAgent = userAgent
             };
 
-            return Ok(await _mediator.Send(commandWithIp));
+            return Ok(await _mediator.Send(commandWithClientInfo));
         }
 
         private string? GetClientIpAddress()
@@ -53,6 +55,11 @@ namespace MyWarehouse.Infrastructure.API.V1
 
             // Fall back to RemoteIpAddress
             return HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
+
+        private string? GetUserAgent()
+        {
+            return HttpContext.Request.Headers["User-Agent"].FirstOrDefault();
         }
     }
 }

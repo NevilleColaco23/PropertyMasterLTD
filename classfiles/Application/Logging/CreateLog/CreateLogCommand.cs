@@ -14,6 +14,7 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
         public string Action { get; init; } = null!;
         public string Detail { get; init; } = null!;
         public string? IpAddress { get; init; }
+        public string? UserAgent { get; init; }
     }
 
     public class CreatelogCommandHandler : IRequestHandler<CreateLogCommand, int>
@@ -48,7 +49,8 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
                 action: request.Action,
                 details: request.Detail,
                 source: "Direct",
-                ipAddress: request.IpAddress
+                ipAddress: request.IpAddress,
+                userAgent: request.UserAgent
             );
 
             // Publish to RabbitMQ (consumer will save to DB)
