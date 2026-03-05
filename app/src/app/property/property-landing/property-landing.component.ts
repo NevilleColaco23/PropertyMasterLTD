@@ -84,7 +84,7 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
   getMenuItems() {
     const params = new HttpParams().set('userId', 10); // TODO: remove hardcoding
 
-    return this.http.get<any>(this.pathAPI + 'v1/menu/GetinitialData', { params }).pipe(
+    return this.http.get<any>(this.pathAPI + '/menu/GetinitialData', { params }).pipe(
       map(response => {
         this.logoPath = response?.results?.[0]?.property?.companyLogoURL || '';
         return response;
