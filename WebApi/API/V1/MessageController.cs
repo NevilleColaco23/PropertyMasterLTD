@@ -7,7 +7,7 @@ namespace MyWarehouse.WebApi.API.V1
 {
     [ApiController]
     [ApiVersion("1.0")]
-    [Route("v{v:apiversion}/Messages")]
+    [Route("api/v{v:apiversion}/Messages")]
     public class MessagesController : Controller
     {
         private readonly IMediator _mediator;

@@ -10,7 +10,7 @@ namespace MyWarehouse.Infrastructure.API.V1;
 [Authorize]
 [ApiController]
 [ApiVersion("1.0")]
-[Route("v{v:apiVersion}/partners")]
+[Route("api/v{v:apiVersion}/partners")]
 public class PartnerController : ControllerBase
 {
     private readonly IMediator _mediator;

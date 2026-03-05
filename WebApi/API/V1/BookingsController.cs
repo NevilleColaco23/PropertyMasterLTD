@@ -8,7 +8,7 @@ namespace MyWarehouse.WebApi.API.V1
 {
     [ApiController]
     [ApiVersion("1.0")]
-    [Route("v{v:apiversion}/Bookings")]
+    [Route("api/v{v:apiversion}/Bookings")]
     public class BookingsController : ControllerBase
     {
         private readonly IMediator _mediator;
