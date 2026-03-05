@@ -31,7 +31,7 @@ export class GetAllPropertiesService {
           name: item.name
         }));
       }),
-      catchError(this.errorHandling.handleError)
+      catchError(this.errorHandling.handleError) 
     );
   }
 
