@@ -79,6 +79,7 @@ public signUp(data: SignUpDto){
 }
 
   private signIn(data: AuthenticationSuccessData) {
+    console.log('Received authentication data:', data);
     console.log('Signing in user:', `${data.tokenType} ${data.accessToken}`);
     const expiresAt = new Date();
     expiresAt.setTime(Date.now() + (data.expiresIn * 1000));
