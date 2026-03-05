@@ -141,8 +141,8 @@
       params = params.set('SearchItem', this.filterString);
       params = params.set('ActiveSortDirection', this.sortOrder == 'asc' ? 1 : -1);
       
-      
-      this.http.get<any>(this.pathAPI + 'v1/Bookings/GetBookings', { params: params })
+
+      this.http.get<any>(this.pathAPI + '/Bookings/GetBookings', { params: params })
         .pipe(
           map(response => {
 

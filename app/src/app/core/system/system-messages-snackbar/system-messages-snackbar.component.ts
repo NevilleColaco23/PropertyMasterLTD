@@ -37,7 +37,7 @@ export class SystemMessagesSnackbarComponent {
     this.isLoading.set(true);
     const params = new HttpParams().set('_limit', 5);
 
-    this.http.get<any>(this.pathAPI + 'v1/Messages/GetSystemMessages', { params: params })
+    this.http.get<any>(this.pathAPI + '/Messages/GetSystemMessages', { params: params })
       .pipe(
         map(response => {
           const results = response.map((item: any) => ({
