@@ -54,6 +54,7 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
             // Publish to RabbitMQ (consumer will save to DB)
             try
             {
+                Console.WriteLine("Client IP : " + request.IpAddress);
                 _rabbitMqPublisher.PublishAccessLogEvent(evt);
                 return evt.Id;
             }
