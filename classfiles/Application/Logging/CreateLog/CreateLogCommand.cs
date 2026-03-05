@@ -13,6 +13,7 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
         public DateTime TimeStamp { get; init; }
         public string Action { get; init; } = null!;
         public string Detail { get; init; } = null!;
+        public string? IpAddress { get; init; }
     }
 
     public class CreatelogCommandHandler : IRequestHandler<CreateLogCommand, int>
@@ -39,35 +40,21 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
                 parsedUserId = 0;
             }
 
-            //var logEntry = new AccessLog(
-            //    id: request.Id,
-            //    log: request.AccessLog.Trim(),
-            //    user: parsedUserId,
-            //    time: request.TimeStamp,
-            //    action:request.Action,
-            //    details:request.Detail
-            //    );
-
-            //_unitOfWork.AccessLogs?.Add(logEntry);
-            //await _unitOfWork.SaveChanges();
-
-            //return logEntry.Id;
-
-            // Publish to RabbitMQ
-            try
-            {
-                var evt = new AccessLog(
+            var evt = new AccessLog(
                 id: request.Id,
                 log: request.AccessLog.Trim(),
                 user: parsedUserId,
                 time: request.TimeStamp,
                 action: request.Action,
                 details: request.Detail,
-                source: "Direct"
-                );
+                source: "Direct",
+                ipAddress: request.IpAddress
+            );
 
+            // Publish to RabbitMQ (consumer will save to DB)
+            try
+            {
                 _rabbitMqPublisher.PublishAccessLogEvent(evt);
-
                 return evt.Id;
             }
             catch (Exception ex)
@@ -76,7 +63,6 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
                 // _logger?.LogError(ex, "Failed to push access log event to RabbitMQ");
                 return 0;
             }
-
         }
     }
 }
