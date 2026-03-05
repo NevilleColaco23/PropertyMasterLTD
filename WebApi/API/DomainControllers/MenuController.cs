@@ -8,7 +8,7 @@ namespace MyWarehouse.WebApi.API.DomainControllers
     [Authorize]
     [ApiController]
     [ApiVersion("1.0")]
-    [Route("v{v:apiVersion}/menu")]
+    [Route("api/v{v:apiVersion}/menu")]
     public class MenuController : ControllerBase
     {
         private readonly IMediator _mediator;
