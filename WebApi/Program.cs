@@ -20,6 +20,14 @@ public static class Program
             Console.WriteLine("Starting application...");
             var builder = WebApplication.CreateBuilder(args);
 
+            // Configure Railway port binding
+            var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+            builder.WebHost.ConfigureKestrel(options =>
+            {
+                options.ListenAnyIP(int.Parse(port));
+            });
+            Console.WriteLine($"✅ Configured to listen on port: {port}");
+
             builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection("RabbitMq"));
             builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
             builder.Services.AddControllers();

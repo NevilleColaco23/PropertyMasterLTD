@@ -97,7 +97,13 @@ public class Startup
         app.UseDefaultFiles(); // this enables serving index.html by default
         app.UseStaticFiles();// Enable serving static files from wwwroot
         app.UseMyRequestLogging();
-        app.UseHttpsRedirection();
+
+        // Only use HTTPS redirection in Development
+        if (Environment.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+        }
+
         app.UseRouting();
         app.UseMyCorsConfiguration();
         app.UseMySwagger(Configuration);
