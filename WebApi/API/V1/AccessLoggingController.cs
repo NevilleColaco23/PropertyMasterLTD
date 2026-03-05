@@ -6,7 +6,7 @@ namespace MyWarehouse.Infrastructure.API.V1
     [Authorize]
     [ApiController]
     [ApiVersion("1.0")]
-    [Route("v{v:apiVersion}/accessLog")]
+    [Route("api/v{v:apiVersion}/accessLog")]
     public class AccessLoggingController : ControllerBase
     {
         private readonly IMediator _mediator;
