@@ -24,7 +24,7 @@ export class GetAllPropertiesService {
   }
 
   getDropdownOptions(): Observable<any[]> {
-    return this.http.get<any[]>(this.pathAPI + 'v1/property').pipe(
+    return this.http.get<any[]>(`${this.pathAPI}/property`).pipe(
       map(response => {
         return (response as any).results.map((item: { id: any; name: any; }) => ({
           id: item.id,
@@ -36,4 +36,3 @@ export class GetAllPropertiesService {
   }
 
 }
-  
