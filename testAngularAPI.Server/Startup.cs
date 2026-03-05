@@ -105,9 +105,15 @@ public class Startup
         }
 
         app.UseRouting();
+
+        // CORS must be after UseRouting and before UseAuthentication
         app.UseMyCorsConfiguration();
+
         app.UseMySwagger(Configuration);
+
+        // Authentication and Authorization - handled by UseMyInfrastructure
         app.UseMyInfrastructure(Configuration, Environment);
+
         app.UseMyApi();
         app.UseEndpoints(endpoints =>
         {
