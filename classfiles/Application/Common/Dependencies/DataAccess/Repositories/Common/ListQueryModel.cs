@@ -29,7 +29,7 @@ public class ListQueryModel<TDto> : IRequest<IListResponseModel<TDto>>
     private const int DEFAULT_PAGESIZE = 20;
     private const int MAX_PAGESIZE = 100;
     public int ActiveSortDirection { get; set; } = -1;
-    public string SearchItem { get; set; }
+    public string SearchItem { get; set; } = string.Empty;
 
     public void ThrowOrderByIncorrectException(Exception? innerException)
     {
