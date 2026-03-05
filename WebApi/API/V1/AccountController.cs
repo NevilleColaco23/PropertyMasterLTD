@@ -11,7 +11,7 @@ namespace MyWarehouse.Infrastructure.API.V1;
 
 [ApiController]
 [ApiVersion("1.0")]
-[Route("v{v:apiVersion}/account")]
+[Route("api/v{v:apiVersion}/account")]
 public class AccountController : ControllerBase
 {
     private readonly IUserService _userService;
