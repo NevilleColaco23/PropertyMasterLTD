@@ -6,6 +6,7 @@ import { routes } from '../app.routes';
 import { APP_CONFIG } from '../configuration/app.config.token';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from '../core/auth/services/auth.interceptor';
+import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,7 +15,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_CONFIG,
       useValue: {
-        apiUrl: 'https://localhost:44346/'
+        apiUrl: environment.apiUrl
       }
     }
   ]
