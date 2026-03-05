@@ -18,7 +18,26 @@ public class PropertyController : ControllerBase
     [HttpGet]
     [AllowAnonymous]  // TEMPORARY: Remove this after testing!
     public async Task<ActionResult<IListResponseModel<GetPropertyDto>>> GetList([FromQuery] GetPropertyListQuery query)
-        => Ok(await _mediator.Send(query));
+    {
+        try
+        {
+            Console.WriteLine($"=== PropertyController.GetList called ===");
+            Console.WriteLine($"PageIndex: {query.PageIndex}, PageSize: {query.PageSize}, OrderBy: {query.OrderBy}");
+
+            var result = await _mediator.Send(query);
+
+            Console.WriteLine($"Results count: {result.Results?.Count() ?? 0}");
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"=== ERROR in PropertyController ===");
+            Console.WriteLine($"Exception: {ex.Message}");
+            Console.WriteLine($"StackTrace: {ex.StackTrace}");
+            Console.WriteLine($"InnerException: {ex.InnerException?.Message}");
+            return BadRequest(new { error = ex.Message, innerError = ex.InnerException?.Message });
+        }
+    }
 
     [HttpPost]
     public async Task<ActionResult<int>> Create(CreatePropertyCommand command)
