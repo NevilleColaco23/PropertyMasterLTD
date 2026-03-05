@@ -114,7 +114,7 @@ namespace MyWarehouse.WebApi.Messaging_Queue
                     UserId = accessLog.UserID.ToString(),
                     Username = null,
                     TraceId = null,
-                    ClientIp = null,
+                    ClientIp = accessLog.IpAddress,
                     UserAgent = null,
                     Action = accessLog.Action
                 };

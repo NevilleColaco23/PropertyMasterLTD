@@ -30,7 +30,8 @@ namespace AccessLogWorker.Services
                 time: logEvent.TimestampUtc,
                 action: logEvent.Method ?? "N/A",
                 details: $"Status: {logEvent.StatusCode}, Duration: {logEvent.DurationMs}ms, TraceId: {logEvent.TraceId}, IP: {logEvent.ClientIp}, Agent: {logEvent.UserAgent}",
-                source: "RabbitMQ"
+                source: "RabbitMQ",
+                ipAddress: logEvent.ClientIp
             );
 
             // Use repository.Add() - same as CreateLogCommand via UnitOfWork (no code duplication!)
