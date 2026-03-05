@@ -7,7 +7,7 @@ public class ListQueryModel<TDto> : IRequest<IListResponseModel<TDto>>
     /// <summary>
     /// The index of the page to fetch.
     /// </summary>
-    [Range(1, int.MaxValue, ErrorMessage = "The minimum page index is 1.")]
+    [Range(1, 1000000, ErrorMessage = "The minimum page index is 1.")]
     public int PageIndex { get; set; } = 1;
 
     /// <summary>
