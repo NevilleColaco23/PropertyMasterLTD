@@ -25,7 +25,7 @@ export class GetAllPropertiesServiceService {
 
 
   getDropdownOptions(): Observable<PropertyModel[]> {
-    console.log('Fetching properties from API:', `${this.pathAPI}/property`);
+    console.log('Fetching properties from API111:', `${this.pathAPI}/property`);
   return this.http
     .get<any>(`${this.pathAPI}/property`)
     .pipe(
