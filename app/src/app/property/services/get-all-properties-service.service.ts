@@ -28,7 +28,8 @@ export class GetAllPropertiesServiceService {
     const params:any = {
       PageIndex: 1,
       PageSize: 100,
-      OrderBy: 'name'
+      OrderBy: 'name',
+      SearchItem: ''
     };
     console.log('Fetching properties from API:', `${this.pathAPI}/property`, params);
   return this.http
