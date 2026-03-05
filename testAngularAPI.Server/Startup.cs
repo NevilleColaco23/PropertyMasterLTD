@@ -90,13 +90,6 @@ public class Startup
         services.AddMyApplicationDependencies();
         services.AddSignalR();
 
-        // Register MediatR handlers from external Application project
-        services.AddMediatR(typeof(GetPropertyListQueryHandler).Assembly);
-
-        // Register pipeline behaviors
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionLoggingBehavior<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
-
     }
 
     public void Configure(IApplicationBuilder app)

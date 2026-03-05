@@ -16,5 +16,8 @@ public static class ApplicationStartup
 
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionLoggingBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestValidationBehavior<,>));
+
+        // Register AutoMapper
+        services.AddAutoMapper(typeof(ApplicationStartup));
     }
 }
