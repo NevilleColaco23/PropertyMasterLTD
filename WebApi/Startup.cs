@@ -73,6 +73,10 @@ public class Startup
             var client = sp.GetRequiredService<IMongoClient>();
             return client.GetDatabase("ListingDB");
         });
+
+        // Register Email Queue Service for sending emails via Resend
+        services.AddScoped<IEmailQueueService, EmailQueueService>();
+
         services.AddMyInfrastructureDependencies(Configuration, Environment);
         services.AddMyApplicationDependencies();
         services.AddSignalR();

@@ -16,14 +16,16 @@ public class UserService : IUserService
     private readonly ITokenService _tokenService;
     private readonly IMediator _mediator;
     private readonly ILogger<UserService> _logger;
+    private readonly IEmailQueueService _emailQueueService;
 
-    public UserService(UserManager<ApplicationUserIdentity> userManager, SignInManager<ApplicationUserIdentity> signInManager, ITokenService tokenService, IMediator mediator, ILogger<UserService> logger)
+    public UserService(UserManager<ApplicationUserIdentity> userManager, SignInManager<ApplicationUserIdentity> signInManager, ITokenService tokenService, IMediator mediator, ILogger<UserService> logger, IEmailQueueService emailQueueService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _mediator = mediator;
         _logger = logger;
+        _emailQueueService = emailQueueService;
     }
 
     public async Task<(MySignInResult result, SignInData? data)> SignIn(string username, string password)
@@ -98,14 +100,30 @@ public class UserService : IUserService
 
         var userId = await _mediator.Send(createUserCommand);
 
-        //UserActivationMailTemplateModel model = new();
-        //model.Message = "Test Email Body";
-        //model.Dated = DateTime.Now;
-        //var mailService = ResourceLocator.Get<IMailService>();
-        //mailService.SendMail(   model, "BidInviteTemplate", "nevillecolaco94@gmail.com", null, null, //pass model here
-        //                            "Test", null, null);
-        
-        
+        // Queue activation email
+        try
+        {
+            var activationLink = $"https://yourapp.com/activate?userId={userId}&token=placeholder";
+            var htmlBody = $@"
+                <html>
+                <body>
+                    <h2>Welcome to Property Master!</h2>
+                    <p>Hi {username},</p>
+                    <p>Thank you for signing up. Please activate your account by clicking the link below:</p>
+                    <p><a href='{activationLink}'>Activate Account</a></p>
+                    <p>If you did not sign up for this account, please ignore this email.</p>
+                    <p>Best regards,<br/>Property Master Team</p>
+                </body>
+                </html>";
+
+            await _emailQueueService.QueueEmailAsync(email, "Activate Your Account", htmlBody, "activation");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to queue activation email for user {UserId}", userId);
+            // Don't fail the signup if email queueing fails
+        }
+
         if (userId == 0)
             return (SignUpResult.Failed, null);
 
