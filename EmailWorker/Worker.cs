@@ -21,6 +21,17 @@ namespace EmailWorker
         {
             _logger.LogInformation("EmailWorker started.");
 
+            // Test MongoDB connection
+            try
+            {
+                var count = await _collection.CountDocumentsAsync(FilterDefinition<EmailOutboxMessage>.Empty, cancellationToken: stoppingToken);
+                _logger.LogInformation("MongoDB connected. EmailOutbox collection has {Count} documents.", count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to connect to MongoDB. Check connection string.");
+            }
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
