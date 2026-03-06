@@ -1,46 +1,27 @@
-services:
-  api:
-    build:
-      context: ..
-      dockerfile: testAngularAPI.Server/Dockerfile
-    ports:
-      - "8080:80"
-    depends_on:
-      - mongo
-      - rabbitmq
-    environment:
-      - MONGODB_URI=mongodb://mongo:27017/ListingDB
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
 
-      # RabbitMQ connection (the hostname is the service name: rabbitmq)
-      - RabbitMq__Host=rabbitmq
-      - RabbitMq__Port=5672
-      - RabbitMq__Username=admin
-      - RabbitMq__Password=admin
-      - RabbitMq__VirtualHost=/
-      - RabbitMq__Exchange=accesslog.exchange
-      - RabbitMq__Queue=accesslog.queue
-      - RabbitMq__RoutingKey=accesslog
+# Copy project file and restore dependencies
+COPY ["EmailWorker/EmailWorker.csproj", "EmailWorker/"]
+RUN dotnet restore "EmailWorker/EmailWorker.csproj"
 
-  mongo:
-    image: mongo:6
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
+# Copy everything else and build
+COPY EmailWorker/ EmailWorker/
+WORKDIR "/src/EmailWorker"
+RUN dotnet build "EmailWorker.csproj" -c Release -o /app/build
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"     # AMQP
-      - "15672:15672"   # Management UI (local dev)
-    environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
+# Publish stage
+FROM build AS publish
+RUN dotnet publish "EmailWorker.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-volumes:
-  mongo-data:
-  rabbitmq-data:
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+# Health check (optional)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD pgrep -f EmailWorker || exit 1
+
+ENTRYPOINT ["dotnet", "EmailWorker.dll"]
