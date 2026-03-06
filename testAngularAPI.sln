@@ -65,6 +65,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccessLogConsumerWorker", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging.Shared", "Messaging.Shared\Messaging.Shared.csproj", "{819957DF-C3B0-42A9-90B1-468AA13398AC}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Help", "Help", "{7246EEE8-E22B-456E-89B2-8C60B6F812C0}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\..\..\Downloads\Setting up Resend with namecheap.md = ..\..\..\..\..\Downloads\Setting up Resend with namecheap.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -140,6 +145,7 @@ Global
 		{686FC06F-FA97-4F34-A3A1-FFB684D1DFE8} = {E594FF6F-9BBC-481D-9395-D8C3AD6F5D6D}
 		{C41E1E79-69CD-4F7A-B176-D167254BB98D} = {E594FF6F-9BBC-481D-9395-D8C3AD6F5D6D}
 		{819957DF-C3B0-42A9-90B1-468AA13398AC} = {04D54D27-43C6-4622-A082-CCC701EC8967}
+		{7246EEE8-E22B-456E-89B2-8C60B6F812C0} = {D163D16B-CB11-49B1-8A22-1B27EE08FC20}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DDC5D4E3-E2A6-4094-A49F-AAB2750BC819}

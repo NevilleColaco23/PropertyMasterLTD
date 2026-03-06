@@ -71,7 +71,8 @@ public class Startup
         services.AddScoped(sp =>
         {
             var client = sp.GetRequiredService<IMongoClient>();
-            return client.GetDatabase("ListingDB");
+            var dbName = Configuration["AppSettings:MongoDbDatabaseName"] ?? "ListingDB";
+            return client.GetDatabase(dbName);
         });
 
         // Register Email Queue Service for sending emails via Resend
