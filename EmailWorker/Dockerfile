@@ -2,12 +2,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy project file and restore dependencies
+# Copy project files and restore dependencies
 COPY ["EmailWorker/EmailWorker.csproj", "EmailWorker/"]
+COPY ["Messaging.Shared/Messaging.Shared.csproj", "Messaging.Shared/"]
 RUN dotnet restore "EmailWorker/EmailWorker.csproj"
 
 # Copy everything else and build
 COPY EmailWorker/ EmailWorker/
+COPY Messaging.Shared/ Messaging.Shared/
 WORKDIR "/src/EmailWorker"
 RUN dotnet build "EmailWorker.csproj" -c Release -o /app/build
 
