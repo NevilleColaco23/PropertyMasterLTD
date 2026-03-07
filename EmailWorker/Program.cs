@@ -54,6 +54,13 @@ var host = Host.CreateDefaultBuilder(args)
 
         services.AddSingleton<IEmailSender, ResendEmailSender>();
 
+        // RabbitMQ options (optional - will fall back to polling if not configured)
+        var rabbitMqSection = config.GetSection("RabbitMq");
+        if (rabbitMqSection.Exists())
+        {
+            services.Configure<Messaging.Shared.RabbitMqOptions>(rabbitMqSection);
+        }
+
         services.AddHostedService<Worker>();
     })
     .Build();

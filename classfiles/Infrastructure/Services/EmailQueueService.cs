@@ -1,5 +1,7 @@
 using MongoDB.Driver;
 using Microsoft.Extensions.Logging;
+using Messaging.Shared;
+using Messaging.Shared.Models;
 
 namespace MyWarehouse.Infrastructure.Services
 {
@@ -11,11 +13,16 @@ namespace MyWarehouse.Infrastructure.Services
     public class EmailQueueService : IEmailQueueService
     {
         private readonly IMongoCollection<EmailOutboxMessage> _collection;
+        private readonly IRabbitMqPublisher _rabbitMqPublisher;
         private readonly ILogger<EmailQueueService> _logger;
 
-        public EmailQueueService(IMongoDatabase database, ILogger<EmailQueueService> logger)
+        public EmailQueueService(
+            IMongoDatabase database, 
+            IRabbitMqPublisher rabbitMqPublisher,
+            ILogger<EmailQueueService> logger)
         {
             _collection = database.GetCollection<EmailOutboxMessage>("EmailOutbox");
+            _rabbitMqPublisher = rabbitMqPublisher;
             _logger = logger;
         }
 
@@ -35,22 +42,50 @@ namespace MyWarehouse.Infrastructure.Services
                 To = to,
                 Subject = subject,
                 BodyHtml = bodyHtml,
-                Status = EmailOutboxStatus.Pending,
+                Status = EmailOutboxStatus.Queued, // Changed from Pending to Queued
                 NextRunAtUtc = DateTime.UtcNow,
                 CreatedAtUtc = DateTime.UtcNow
             };
 
+            // Step 1: Persist to MongoDB for audit trail
             await _collection.InsertOneAsync(message);
-            _logger.LogInformation("Queued email {Id} to {To} with subject '{Subject}'", message.Id, to, subject);
+            _logger.LogInformation("Persisted email {Id} to MongoDB for audit: To={To}, Subject='{Subject}'", 
+                message.Id, to, subject);
+
+            // Step 2: Publish to RabbitMQ for real-time processing
+            try
+            {
+                var emailEvent = new EmailQueuedEvent
+                {
+                    EmailId = message.Id,
+                    Type = message.Type,
+                    To = message.To,
+                    Subject = message.Subject,
+                    BodyHtml = message.BodyHtml,
+                    QueuedAtUtc = message.CreatedAtUtc
+                };
+
+                _rabbitMqPublisher.Publish(emailEvent, "email.exchange", "email");
+
+                _logger.LogInformation("Published email {Id} to RabbitMQ for processing: To={To}", 
+                    message.Id, to);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to publish email {Id} to RabbitMQ. Email will retry via fallback polling.", 
+                    message.Id);
+                // Email is still in MongoDB, EmailWorker can fall back to polling if RabbitMQ fails
+            }
         }
     }
 
     public enum EmailOutboxStatus
     {
-        Pending = 0,
-        Processing = 1,
-        Sent = 2,
-        Failed = 3
+        Pending = 0,        // Waiting for processing (fallback polling)
+        Queued = 1,         // Published to RabbitMQ, awaiting consumption
+        Processing = 2,     // Currently being processed
+        Sent = 3,           // Successfully sent
+        Failed = 4          // Failed after max attempts
     }
 
     public class EmailOutboxMessage
