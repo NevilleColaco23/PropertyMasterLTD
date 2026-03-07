@@ -18,7 +18,7 @@ namespace EmailWorker
         {
             var msg = new EmailMessage
             {
-                From = _from,
+                From = "Property Master <" + _from + ">",
                 To = to,
                 Subject = subject,
                 HtmlBody = htmlBody
