@@ -103,7 +103,7 @@ public class UserService : IUserService
         // Queue activation email
         try
         {
-            var activationLink = $"https://yourapp.com/activate?userId={userId}&token=placeholder";
+            var activationLink = $"https://property-master-silk.vercel.app/activate?userId={userId}&token=placeholder";
             var htmlBody = $@"
                 <html>
                 <body>
