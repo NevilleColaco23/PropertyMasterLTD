@@ -495,9 +495,16 @@ PropertyMasterV4.0/
 - Asynchronous log processing via RabbitMQ
 - Centralized log storage in MongoDB
 
-#### 8. Email System
-- Outbox pattern for reliable delivery
-- Retry mechanism with exponential backoff
+#### 8. Email System (Resend + MongoDB Queue)
+- **Queue-based email delivery** using MongoDB outbox pattern
+- **Resend.com** integration for transactional emails
+- **Custom domain support** (masterproperty.site via Namecheap)
+- **Automated retry mechanism** with exponential backoff (up to 5 attempts)
+- **EmailWorker** background service (.NET 8) for processing
+- **Email templates** for user activation, notifications
+- **Delivery tracking** with status persistence (Pending, Sent, Failed)
+- **High deliverability** with SPF, DKIM, and DMARC configuration
+- **Production-ready** deployment on Railway.app
 - Email templates (Razor templates)
 - Bid invite notifications
 - Transactional emails via Resend
@@ -795,6 +802,327 @@ export const environment = {
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
 | `MONGODB_URI` | MongoDB connection | See appsettings | Yes |
+| `RESEND_API_KEY` | Resend API key | None | Yes |
+| `EMAIL_FROM` | Sender email address | noreply@yourdomain.com | Yes |
+| `AppSettings__MongoDbDatabaseName` | Database name | ListingDB | Yes |
+
+---
+
+## 📧 Email System Setup
+
+The email system uses **Resend.com** for transactional email delivery with a MongoDB-based outbox pattern for reliability.
+
+### Architecture Overview
+
+```
+┌──────────────┐         ┌──────────────┐         ┌──────────────┐
+│   WebAPI     │────────►│   MongoDB    │────────►│ EmailWorker  │
+│              │  Queue  │  EmailOutbox │  Poll   │ (Background) │
+│              │         │  Collection  │         │              │
+└──────────────┘         └──────────────┘         └──────────────┘
+                                                          │
+                                                          ▼
+                                                   ┌──────────────┐
+                                                   │  Resend API  │
+                                                   │  (Delivery)  │
+                                                   └──────────────┘
+```
+
+### Email Flow
+
+1. **User Action** (e.g., signup) → WebAPI
+2. **EmailQueueService** inserts email into MongoDB `EmailOutbox` collection
+3. **EmailWorker** polls MongoDB every 2 seconds for pending emails
+4. **EmailWorker** sends email via Resend API
+5. **Status Updated** in MongoDB (Sent/Failed with retry logic)
+
+### Setup Instructions
+
+#### 1. Create Resend Account
+
+1. Go to [Resend.com](https://resend.com) and sign up
+2. Navigate to [API Keys](https://resend.com/api-keys)
+3. Create a new API key
+4. Copy the API key (starts with `re_...`)
+
+#### 2. Domain Configuration (Namecheap)
+
+To send emails from your custom domain (e.g., `masterproperty.site`):
+
+##### 2.1 Purchase Domain (if needed)
+1. Go to [Namecheap](https://www.namecheap.com)
+2. Search and purchase your domain
+3. Go to **Domain List** → **Manage**
+
+##### 2.2 Add DNS Records in Resend
+1. In Resend dashboard, go to [Domains](https://resend.com/domains)
+2. Click **Add Domain**
+3. Enter your domain (e.g., `masterproperty.site`)
+4. Copy the DNS records provided by Resend
+
+##### 2.3 Configure DNS in Namecheap
+1. In Namecheap, go to your domain → **Advanced DNS** tab
+2. Add the following records from Resend:
+
+| Record Type | Host | Value | TTL |
+|------------|------|-------|-----|
+| **TXT** (DKIM) | `resend._domainkey` | `p=...` (from Resend) | Automatic |
+| **TXT** (SPF) | `send` | `v=spf1 include:send.resend.com ~all` | Automatic |
+| **MX** | `send` | `feedback-smtp.{region}.amazonses.com` | Automatic |
+| **TXT** (DMARC) | `_dmarc` | `v=DMARC1; p=none;` (optional) | Automatic |
+
+3. Click **Save All Changes**
+
+##### 2.4 Verify DNS Propagation
+1. Wait 5-30 minutes for DNS to propagate
+2. Check propagation: [DNSChecker.org](https://dnschecker.org)
+3. Enter your domain and select TXT/MX records
+4. Wait for green checkmarks globally
+
+##### 2.5 Verify Domain in Resend
+1. Return to Resend → [Domains](https://resend.com/domains)
+2. Click **Verify Domain**
+3. Status should change to **Verified** ✅
+4. You can now send from `noreply@masterproperty.site`
+
+#### 3. Configure EmailWorker
+
+##### Local Development
+
+Edit `EmailWorker/appsettings.json`:
+
+```json
+{
+  "ConnectionStrings": {
+    "MongoDb": "mongodb://localhost:27017/ListingDB"
+  },
+  "AppSettings": {
+    "MongoDbDatabaseName": "ListingDB"
+  }
+}
+```
+
+**Note:** Do NOT put sensitive credentials in `appsettings.json`. Use environment variables or user secrets:
+
+```bash
+# Using .NET User Secrets (Development)
+cd EmailWorker
+dotnet user-secrets set "Resend:ApiKey" "re_your_api_key_here"
+dotnet user-secrets set "Email:From" "noreply@masterproperty.site"
+```
+
+##### Production (Railway.app)
+
+Set environment variables in Railway dashboard:
+
+```bash
+RESEND_API_KEY=re_your_api_key_here
+EMAIL_FROM=noreply@masterproperty.site
+ConnectionStrings__MongoDb=mongodb://your-railway-mongo-url
+AppSettings__MongoDbDatabaseName=ListingDB
+ASPNETCORE_ENVIRONMENT=Production
+```
+
+#### 4. Email Templates
+
+Email templates are defined in code. Example from `UserService.cs`:
+
+```csharp
+var htmlBody = $@"
+    <html>
+    <body>
+        <h2>Welcome to Property Master!</h2>
+        <p>Hi {username},</p>
+        <p>Thank you for signing up. Please activate your account by clicking the link below:</p>
+        <p><a href='{activationLink}'>Activate Account</a></p>
+        <p>If you did not sign up for this account, please ignore this email.</p>
+        <p>Best regards,<br/>Property Master Team</p>
+    </body>
+    </html>";
+
+await _emailQueueService.QueueEmailAsync(email, "Activate Your Account", htmlBody, "activation");
+```
+
+#### 5. MongoDB EmailOutbox Schema
+
+The system uses a MongoDB collection called `EmailOutbox`:
+
+```javascript
+{
+  _id: 1,                           // Auto-increment ID
+  type: "activation",               // Email type
+  to: "user@example.com",          // Recipient
+  subject: "Activate Your Account", // Subject line
+  bodyHtml: "<html>...</html>",    // HTML body
+  status: 0,                        // 0=Pending, 1=Processing, 2=Sent, 3=Failed
+  attempts: 0,                      // Retry count
+  nextRunAtUtc: ISODate("..."),    // When to process
+  createdAtUtc: ISODate("..."),    // Creation timestamp
+  sentAtUtc: null,                  // When sent (null if not sent)
+  lockedUntilUtc: null,             // Processing lock
+  lastError: null                   // Last error message
+}
+```
+
+#### 6. Testing the Email System
+
+##### Test Locally
+
+1. Start MongoDB and EmailWorker:
+```bash
+# Terminal 1: Start EmailWorker
+cd EmailWorker
+dotnet run
+```
+
+2. Start WebAPI:
+```bash
+# Terminal 2: Start WebAPI
+cd WebApi
+dotnet run
+```
+
+3. Sign up a new user via API:
+```bash
+curl -X POST http://localhost:5000/api/v1/account/SignUp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "email": "your-email@example.com",
+    "password": "Test@1234",
+    "phone": "1234567890"
+  }'
+```
+
+4. Check EmailWorker logs:
+```
+info: EmailWorker.Worker[0]
+      Sent outbox email 1 -> your-email@example.com
+```
+
+5. Check your email inbox!
+
+##### Test on Railway
+
+1. Deploy EmailWorker to Railway (see Deployment section)
+2. Verify environment variables are set
+3. Test via deployed WebAPI URL
+4. Monitor logs in Railway dashboard
+
+#### 7. Monitoring & Troubleshooting
+
+##### Check Email Status in MongoDB
+
+```javascript
+// Connect to MongoDB
+use ListingDB
+
+// View pending emails
+db.EmailOutbox.find({ status: 0 })
+
+// View sent emails
+db.EmailOutbox.find({ status: 2 })
+
+// View failed emails
+db.EmailOutbox.find({ status: 3 })
+
+// Count emails by status
+db.EmailOutbox.aggregate([
+  { $group: { _id: "$status", count: { $sum: 1 } } }
+])
+```
+
+##### Common Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| **Domain not verified** | DNS records not propagated | Wait 30 minutes, check DNSChecker.org |
+| **"You can only send to your own email"** | Using test mode | Verify domain in Resend |
+| **Emails not sending** | EmailWorker not running | Check Railway logs, restart service |
+| **Missing API key error** | Environment variable not set | Set `RESEND_API_KEY` in Railway |
+| **MongoDB connection failed** | Wrong connection string | Verify `ConnectionStrings__MongoDb` |
+
+##### Email Retry Logic
+
+The EmailWorker has built-in retry logic:
+
+- **Max Attempts**: 5
+- **Retry Delays**: Exponential backoff (2, 4, 8, 16, 32 minutes)
+- **Status Tracking**: Pending → Processing → Sent/Failed
+- **Automatic Recovery**: Crashed sends are retried after 2 minutes
+
+#### 8. Email Service Comparison
+
+| Feature | Resend | SMTP (Gmail) | SendGrid |
+|---------|--------|--------------|----------|
+| **Railway Compatible** | ✅ Yes | ❌ Blocked | ✅ Yes |
+| **Setup Complexity** | ⭐⭐ Easy | ⭐⭐⭐⭐ Hard | ⭐⭐⭐ Medium |
+| **Custom Domain** | ✅ Yes (Namecheap) | ❌ Complex | ✅ Yes |
+| **Deliverability** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐ Good | ⭐⭐⭐⭐ Very Good |
+| **Free Tier** | 100/day | 500/day | 100/day |
+| **Pricing** | $20/month (50k) | Free (limited) | $20/month (40k) |
+| **Our Choice** | ✅ **Selected** | ❌ Not compatible | ⚠️ Alternative |
+
+**Why we chose Resend:**
+- ✅ Works perfectly on Railway (no SMTP port blocking)
+- ✅ Simple API integration
+- ✅ Excellent deliverability with verified domains
+- ✅ Easy domain setup with Namecheap
+- ✅ Modern developer-friendly platform
+- ✅ Built-in bounce handling
+
+---
+
+## 🏃 Running the Application
+
+### Development Mode
+
+#### Option 1: Run Individually
+
+**Terminal 1 - MongoDB:**
+```bash
+mongod
+```
+
+**Terminal 2 - RabbitMQ:**
+```bash
+rabbitmq-server
+```
+
+**Terminal 3 - WebAPI:**
+```bash
+cd WebApi
+dotnet run
+# API available at: https://localhost:44346
+```
+
+**Terminal 4 - AccessLogWorker:**
+```bash
+cd AccessLogWorker
+dotnet run
+```
+
+**Terminal 5 - EmailWorker:**
+```bash
+cd EmailWorker
+dotnet run
+```
+
+**Terminal 6 - Angular Frontend:**
+```bash
+cd app
+npm start
+# or: ng serve
+# App available at: http://localhost:4200
+```
+
+#### EmailWorker
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `MONGODB_URI` | MongoDB connection | See appsettings | Yes |
+| `RESEND_API_KEY` | Resend API key | None | Yes |
+| `EMAIL_FROM` | Sender email address | noreply@yourdomain.com | Yes |
 | `EMAIL_FROM` | Sender email | - | Yes |
 | `RESEND_API_KEY` | Resend API key | - | Yes |
 
