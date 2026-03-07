@@ -6,12 +6,16 @@ namespace EmailWorker
     {
         private readonly ResendClient _client;
         private readonly string _from;
+        private readonly ILogger<ResendEmailSender> _logger;
 
-        public ResendEmailSender(ResendClient client, IConfiguration config)
+        public ResendEmailSender(ResendClient client, IConfiguration config, ILogger<ResendEmailSender> logger)
         {
             _client = client;
+            _logger = logger;
             _from = config["Email:From"] ?? config["EMAIL_FROM"]
                 ?? throw new InvalidOperationException("Missing Email:From (or EMAIL_FROM).");
+
+            _logger.LogInformation("ResendEmailSender initialized. From address: {FromAddress}", _from);
         }
 
         public async Task SendHtmlAsync(string to, string subject, string htmlBody, CancellationToken ct)
