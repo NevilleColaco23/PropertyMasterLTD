@@ -20,12 +20,17 @@ namespace EmailWorker
 
         public async Task SendHtmlAsync(string to, string subject, string htmlBody, CancellationToken ct)
         {
+            // Create plain text version from HTML (fallback for email clients)
+            var textBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, "<.*?>", string.Empty);
+            textBody = System.Net.WebUtility.HtmlDecode(textBody);
+
             var msg = new EmailMessage
             {
                 From = "Property Master <" + _from + ">",
                 To = to,
                 Subject = subject,
-                HtmlBody = htmlBody
+                HtmlBody = htmlBody,
+                TextBody = textBody  // Add plain text fallback
             };
 
             var resp = await _client.EmailSendAsync(msg, ct);
