@@ -107,8 +107,8 @@ public class AccountController : ControllerBase
         };
 
         var result = await _userService.SignUp(signUpDto.Username, signUpDto.Email,signUpDto.Password,signUpDto.Phone); //check if internal identity function can be used
-        
-        
+
+
         return result.result switch
         {
             SignUpResult.Failed => Unauthorized("Username or password incorrect."),
@@ -121,20 +121,18 @@ public class AccountController : ControllerBase
         };
     }
 
-    //[AllowAnonymous]
-    //[HttpPost("ConfirmEmail")]
-    //public async Task<ActionResult<SignUpResponseDto>> ConfirmEmail([FromQuery] int userId, [FromQuery] string token, CancellationToken ct)
-    //{
-    //    if (userId <= 0 || string.IsNullOrWhiteSpace(token))
-    //        return BadRequest("userId and token are required.");
+    [AllowAnonymous]
+    [HttpPost("ConfirmEmail")]
+    public async Task<ActionResult> ConfirmEmail([FromQuery] int userId, [FromQuery] string token)
+    {
+        if (userId <= 0 || string.IsNullOrWhiteSpace(token))
+            return BadRequest("userId and token are required.");
 
-    //    var ok = await _mediator.Send(new ConfirmEmailCommand
-    //    {
-    //        UserId = userId,
-    //        Token = token
-    //    }, ct);
+        var (success, message) = await _userService.ConfirmEmail(userId, token);
 
-    //    return ok ? Ok("Email activated successfully.") : BadRequest("Invalid or expired activation link.");
-
-    //}
+        if (success)
+            return Ok(new { message, success = true });
+        else
+            return BadRequest(new { message, success = false });
+    }
 }
