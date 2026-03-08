@@ -245,11 +245,11 @@ namespace EmailWorker
             var lockUntil = now.AddMinutes(2);
 
             // Claim:
-            // 1) Pending and due to run
+            // 1) Pending OR Queued and due to run
             // 2) OR previously claimed (Processing) but lock expired (worker crashed / timeout)
             var filter = Builders<EmailOutboxMessage>.Filter.Or(
                 Builders<EmailOutboxMessage>.Filter.And(
-                    Builders<EmailOutboxMessage>.Filter.Eq(x => x.Status, EmailOutboxStatus.Pending),
+                    Builders<EmailOutboxMessage>.Filter.In(x => x.Status, new[] { EmailOutboxStatus.Pending, EmailOutboxStatus.Queued }),
                     Builders<EmailOutboxMessage>.Filter.Lte(x => x.NextRunAtUtc, now)
                 ),
                 Builders<EmailOutboxMessage>.Filter.And(
