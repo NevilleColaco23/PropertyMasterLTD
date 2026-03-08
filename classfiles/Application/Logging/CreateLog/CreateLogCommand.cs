@@ -57,7 +57,25 @@ namespace MyWarehouse.Application.NewFolder.CreateLog
             try
             {
                 Console.WriteLine("Client IP Detected at " + DateTime.Now + " : " + request.IpAddress);
-                _rabbitMqPublisher.PublishAccessLogEvent(evt);
+
+                // Convert to AccessLogEvent for RabbitMQ
+                var accessLogEvent = new Messaging.Shared.Models.AccessLogEvent
+                {
+                    TimestampUtc = evt.TimeStamp,
+                    Method = evt.Details,
+                    Path = evt.Log,
+                    StatusCode = 200,
+                    DurationMs = 0,
+                    UserId = evt.UserID.ToString(),
+                    Username = null,
+                    TraceId = null,
+                    ClientIp = evt.IpAddress,
+                    UserAgent = evt.UserAgent,
+                    Action = evt.Action,
+                    Id = evt.Id
+                };
+
+                _rabbitMqPublisher.Publish(accessLogEvent, "accesslog.exchange", "accesslog");
                 return evt.Id;
             }
             catch (Exception ex)
