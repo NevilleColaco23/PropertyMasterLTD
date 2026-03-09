@@ -31,12 +31,47 @@
     </div>
     <h2>Activation Failed ❌</h2>
     <p class="message">{{ message }}</p>
-    <div class="button-group">
+
+    <!-- Resend Email Form -->
+    <div *ngIf="showResendForm" class="resend-form">
+      <h3>Resend Activation Email</h3>
+      <p>Enter your email address to receive a new activation link:</p>
+      <input 
+        type="email" 
+        [(ngModel)]="resendEmail" 
+        placeholder="your@email.com"
+        class="email-input"
+        [disabled]="resendLoading"
+      />
+      <div class="button-group">
+        <button 
+          class="btn btn-primary" 
+          (click)="submitResendEmail()"
+          [disabled]="resendLoading || !resendEmail"
+        >
+          <span *ngIf="!resendLoading">Send Activation Email</span>
+          <span *ngIf="resendLoading">Sending...</span>
+        </button>
+        <button 
+          class="btn btn-outline" 
+          (click)="cancelResend()"
+          [disabled]="resendLoading"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div *ngIf="!showResendForm" class="button-group">
       <button class="btn btn-secondary" (click)="resendActivation()">
-        Resend Activation Email
+        📧 Resend Activation Email
       </button>
       <button class="btn btn-outline" (click)="goToSignup()">
-        Sign Up Again
+        ✍️ Sign Up Again
+      </button>
+      <button class="btn btn-text" (click)="goToLogin()">
+        ← Back to Login
       </button>
     </div>
   </div>

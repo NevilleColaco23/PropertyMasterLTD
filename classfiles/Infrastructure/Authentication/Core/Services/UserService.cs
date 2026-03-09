@@ -122,10 +122,15 @@ public class UserService : IUserService
                 .Replace("/", "_")
                 .Replace("=", "");
 
+            _logger.LogInformation("Generated activation token for user {UserId} with length {TokenLength}", userId, token.Length);
+
             // Hash the token for storage (security best practice)
             var tokenHash = Convert.ToBase64String(
                 System.Security.Cryptography.SHA256.HashData(
                     System.Text.Encoding.UTF8.GetBytes(token)));
+
+            _logger.LogDebug("Token hash for user {UserId}: {TokenHashPrefix}... (length: {HashLength})", 
+                userId, tokenHash.Substring(0, 10), tokenHash.Length);
 
             // Store token hash directly in MongoDB Users collection
             var usersCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Users");
@@ -222,6 +227,8 @@ public class UserService : IUserService
     {
         try
         {
+            _logger.LogInformation("Email confirmation attempt for user {UserId} with token length {TokenLength}", userId, token?.Length ?? 0);
+
             // Get user from MongoDB
             var usersCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Users");
             var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("_id", userId);
@@ -230,7 +237,7 @@ public class UserService : IUserService
             if (userDoc == null)
             {
                 _logger.LogWarning("Email confirmation failed: User {UserId} not found", userId);
-                return (false, "Invalid activation link.");
+                return (false, "User not found. Invalid activation link.");
             }
 
             // Check if already confirmed
@@ -244,15 +251,17 @@ public class UserService : IUserService
             if (!userDoc.Contains("EmailConfirmationTokenHash") || string.IsNullOrEmpty(userDoc["EmailConfirmationTokenHash"].AsString))
             {
                 _logger.LogWarning("Email confirmation failed: No token found for user {UserId}", userId);
-                return (false, "Invalid activation link.");
+                return (false, "No activation token found. Please request a new activation link.");
             }
 
             var storedTokenHash = userDoc["EmailConfirmationTokenHash"].AsString;
+            _logger.LogDebug("Stored token hash length: {HashLength}", storedTokenHash.Length);
 
             // Check token expiration
             if (userDoc.Contains("EmailConfirmationTokenExpiresAtUtc"))
             {
                 var expiresAt = userDoc["EmailConfirmationTokenExpiresAtUtc"].ToUniversalTime();
+                _logger.LogDebug("Token expires at {ExpiresAt}, current time {CurrentTime}", expiresAt, DateTime.UtcNow);
                 if (DateTime.UtcNow > expiresAt)
                 {
                     _logger.LogWarning("Email confirmation failed: Token expired for user {UserId}", userId);
@@ -265,10 +274,14 @@ public class UserService : IUserService
                 System.Security.Cryptography.SHA256.HashData(
                     System.Text.Encoding.UTF8.GetBytes(token)));
 
+            _logger.LogDebug("Provided token hash length: {HashLength}", providedTokenHash.Length);
+            _logger.LogDebug("Token hashes match: {Match}", storedTokenHash == providedTokenHash);
+
             if (storedTokenHash != providedTokenHash)
             {
-                _logger.LogWarning("Email confirmation failed: Invalid token for user {UserId}", userId);
-                return (false, "Invalid activation link.");
+                _logger.LogWarning("Email confirmation failed: Invalid token for user {UserId}. Stored hash: {StoredHash}, Provided hash: {ProvidedHash}", 
+                    userId, storedTokenHash.Substring(0, 10) + "...", providedTokenHash.Substring(0, 10) + "...");
+                return (false, "Invalid token. The activation link is incorrect.");
             }
 
             // Activate the account
@@ -286,6 +299,123 @@ public class UserService : IUserService
         {
             _logger.LogError(ex, "Error confirming email for user {UserId}", userId);
             return (false, "An error occurred while confirming your email. Please try again.");
+        }
+    }
+
+    public async Task<(bool success, string message)> ResendActivationEmail(string email)
+    {
+        try
+        {
+            _logger.LogInformation("Resend activation email requested for {Email}", email);
+
+            // Find user by email
+            var usersCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Users");
+            var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("Email", email);
+            var userDoc = await usersCollection.Find(filter).FirstOrDefaultAsync();
+
+            if (userDoc == null)
+            {
+                _logger.LogWarning("Resend activation failed: User with email {Email} not found", email);
+                return (false, "No account found with this email address. Please sign up first.");
+            }
+
+            var userId = userDoc["_id"].AsInt32;
+            var username = userDoc["UserName"].AsString;
+
+            // Check if already confirmed
+            if (userDoc.Contains("EmailConfirmed") && userDoc["EmailConfirmed"].AsBoolean)
+            {
+                _logger.LogInformation("Resend activation skipped: User {Email} already confirmed", email);
+                return (true, "Your email is already confirmed. You can log in now.");
+            }
+
+            // Generate new token
+            var token = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32))
+                .Replace("+", "-")
+                .Replace("/", "_")
+                .Replace("=", "");
+
+            var tokenHash = Convert.ToBase64String(
+                System.Security.Cryptography.SHA256.HashData(
+                    System.Text.Encoding.UTF8.GetBytes(token)));
+
+            // Update token in database
+            var update = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update
+                .Set("EmailConfirmationTokenHash", tokenHash)
+                .Set("EmailConfirmationTokenExpiresAtUtc", DateTime.UtcNow.AddHours(24))
+                .Set("EmailConfirmationTokenCreatedAtUtc", DateTime.UtcNow);
+
+            await usersCollection.UpdateOneAsync(filter, update);
+
+            // Queue activation email
+            var activationLink = $"https://property-master-silk.vercel.app/activate?userId={userId}&token={token}";
+            var htmlBody = $@"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=""utf-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>Activate Your Account</title>
+</head>
+<body style=""margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;"">
+    <table role=""presentation"" style=""width: 100%; border-collapse: collapse;"">
+        <tr>
+            <td align=""center"" style=""padding: 40px 0;"">
+                <table role=""presentation"" style=""width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);"">
+                    <tr>
+                        <td style=""padding: 40px 30px;"">
+                            <h1 style=""color: #333333; margin: 0 0 20px 0; font-size: 24px; border-bottom: 3px solid #4CAF50; padding-bottom: 15px;"">
+                                Activation Link Requested
+                            </h1>
+                            <p style=""color: #555555; font-size: 16px; line-height: 1.6; margin: 20px 0;"">
+                                Hi <strong>{username}</strong>,
+                            </p>
+                            <p style=""color: #555555; font-size: 14px; line-height: 1.6; margin: 20px 0;"">
+                                You requested a new activation link for your Property Master account. Click the button below to activate your account:
+                            </p>
+                            <table role=""presentation"" style=""margin: 30px auto;"">
+                                <tr>
+                                    <td align=""center"" style=""border-radius: 5px; background-color: #4CAF50;"">
+                                        <a href=""{activationLink}"" target=""_blank"" style=""display: inline-block; padding: 15px 30px; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;"">
+                                            Activate Account
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style=""color: #888888; font-size: 12px; line-height: 1.6; margin: 20px 0;"">
+                                Or copy and paste this link into your browser:
+                            </p>
+                            <p style=""color: #4CAF50; font-size: 12px; word-break: break-all; background-color: #f9f9f9; padding: 10px; border-radius: 4px;"">
+                                {activationLink}
+                            </p>
+                            <hr style=""border: none; border-top: 1px solid #eeeeee; margin: 30px 0;"">
+                            <p style=""color: #888888; font-size: 12px; line-height: 1.6; margin: 10px 0;"">
+                                <strong>Note:</strong> This activation link will expire in 24 hours.
+                            </p>
+                            <p style=""color: #888888; font-size: 12px; line-height: 1.6; margin: 10px 0;"">
+                                If you did not request this email, please ignore it.
+                            </p>
+                            <p style=""color: #555555; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;"">
+                                Best regards,<br>
+                                <strong>Property Master Team</strong>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>";
+
+            await _emailQueueService.QueueEmailAsync(email, "Activate Your Account", htmlBody, "activation");
+
+            _logger.LogInformation("Activation email resent successfully for user {Email}", email);
+            return (true, "Activation email sent! Please check your inbox.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resending activation email for {Email}", email);
+            return (false, "Failed to send activation email. Please try again later.");
         }
     }
 }

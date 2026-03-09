@@ -135,4 +135,19 @@ public class AccountController : ControllerBase
         else
             return BadRequest(new { message, success = false });
     }
+
+    [AllowAnonymous]
+    [HttpPost("ResendActivationEmail")]
+    public async Task<ActionResult> ResendActivationEmail([FromBody] ResendActivationEmailDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto?.Email))
+            return BadRequest(new { message = "Email is required.", success = false });
+
+        var (success, message) = await _userService.ResendActivationEmail(dto.Email);
+
+        if (success)
+            return Ok(new { message, success = true });
+        else
+            return BadRequest(new { message, success = false });
+    }
 }
