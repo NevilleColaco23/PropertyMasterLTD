@@ -43,24 +43,12 @@ namespace MyWarehouse.Application.Users.CreateUser
             newuserCreated.EmailConfirmationTokenHash = tokenHash;
             newuserCreated.EmailConfirmationTokenExpiresAtUtc = DateTime.UtcNow.AddHours(24);
 
-           
+
             await _unitOfWork.Users.Update(newuserCreated); 
             await _unitOfWork.SaveChanges();
 
-            var activationUrl =
-                $"https://your-frontend-domain.com/activate?userId={newuserCreated.Id}&token={Uri.EscapeDataString(rawToken)}";
-
-            var outbox = new Domain.System_Related.EmailOutbox.EmailOutbox(
-                //id: 1, // IMPORTANT: try to remove
-                to: newUser.Email,
-                subject: "Activate your account",
-                bodyHtml: $@"<p>Activate: <a href=""{activationUrl}"">link</a></p>",
-                type: "activation",
-                userId: newUser.Id
-            );
-
-            _unitOfWork.EmailOutbox.Add(outbox);
-            await _unitOfWork.SaveChanges();
+            // NOTE: Email sending is now handled by UserService.SignUp
+            // No need to create EmailOutbox here - the UserService creates it with proper HTML template
 
             return newuserCreated.Id;
         }
