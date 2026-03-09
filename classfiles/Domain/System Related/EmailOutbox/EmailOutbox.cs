@@ -5,10 +5,11 @@ namespace MyWarehouse.Domain.System_Related.EmailOutbox
 {
     public enum EmailOutboxStatus
     {
-        Pending = 0,
-        Processing = 1,
-        Sent = 2,
-        Failed = 3
+        Pending = 0,        // Waiting for processing (fallback polling)
+        Queued = 1,         // Published to RabbitMQ, awaiting consumption
+        Processing = 2,     // Currently being processed
+        Sent = 3,           // Successfully sent
+        Failed = 4          // Failed after max attempts
     }
 
     public class EmailOutbox : IEntity<int>
