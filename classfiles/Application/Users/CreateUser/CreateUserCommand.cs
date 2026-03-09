@@ -33,22 +33,8 @@ namespace MyWarehouse.Application.Users.CreateUser
             await _unitOfWork.SaveChanges();
             #endregion
 
-
-            var test = newuserCreated.Id; //TODO: 
-
-            // Generate token and store HASH on user
-            var rawToken = EmailConfirmationToken.GenerateRawToken();
-            var tokenHash = EmailConfirmationToken.HashToken(rawToken);
-
-            newuserCreated.EmailConfirmationTokenHash = tokenHash;
-            newuserCreated.EmailConfirmationTokenExpiresAtUtc = DateTime.UtcNow.AddHours(24);
-
-
-            await _unitOfWork.Users.Update(newuserCreated); 
-            await _unitOfWork.SaveChanges();
-
-            // NOTE: Email sending is now handled by UserService.SignUp
-            // No need to create EmailOutbox here - the UserService creates it with proper HTML template
+            // NOTE: Token generation and email sending are now BOTH handled by UserService.SignUp
+            // This ensures the token in the email matches the hash stored in the database
 
             return newuserCreated.Id;
         }
