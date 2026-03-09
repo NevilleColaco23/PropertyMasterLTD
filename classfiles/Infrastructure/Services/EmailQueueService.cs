@@ -90,17 +90,43 @@ namespace MyWarehouse.Infrastructure.Services
 
     public class EmailOutboxMessage
     {
+        [MongoDB.Bson.Serialization.Attributes.BsonId]
         public int Id { get; set; }
+
+        [MongoDB.Bson.Serialization.Attributes.BsonElement("type")]
         public string Type { get; set; } = "activation";
+
+        [MongoDB.Bson.Serialization.Attributes.BsonElement("to")]
         public string To { get; set; } = default!;
+
+        [MongoDB.Bson.Serialization.Attributes.BsonElement("subject")]
         public string Subject { get; set; } = default!;
+
+        [MongoDB.Bson.Serialization.Attributes.BsonElement("bodyHtml")]
         public string BodyHtml { get; set; } = default!;
+
+        [MongoDB.Bson.Serialization.Attributes.BsonElement("status")]
         public EmailOutboxStatus Status { get; set; } = EmailOutboxStatus.Pending;
+
+        [MongoDB.Bson.Serialization.Attributes.BsonElement("attempts")]
         public int Attempts { get; set; } = 0;
+
+        [MongoDB.Bson.Serialization.Attributes.BsonElement("nextRunAtUtc")]
         public DateTime NextRunAtUtc { get; set; } = DateTime.UtcNow;
+
+        [MongoDB.Bson.Serialization.Attributes.BsonElement("lockedUntilUtc")]
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
         public DateTime? LockedUntilUtc { get; set; }
+
+        [MongoDB.Bson.Serialization.Attributes.BsonElement("lastError")]
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
         public string? LastError { get; set; }
+
+        [MongoDB.Bson.Serialization.Attributes.BsonElement("createdAtUtc")]
         public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+
+        [MongoDB.Bson.Serialization.Attributes.BsonElement("sentAtUtc")]
+        [MongoDB.Bson.Serialization.Attributes.BsonIgnoreIfNull]
         public DateTime? SentAtUtc { get; set; }
     }
 }
