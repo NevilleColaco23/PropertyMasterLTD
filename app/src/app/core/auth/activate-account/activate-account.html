@@ -1,0 +1,43 @@
+<div class="activation-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="activation-card loading-state">
+    <div class="spinner"></div>
+    <h2>Activating Your Account</h2>
+    <p>Please wait while we verify your email...</p>
+  </div>
+
+  <!-- Success State -->
+  <div *ngIf="!loading && success" class="activation-card success-state">
+    <div class="icon-container success-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+      </svg>
+    </div>
+    <h2>Account Activated! ✅</h2>
+    <p class="message">{{ message }}</p>
+    <div class="button-group">
+      <button class="btn btn-primary" (click)="goToLogin()">
+        Go to Login
+      </button>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!loading && !success" class="activation-card error-state">
+    <div class="icon-container error-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+      </svg>
+    </div>
+    <h2>Activation Failed ❌</h2>
+    <p class="message">{{ message }}</p>
+    <div class="button-group">
+      <button class="btn btn-secondary" (click)="resendActivation()">
+        Resend Activation Email
+      </button>
+      <button class="btn btn-outline" (click)="goToSignup()">
+        Sign Up Again
+      </button>
+    </div>
+  </div>
+</div>
