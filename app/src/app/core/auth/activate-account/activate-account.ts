@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-activate-account',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './activate-account.html',
   styleUrls: ['./activate-account.css']
 })
@@ -38,7 +41,7 @@ export class ActivateAccountComponent implements OnInit {
   }
 
   private activateAccount(): void {
-    const apiUrl = `https://theretreatapp.up.railway.app/api/v1/account/ConfirmEmail?userId=${this.userId}&token=${encodeURIComponent(this.token!)}`;
+    const apiUrl = `${environment.apiUrl}/account/ConfirmEmail?userId=${this.userId}&token=${encodeURIComponent(this.token!)}`;
 
     this.http.post<any>(apiUrl, {}).subscribe({
       next: (response) => {
@@ -64,11 +67,11 @@ export class ActivateAccountComponent implements OnInit {
   }
 
   goToLogin(): void {
-    this.router.navigate(['/login']);
+    this.router.navigate(['/']);
   }
 
   goToSignup(): void {
-    this.router.navigate(['/signup']);
+    this.router.navigate(['/create-user']);
   }
 
   resendActivation(): void {
