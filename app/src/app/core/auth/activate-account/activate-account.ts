@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
@@ -7,7 +8,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-activate-account',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './activate-account.html',
   styleUrls: ['./activate-account.css']
 })
@@ -17,6 +18,9 @@ export class ActivateAccountComponent implements OnInit {
   message = '';
   userId: string | null = null;
   token: string | null = null;
+  showResendForm = false;
+  resendEmail = '';
+  resendLoading = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -75,7 +79,44 @@ export class ActivateAccountComponent implements OnInit {
   }
 
   resendActivation(): void {
-    // TODO: Implement resend activation email
-    alert('Resend activation feature coming soon!');
+    this.showResendForm = true;
+  }
+
+  cancelResend(): void {
+    this.showResendForm = false;
+    this.resendEmail = '';
+  }
+
+  submitResendEmail(): void {
+    if (!this.resendEmail || !this.validateEmail(this.resendEmail)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    this.resendLoading = true;
+    const apiUrl = `${environment.apiUrl}/account/ResendActivationEmail`;
+
+    this.http.post<any>(apiUrl, { email: this.resendEmail }).subscribe({
+      next: (response) => {
+        this.resendLoading = false;
+        this.showResendForm = false;
+        this.message = response.message || 'Activation email sent! Please check your inbox.';
+        this.resendEmail = '';
+      },
+      error: (error: HttpErrorResponse) => {
+        this.resendLoading = false;
+        
+        if (error.error && error.error.message) {
+          alert(error.error.message);
+        } else {
+          alert('Failed to send activation email. Please try again.');
+        }
+      }
+    });
+  }
+
+  private validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
 }
