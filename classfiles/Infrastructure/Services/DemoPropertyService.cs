@@ -152,7 +152,7 @@ public class DemoPropertyService : IDemoPropertyService
             var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("_id", userId);
             
             var user = await usersCollection.Find(filter).FirstOrDefaultAsync();
-            
+
             if (user == null)
             {
                 _logger.LogWarning("User {UserId} not found when granting property access", userId);
@@ -160,9 +160,16 @@ public class DemoPropertyService : IDemoPropertyService
             }
 
             // Check if user already has access to this property
-            var propertyAccessList = user.Contains("PropertyAccessList") 
-                ? user["PropertyAccessList"].AsBsonArray 
-                : new MongoDB.Bson.BsonArray();
+            // Handle both missing field and null value
+            MongoDB.Bson.BsonArray propertyAccessList;
+            if (user.Contains("PropertyAccessList") && user["PropertyAccessList"].IsBsonArray)
+            {
+                propertyAccessList = user["PropertyAccessList"].AsBsonArray;
+            }
+            else
+            {
+                propertyAccessList = new MongoDB.Bson.BsonArray();
+            }
 
             var alreadyHasAccess = propertyAccessList.Any(p => 
                 p.AsBsonDocument.Contains("PropertyID") && 
