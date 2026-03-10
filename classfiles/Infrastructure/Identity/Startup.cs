@@ -25,7 +25,26 @@ internal static class Startup
         //var c = _.GetSection("AppSettings")?["MongoDb"];
         var settings = MongoClientSettings.FromConnectionString(_.GetConnectionString(GetValueString("MongoDb",_)));
 
-        services.AddIdentity<ApplicationUserIdentity, ApplicationRoleIdentity>()
+        services.AddIdentity<ApplicationUserIdentity, ApplicationRoleIdentity>(options =>
+        {
+            // Require confirmed email before allowing sign-in
+            options.SignIn.RequireConfirmedEmail = true;
+
+            // User settings
+            options.User.RequireUniqueEmail = true;
+
+            // Password requirements (can be customized as needed)
+            options.Password.RequireDigit = true;
+            options.Password.RequiredLength = 8;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireLowercase = false;
+
+            // Lockout settings
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
+        })
         .AddMongoDbStores<ApplicationUserIdentity, ApplicationRoleIdentity, int>
         (
             _.GetConnectionString(GetValueString("MongoDb", _)), "ListingDB"
