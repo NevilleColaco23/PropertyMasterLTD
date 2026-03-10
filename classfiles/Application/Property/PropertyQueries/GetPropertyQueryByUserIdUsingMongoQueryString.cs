@@ -30,7 +30,7 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
                 {
                     { "input", "$PropertyAccessList" },
                     { "as", "pa" },
-                    { "in", "$$pa.PropertyID" }
+                    { "in", "$$pa.Id" }  // Fixed: Changed from PropertyID to Id
                 }))
             },
             { MongoStages.PIPELINE, new BsonArray
