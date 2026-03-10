@@ -23,6 +23,13 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
     {
         return new BsonArray
         {
+            // STEP 1: Filter by current user ID
+            new BsonDocument(MongoStages.MATCH, new BsonDocument
+            {
+                { "_id", propertyId }  // Match the current user
+            }),
+
+            // STEP 2: Lookup properties from Property collection
             new BsonDocument(MongoStages.LOOKUP, new BsonDocument
             {
             { MongoStages.FROM, "Property" },
@@ -35,6 +42,8 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
             },
             { MongoStages.PIPELINE, new BsonArray
                 {
+                    // Filter properties by IDs in user's PropertyAccessList
+                    new BsonDocument(MongoStages.MATCH, new BsonDocument("$expr", new BsonDocument("$in", new BsonArray { "$_id", "$$propertyIds" }))),
                     new BsonDocument(MongoStages.PROJECT, new BsonDocument
                     {
                         { "_id", 1 },
