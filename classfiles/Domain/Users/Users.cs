@@ -44,18 +44,27 @@ namespace MyWarehouse.Domain.Users
             UpdateEmail(email);
             UpdatePassword(password);
             UpdatePhone(phoneNumber);
+
+            // Initialize ASP.NET Identity required fields
+            SecurityStamp = Guid.NewGuid().ToString();
+            ConcurrencyStamp = Guid.NewGuid().ToString();
+            EmailConfirmed = false;
+            LockoutEnabled = true; // Enable lockout by default for security
+            AccessFailedCount = 0;
+            CreatedOn = DateTime.UtcNow;
         }
 
-        [MemberNotNull(nameof(UserName))]
+        [MemberNotNull(nameof(UserName), nameof(NormalizedUserName))]
         public void UpdateName(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("User Name cannot be empty.");
 
             UserName = value;
+            NormalizedUserName = value.ToUpperInvariant();
         }
 
-        [MemberNotNull(nameof(Email))]
+        [MemberNotNull(nameof(Email), nameof(NormalizedEmail))]
         public void UpdateEmail(string value) //TODO: to check if email exists and email format
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -65,6 +74,7 @@ namespace MyWarehouse.Domain.Users
                 throw new ArgumentException($"Length of value ({value.Length}) exceeds maximum name length ({ProductInvariants.NameMaxLength}).");
 
             Email = value;
+            NormalizedEmail = value.ToUpperInvariant();
         }
 
         [MemberNotNull(nameof(PasswordHash))]
