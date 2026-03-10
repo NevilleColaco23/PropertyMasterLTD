@@ -5,6 +5,9 @@
 // Database: ListingDB (or your database name)
 // ============================================
 // IMPORTANT: This script matches YOUR actual Property model schema
+// Based on: classfiles/Domain/Property/Property.cs
+// Based on: classfiles/Domain/Users/Users.cs (PropertyAccessList)
+// Collection name: "Property" (singular), not "Properties"!
 // ============================================
 
 use('ListingDB'); // Change to your database name if different
@@ -15,7 +18,6 @@ use('ListingDB'); // Change to your database name if different
 print('\n📝 Step 1: Creating Demo Property...');
 
 // Check if demo property already exists
-// NOTE: Collection name is "Property" (singular), not "Properties"!
 const existingProperty = db.Property.findOne({ _id: -1 });
 
 if (existingProperty) {
@@ -23,88 +25,6 @@ if (existingProperty) {
   print(`   Current demo property: ${existingProperty.Name}`);
 } else {
   db.Property.insertOne({
-    "_id": -1,
-    "Name": "The Grand Hotel - Demo",
-    "Active": true,
-    "PropertyCode": "DEMO0001",  // Note: Your existing property has "PropertCode" (typo), but keeping correct spelling
-    "CompanyLogoURL": "https://placehold.co/200x200/4CAF50/white?text=DEMO",
-    "Rooms": [
-      {
-        "Id": "room-101",  // Note: Using "Id" to match your schema (not "_id")
-        "RoomCode": "101",
-        "RoomName": "Deluxe King Room",
-        "Active": true,
-        "CompanyLogoURL": "https://placehold.co/400x300/2196F3/white?text=Room+101"
-      },
-      {
-        "Id": "room-102",
-        "RoomCode": "102",
-        "RoomName": "Deluxe Queen Room",
-        "Active": true,
-        "CompanyLogoURL": "https://placehold.co/400x300/2196F3/white?text=Room+102"
-      },
-      {
-        "Id": "room-201",
-        "RoomCode": "201",
-        "RoomName": "Executive Suite",
-        "Active": true,
-        "CompanyLogoURL": "https://placehold.co/400x300/9C27B0/white?text=Suite+201"
-      },
-      {
-        "Id": "room-202",
-        "RoomCode": "202",
-        "RoomName": "Presidential Suite",
-        "Active": true,
-        "CompanyLogoURL": "https://placehold.co/400x300/9C27B0/white?text=Suite+202"
-      },
-      {
-        "Id": "room-301",
-        "RoomCode": "301",
-        "RoomName": "Family Room",
-        "Active": true,
-        "CompanyLogoURL": "https://placehold.co/400x300/FF9800/white?text=Family+301"
-      },
-      {
-        "Id": "room-302",
-        "RoomCode": "302",
-        "RoomName": "Ocean View Room",
-        "Active": true,
-        "CompanyLogoURL": "https://placehold.co/400x300/00BCD4/white?text=Ocean+302"
-      }
-    ],
-    "AccessList": [],  // Empty access list - will be populated as users are granted access
-    "CreatedAt": new Date(),
-    "IsDemo": true
-  });
-  print('✅ Demo property created successfully!');
-}
-
-// ============================================
-// Demo Property Seeding Script
-// ============================================
-// Run this script in MongoDB Compass or mongo shell
-// Database: ListingDB (or your database name)
-// ============================================
-// IMPORTANT: This script matches YOUR actual Property model schema
-// Based on: classfiles/Domain/Property/Property.cs
-// Based on: classfiles/Domain/Users/Users.cs (PropertyAccessList)
-// ============================================
-
-use('ListingDB'); // Change to your database name if different
-
-// ============================================
-// 1. CREATE DEMO PROPERTY
-// ============================================
-print('\n📝 Step 1: Creating Demo Property...');
-
-// Check if demo property already exists
-const existingProperty = db.Properties.findOne({ _id: -1 });
-
-if (existingProperty) {
-  print('⚠️  Demo property already exists. Skipping creation.');
-  print(`   Current demo property: ${existingProperty.Name}`);
-} else {
-  db.Properties.insertOne({
     "_id": -1,
     "Name": "The Grand Hotel - Demo",
     "Active": true,
