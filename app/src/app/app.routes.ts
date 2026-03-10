@@ -4,7 +4,7 @@ import { LoginFormComponent } from '././core/auth/login-form/login-form';
 import { PropertySelectionComponent } from './property/property-selection/property-selection.component';
 import { ReportsComponent } from './menu/reports/reports.component';
 import { CreateUserComponent } from './core/auth/create-user/create-user';
-import { ActivateAccountComponent } from './core/auth/activate-account/activate-account';
+import { ActivateAccountComponent } from './core/auth/activate-account/activate-account.component';
 
 export const routes: Routes = [
   { path: '', component: LoginFormComponent, pathMatch : 'full' }, // boot page /
