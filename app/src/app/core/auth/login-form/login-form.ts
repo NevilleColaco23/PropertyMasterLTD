@@ -16,6 +16,7 @@ import { AuthService } from '../services/auth.service'; //Tip: this services is 
 import { LoaderService } from '../../../core/auth/services/loader-service.service'; //Tip: this services is injected using inject() function (popular in standalone) (NEW)
 import { LOG_LOGIN_SUCCESS } from '../../../common/Constants/Constants';
 import { LoggingService } from '../../system/service/logging.service';
+import { environment } from '../../../environments/environment';
 
 
 
@@ -49,7 +50,8 @@ export class LoginFormComponent  {
   constructor(private as: AuthService, private fb: FormBuilder,private router: Router,private loggingService: LoggingService) {
 
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],password: ['', Validators.required]
+      email: [environment.testData?.login.email || '', [Validators.required, Validators.email]],
+      password: [environment.testData?.login.password || '', Validators.required]
     });
   }
 

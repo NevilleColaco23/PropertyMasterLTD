@@ -7,7 +7,23 @@ const apiVersion = 'v1';
 
 export const environment = {
   production: false,
-  apiUrl: `https://localhost:${apiPort}/api/${apiVersion}`
+  apiUrl: `https://localhost:${apiPort}/api/${apiVersion}`,
+
+  // Development test data - DO NOT use in production
+  testData: {
+    signup: {
+      username: 'nevillecolaco',
+      email: 'nevillecolaco@gmail.com',
+      password: '12345678',
+      confirmPassword: '12345678',
+      phone: '+1 (555) 123-4567',
+      propertyCode: '123AAAA'
+    },
+    login: {
+      email: 'nevillecolaco@gmail.com',
+      password: '12345678'
+    }
+  }
 };
 
 /*

@@ -47,12 +47,12 @@ private errorHandling = inject(ErrorHandlingService);
 
   form = this.fb.group(
     {
-      username: ['nevillecolaco', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
-      email: ['nevillecolaco@gmail.com', [Validators.required, Validators.email]],
-      password: ['12345678', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['12345678', [Validators.required]],
-      phone: ['+1 (555) 123-4567', [Validators.required, Validators.pattern(/^\+?[0-9\s\-()]{7,20}$/)]],
-      propertyCode: ['123AAAA'],
+      username: [environment.testData?.signup.username || '', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
+      email: [environment.testData?.signup.email || '', [Validators.required, Validators.email]],
+      password: [environment.testData?.signup.password || '', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: [environment.testData?.signup.confirmPassword || '', [Validators.required]],
+      phone: [environment.testData?.signup.phone || '', [Validators.required, Validators.pattern(/^\+?[0-9\s\-()]{7,20}$/)]],
+      propertyCode: [environment.testData?.signup.propertyCode || ''],
     }, 
     { validators: passwordMatchValidator }
   );
