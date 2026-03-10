@@ -78,6 +78,9 @@ public class Startup
         // Register Email Queue Service for sending emails via Resend
         services.AddScoped<IEmailQueueService, EmailQueueService>();
 
+        // Register Demo Property Service for new user onboarding
+        services.AddScoped<IDemoPropertyService, DemoPropertyService>();
+
         services.AddMyInfrastructureDependencies(Configuration, Environment);
         services.AddMyApplicationDependencies();
         services.AddSignalR();

@@ -19,6 +19,7 @@ public class UserService : IUserService
     private readonly ILogger<UserService> _logger;
     private readonly IEmailQueueService _emailQueueService;
     private readonly IMongoDatabase _mongoDatabase;
+    private readonly IDemoPropertyService _demoPropertyService;
 
     public UserService(
         UserManager<ApplicationUserIdentity> userManager, 
@@ -27,7 +28,8 @@ public class UserService : IUserService
         IMediator mediator, 
         ILogger<UserService> logger, 
         IEmailQueueService emailQueueService,
-        IMongoDatabase mongoDatabase)
+        IMongoDatabase mongoDatabase,
+        IDemoPropertyService demoPropertyService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -36,6 +38,7 @@ public class UserService : IUserService
         _logger = logger;
         _emailQueueService = emailQueueService;
         _mongoDatabase = mongoDatabase;
+        _demoPropertyService = demoPropertyService;
     }
 
     public async Task<(MySignInResult result, SignInData? data)> SignIn(string username, string password)
@@ -206,6 +209,25 @@ public class UserService : IUserService
             await _emailQueueService.QueueEmailAsync(email, "Activate Your Account", htmlBody, "activation");
 
             _logger.LogInformation("Activation email queued for user {UserId} with token expiration in 24 hours", userId);
+
+            // Grant access to demo property
+            try
+            {
+                var demoAccessGranted = await _demoPropertyService.GrantUserAccessToDemoPropertyAsync(userId);
+                if (demoAccessGranted)
+                {
+                    _logger.LogInformation("Demo property access granted to user {UserId}", userId);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to grant demo property access to user {UserId}", userId);
+                }
+            }
+            catch (Exception demoEx)
+            {
+                _logger.LogError(demoEx, "Error granting demo property access to user {UserId}", userId);
+                // Don't fail signup if demo property access fails
+            }
         }
         catch (Exception ex)
         {
