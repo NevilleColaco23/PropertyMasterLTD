@@ -86,12 +86,18 @@ private errorHandling = inject(ErrorHandlingService);
       next: res => {
         console.log('SignUp success:', res.body);
 
-        // Example: after successful signup, go back to login
+        // Show success popup
+        alert('✅ Signup successful!\n\nPlease check your email inbox for the activation link to activate your account.');
+
+        // Navigate to login page after user closes the alert
         this.router.navigateByUrl('/', { replaceUrl: true });
       },
       error: err => {
         console.error('SignUp failed:', err);
-        // TODO: show a snackbar/toast with err.error, etc.
+
+        // Show error message
+        const errorMessage = err.error?.message || err.error || 'Signup failed. Please try again.';
+        alert('❌ Signup failed:\n\n' + errorMessage);
       },
     });
   }

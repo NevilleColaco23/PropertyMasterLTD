@@ -80,10 +80,15 @@ export class LoginFormComponent  {
       err => {
         this.loginForm.enable();
 
-        if (err.status == 401)
+        if (err.status == 401) {
+          // Check if it's an unactivated account error
+          if (err.error?.message && err.error.message.includes('activate')) {
+            alert('❌ Account Not Activated\n\n' + err.error.message);
+          }
           this.localLoginState = LocalLoginState.ErrorWrongData;
-        else
+        } else {
           this.localLoginState = LocalLoginState.ErrorOther;
+        }
       });
     }
   }

@@ -66,7 +66,7 @@ public class AccountController : ControllerBase
         {
             MySignInResult.Failed => Unauthorized("Username or password incorrect."),
             MySignInResult.LockedOut => Forbid("User is temporarily locked out."),
-            MySignInResult.NotAllowed => Forbid("User is not allowed to sign in."),
+            MySignInResult.NotAllowed => Unauthorized(new { message = "Please activate your account. Check your email for the activation link." }),
             MySignInResult.Success when data is not null => Ok(new LoginResponseDto()
             {
                 AccessToken = data.Token.AccessToken,
