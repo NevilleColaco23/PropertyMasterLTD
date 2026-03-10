@@ -4,6 +4,10 @@
 // Run this script in MongoDB Compass or mongo shell
 // Database: ListingDB (or your database name)
 // ============================================
+// This script matches your Property model schema:
+// - Rooms have: Id, RoomCode, RoomName, Active, CompanyLogoURL
+// - Property has: Id, Name, Active, Rooms, CompanyLogoURL, PropertyCode
+// ============================================
 
 use('ListingDB'); // Change to your database name if different
 
@@ -26,42 +30,42 @@ if (existingProperty) {
     "CompanyLogoURL": "https://placehold.co/200x200/4CAF50/white?text=DEMO",
     "Rooms": [
       {
-        "_id": "room-101",
+        "Id": "room-101",  // Matches your Room.Id property
         "RoomCode": "101",
         "RoomName": "Deluxe King Room",
         "Active": true,
         "CompanyLogoURL": "https://placehold.co/400x300/2196F3/white?text=Room+101"
       },
       {
-        "_id": "room-102",
+        "Id": "room-102",
         "RoomCode": "102",
         "RoomName": "Deluxe Queen Room",
         "Active": true,
         "CompanyLogoURL": "https://placehold.co/400x300/2196F3/white?text=Room+102"
       },
       {
-        "_id": "room-201",
+        "Id": "room-201",
         "RoomCode": "201",
         "RoomName": "Executive Suite",
         "Active": true,
         "CompanyLogoURL": "https://placehold.co/400x300/9C27B0/white?text=Suite+201"
       },
       {
-        "_id": "room-202",
+        "Id": "room-202",
         "RoomCode": "202",
         "RoomName": "Presidential Suite",
         "Active": true,
         "CompanyLogoURL": "https://placehold.co/400x300/9C27B0/white?text=Suite+202"
       },
       {
-        "_id": "room-301",
+        "Id": "room-301",
         "RoomCode": "301",
         "RoomName": "Family Room",
         "Active": true,
         "CompanyLogoURL": "https://placehold.co/400x300/FF9800/white?text=Family+301"
       },
       {
-        "_id": "room-302",
+        "Id": "room-302",
         "RoomCode": "302",
         "RoomName": "Ocean View Room",
         "Active": true,
