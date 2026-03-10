@@ -117,6 +117,8 @@ public class AccountController : ControllerBase
         return result.result switch
         {
             SignUpResult.Failed => Unauthorized("Username or password incorrect."),
+            SignUpResult.EmailAlreadyExists => BadRequest("Email already exists. Please use a different email or try logging in."),
+            SignUpResult.NotAllowed => BadRequest("Signup is not allowed. Please contact support."),
             SignUpResult.Success when result.data is not null => Ok(new SignUpResponseDto()
             {
                 UserId = result.data.UserId,
