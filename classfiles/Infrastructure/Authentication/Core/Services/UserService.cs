@@ -67,6 +67,13 @@ public class UserService : IUserService
 
             var token = _tokenService.CreateAuthenticationToken(user.Id.ToString(), username);
 
+            // Remove duplicate property IDs (in case user has duplicates in database)
+            var uniquePropertyIds = user.PropertyAccessList?
+                .Where(p => p.IsActive)  // Only return active access
+                .Select(p => p.PropertyID)
+                .Distinct()
+                .ToList();
+
             return (
                 MySignInResult.Success,
                 data: new SignInData()
@@ -74,7 +81,7 @@ public class UserService : IUserService
                     Username = user.UserName,
                     Email = user.Email,
                     Token = token,
-                    PropertyAccessList = user.PropertyAccessList?.Select(p => p.Id).ToList(),
+                    PropertyAccessList = uniquePropertyIds,
                 }
             );
         }
