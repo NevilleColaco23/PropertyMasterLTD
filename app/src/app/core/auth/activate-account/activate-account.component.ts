@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -25,7 +25,8 @@ export class ActivateAccountComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -49,14 +50,17 @@ export class ActivateAccountComponent implements OnInit {
 
     this.http.post<any>(apiUrl, {}).subscribe({
       next: (response) => {
+        console.log('✅ Activation successful:', response);
         this.loading = false;
         this.success = true;
         this.message = response.message || 'Your account has been activated successfully!';
+        this.cdr.detectChanges(); // Explicitly trigger change detection
       },
       error: (error: HttpErrorResponse) => {
+        console.error('❌ Activation error:', error);
         this.loading = false;
         this.success = false;
-        
+
         if (error.error && error.error.message) {
           this.message = error.error.message;
         } else if (error.status === 400) {
@@ -66,6 +70,7 @@ export class ActivateAccountComponent implements OnInit {
         } else {
           this.message = 'Activation failed. Please try again or contact support.';
         }
+        this.cdr.detectChanges(); // Explicitly trigger change detection
       }
     });
   }
