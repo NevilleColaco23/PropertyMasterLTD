@@ -25,7 +25,9 @@ namespace MyWarehouse.Application.Property.GetProperty
             CancellationToken cancellationToken)
         {
             string userIdString = _currentUserService.UserId ?? "0";
-            var propertyListTest = _unitOfWork.Properties?.GetListBy<GetPropertyDto>(MongoCollections.PropertyCollection
+
+            // Query Users collection (not Property) because the pipeline starts from Users
+            var propertyListTest = _unitOfWork.Properties?.GetListBy<GetPropertyDto>(MongoCollections.UsersCollection
                       , new GetPropertyQueryByUserIdUsingMongoQueryString(
                           int.TryParse(userIdString, out int parsedUserId) ? parsedUserId : 0, string.Empty));
 
