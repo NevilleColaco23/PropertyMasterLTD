@@ -10,7 +10,7 @@ namespace MyWarehouse.Infrastructure.Models
     }
     public class PropertyAccess
     {
-        public int PropertyID { get; set; }
+        public int Id { get; set; }  // Changed from PropertyID to Id to match MongoDB schema
         public bool IsActive { get; set; }
         public DateTime From { get; set; }
         public DateTime To { get; set; }

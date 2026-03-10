@@ -74,7 +74,7 @@ public class UserService : IUserService
                     Username = user.UserName,
                     Email = user.Email,
                     Token = token,
-                    PropertyAccessList = user.PropertyAccessList?.Select(p => p.PropertyID).ToList(),
+                    PropertyAccessList = user.PropertyAccessList?.Select(p => p.Id).ToList(),
                 }
             );
         }
