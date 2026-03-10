@@ -4,9 +4,7 @@
 // Run this script in MongoDB Compass or mongo shell
 // Database: ListingDB (or your database name)
 // ============================================
-// This script matches your Property model schema:
-// - Rooms have: Id, RoomCode, RoomName, Active, CompanyLogoURL
-// - Property has: Id, Name, Active, Rooms, CompanyLogoURL, PropertyCode
+// This script matches YOUR existing Property schema
 // ============================================
 
 use('ListingDB'); // Change to your database name if different
@@ -26,11 +24,11 @@ if (existingProperty) {
     "_id": -1,
     "Name": "The Grand Hotel - Demo",
     "Active": true,
-    "PropertyCode": "DEMO0001",
+    "PropertyCode": "DEMO0001",  // Note: Your existing property has typo "PropertCode" but this is correct
     "CompanyLogoURL": "https://placehold.co/200x200/4CAF50/white?text=DEMO",
     "Rooms": [
       {
-        "Id": "room-101",  // Matches your Room.Id property
+        "Id": "room-101",  // Matches your schema: string Id
         "RoomCode": "101",
         "RoomName": "Deluxe King Room",
         "Active": true,
@@ -290,7 +288,7 @@ if (bookingCount > 0) {
     { $match: { PropertyID: -1 } },
     { $group: { _id: "$Status", count: { $sum: 1 } } }
   ]).toArray();
-  
+
   bookingStatuses.forEach(status => {
     print(`   - ${status._id}: ${status.count}`);
   });
@@ -315,4 +313,33 @@ print('========================================\n');
 // 5. SHOW SAMPLE DATA
 // ============================================
 print('📊 Sample Demo Property Data:\n');
-print(JSON.stringify(db.Properties.findOne({ _id: -1 }), null, 2));
+const finalProperty = db.Properties.findOne({ _id: -1 });
+if (finalProperty) {
+  print(JSON.stringify(finalProperty, null, 2));
+} else {
+  print('❌ Demo property not found!');
+}
+
+// ============================================
+// 6. SAMPLE QUERY TO ADD DEMO ACCESS TO USER
+// ============================================
+print('\n📝 To add demo property access to a user, run:\n');
+print(`
+db.Users.updateOne(
+  { Email: "your-email@example.com" },
+  {
+    $push: {
+      PropertyAccessList: {
+        Id: -1,           // PropertyID (demo property)
+        IsActive: true,
+        From: new Date(),
+        To: new Date(Date.now() + 365*24*60*60*1000), // 1 year
+        CreatedDate: new Date(),
+        CreatedBy: 0      // System created
+      }
+    }
+  }
+)
+`);
+
+print('\n✨ Script execution complete! Check output above for verification.');

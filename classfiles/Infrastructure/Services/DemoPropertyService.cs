@@ -172,8 +172,8 @@ public class DemoPropertyService : IDemoPropertyService
             }
 
             var alreadyHasAccess = propertyAccessList.Any(p => 
-                p.AsBsonDocument.Contains("PropertyID") && 
-                p.AsBsonDocument["PropertyID"].AsInt32 == propertyId);
+                p.AsBsonDocument.Contains("Id") && 
+                p.AsBsonDocument["Id"].AsInt32 == propertyId);
 
             if (alreadyHasAccess)
             {
@@ -181,19 +181,15 @@ public class DemoPropertyService : IDemoPropertyService
                 return true;
             }
 
-            // Add property access
+            // Add property access matching PropertyAccessList model
             var propertyAccess = new MongoDB.Bson.BsonDocument
             {
-                { "PropertyID", propertyId },
+                { "Id", propertyId },  // Matches PropertyAccessList.Id field
                 { "IsActive", true },
                 { "From", DateTime.UtcNow },
-                { "To", propertyId == DEMO_PROPERTY_ID ? DateTime.UtcNow.AddYears(1) : DateTime.MaxValue }, // Demo: 1 year, Real: Permanent
+                { "To", propertyId == DEMO_PROPERTY_ID ? DateTime.UtcNow.AddYears(1) : DateTime.MaxValue },
                 { "CreatedDate", DateTime.UtcNow },
-                { "CreatedBy", userId },
-                { "IsDemo", propertyId == DEMO_PROPERTY_ID },
-                { "Permissions", propertyId == DEMO_PROPERTY_ID 
-                    ? new MongoDB.Bson.BsonArray { "ViewOnly", "CanExplore" }  // Limited for demo
-                    : new MongoDB.Bson.BsonArray { "FullAccess", "CanModify", "CanDelete" } } // Full for real property
+                { "CreatedBy", userId }
             };
 
             propertyAccessList.Add(propertyAccess);
@@ -202,9 +198,9 @@ public class DemoPropertyService : IDemoPropertyService
                 .Set("PropertyAccessList", propertyAccessList);
 
             await usersCollection.UpdateOneAsync(filter, update);
-            
+
             _logger.LogInformation("Granted user {UserId} access to property {PropertyId}", userId, propertyId);
-            
+
             return true;
         }
         catch (Exception ex)

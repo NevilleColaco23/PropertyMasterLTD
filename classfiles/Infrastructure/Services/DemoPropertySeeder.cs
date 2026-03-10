@@ -146,10 +146,10 @@ public class DemoPropertySeeder
         var bookingsCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Bookings");
         var menusCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Menus");
 
-        // Create property
+        // Create property matching actual Property model schema
         var rooms = template["Rooms"].AsBsonArray.Select(r => new MongoDB.Bson.BsonDocument
         {
-            { "_id", $"room-{r["RoomCode"].AsString}" },
+            { "Id", $"room-{r["RoomCode"].AsString}" },  // Matches Property.Room.Id (string)
             { "RoomCode", r["RoomCode"].AsString },
             { "RoomName", r["RoomName"].AsString },
             { "Active", true },
