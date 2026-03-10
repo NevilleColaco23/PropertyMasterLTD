@@ -26,8 +26,8 @@ namespace MyWarehouse.Application.Property.GetProperty
         {
             string userIdString = _currentUserService.UserId ?? "0";
 
-            // Query Users collection (not Property) because the pipeline starts from Users
-            var propertyListTest = _unitOfWork.Properties?.GetListBy<GetPropertyDto>(MongoCollections.UsersCollection
+            // Query Property collection (correct!) and pass user ID to filter
+            var propertyListTest = _unitOfWork.Properties?.GetListBy<GetPropertyDto>(MongoCollections.PropertyCollection
                       , new GetPropertyQueryByUserIdUsingMongoQueryString(
                           int.TryParse(userIdString, out int parsedUserId) ? parsedUserId : 0, string.Empty));
 
