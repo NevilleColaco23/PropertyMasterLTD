@@ -106,7 +106,12 @@ public class AccountController : ControllerBase
             PhoneNumber = signUpDto.Phone
         };
 
-        var result = await _userService.SignUp(signUpDto.Username, signUpDto.Email,signUpDto.Password,signUpDto.Phone); //check if internal identity function can be used
+        var result = await _userService.SignUp(
+            signUpDto.Username, 
+            signUpDto.Email,
+            signUpDto.Password,
+            signUpDto.Phone,
+            signUpDto.PropertyCode); // Pass property code to determine demo vs real property assignment
 
 
         return result.result switch

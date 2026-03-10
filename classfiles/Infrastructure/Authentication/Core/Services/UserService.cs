@@ -85,7 +85,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<(SignUpResult result, SignUpResultData? data)> SignUp(string username, string email, string password, string phoneNumber)
+    public async Task<(SignUpResult result, SignUpResultData? data)> SignUp(string username, string email, string password, string phoneNumber, string? propertyCode = null)
     {
         var emailFound = await _userManager.FindByEmailAsync(email);
 
@@ -210,23 +210,49 @@ public class UserService : IUserService
 
             _logger.LogInformation("Activation email queued for user {UserId} with token expiration in 24 hours", userId);
 
-            // Grant access to demo property
+            // ✅ NEW LOGIC: Check property code and assign property accordingly
             try
             {
-                var demoAccessGranted = await _demoPropertyService.GrantUserAccessToDemoPropertyAsync(userId);
-                if (demoAccessGranted)
+                var shouldAssignDemo = await _demoPropertyService.ShouldAssignDemoPropertyAsync(propertyCode);
+
+                if (shouldAssignDemo)
                 {
-                    _logger.LogInformation("Demo property access granted to user {UserId}", userId);
+                    // No property code or invalid code - assign demo property
+                    var demoAccessGranted = await _demoPropertyService.GrantUserAccessToDemoPropertyAsync(userId);
+                    if (demoAccessGranted)
+                    {
+                        _logger.LogInformation("Demo property access granted to user {UserId} (propertyCode: {PropertyCode})", 
+                            userId, string.IsNullOrWhiteSpace(propertyCode) ? "empty" : propertyCode);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Failed to grant demo property access to user {UserId}", userId);
+                    }
                 }
                 else
                 {
-                    _logger.LogWarning("Failed to grant demo property access to user {UserId}", userId);
+                    // Valid property code provided - assign real property
+                    var validPropertyId = await _demoPropertyService.ValidateAndGetPropertyIdAsync(propertyCode!);
+                    if (validPropertyId.HasValue)
+                    {
+                        var propertyAccessGranted = await _demoPropertyService.GrantUserAccessToPropertyAsync(userId, validPropertyId.Value);
+                        if (propertyAccessGranted)
+                        {
+                            _logger.LogInformation("Property access granted to user {UserId} for property {PropertyId} (code: {PropertyCode})", 
+                                userId, validPropertyId.Value, propertyCode);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Failed to grant property access to user {UserId} for property {PropertyId}", 
+                                userId, validPropertyId.Value);
+                        }
+                    }
                 }
             }
-            catch (Exception demoEx)
+            catch (Exception propertyEx)
             {
-                _logger.LogError(demoEx, "Error granting demo property access to user {UserId}", userId);
-                // Don't fail signup if demo property access fails
+                _logger.LogError(propertyEx, "Error granting property access to user {UserId}", userId);
+                // Don't fail signup if property access fails
             }
         }
         catch (Exception ex)

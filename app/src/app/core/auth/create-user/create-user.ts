@@ -80,14 +80,20 @@ private errorHandling = inject(ErrorHandlingService);
       email: this.f.email.value!,
       password: this.f.password.value!,
       phone: this.f.phone.value!,
+      propertyCode: this.f.propertyCode.value || ''  // ✅ Include property code (empty string if not provided)
     };
 
     this.authService.signUp(signUpPayload).subscribe({
       next: res => {
         console.log('SignUp success:', res.body);
 
-        // Show success popup
-        alert('✅ Signup successful!\n\nPlease check your email inbox for the activation link to activate your account.');
+        // Show success popup with property-specific message
+        const hasPropertyCode = this.f.propertyCode.value && this.f.propertyCode.value.trim() !== '';
+        const message = hasPropertyCode 
+          ? '✅ Signup successful!\n\nYou will be added to your property once your account is activated.\n\nPlease check your email inbox for the activation link.'
+          : '✅ Signup successful!\n\nYou will have access to our demo hotel to explore all features.\n\nPlease check your email inbox for the activation link to activate your account.';
+
+        alert(message);
 
         // Navigate to login page after user closes the alert
         this.router.navigateByUrl('/', { replaceUrl: true });
