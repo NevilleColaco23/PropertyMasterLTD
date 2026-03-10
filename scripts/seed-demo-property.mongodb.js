@@ -4,7 +4,7 @@
 // Run this script in MongoDB Compass or mongo shell
 // Database: ListingDB (or your database name)
 // ============================================
-// This script matches YOUR existing Property schema
+// IMPORTANT: This script matches YOUR actual Property model schema
 // ============================================
 
 use('ListingDB'); // Change to your database name if different
@@ -24,11 +24,11 @@ if (existingProperty) {
     "_id": -1,
     "Name": "The Grand Hotel - Demo",
     "Active": true,
-    "PropertyCode": "DEMO0001",  // Note: Your existing property has typo "PropertCode" but this is correct
+    "PropertyCode": "DEMO0001",  // Note: Your existing property has "PropertCode" (typo), but keeping correct spelling
     "CompanyLogoURL": "https://placehold.co/200x200/4CAF50/white?text=DEMO",
     "Rooms": [
       {
-        "Id": "room-101",  // Matches your schema: string Id
+        "Id": "room-101",  // Note: Using "Id" to match your schema (not "_id")
         "RoomCode": "101",
         "RoomName": "Deluxe King Room",
         "Active": true,
@@ -70,6 +70,7 @@ if (existingProperty) {
         "CompanyLogoURL": "https://placehold.co/400x300/00BCD4/white?text=Ocean+302"
       }
     ],
+    "AccessList": [],  // Empty access list - will be populated as users are granted access
     "CreatedAt": new Date(),
     "IsDemo": true
   });
@@ -77,193 +78,88 @@ if (existingProperty) {
 }
 
 // ============================================
-// 2. CREATE DEMO BOOKINGS
+// Demo Property Seeding Script
 // ============================================
-print('\n📝 Step 2: Creating Demo Bookings...');
+// Run this script in MongoDB Compass or mongo shell
+// Database: ListingDB (or your database name)
+// ============================================
+// IMPORTANT: This script matches YOUR actual Property model schema
+// Based on: classfiles/Domain/Property/Property.cs
+// Based on: classfiles/Domain/Users/Users.cs (PropertyAccessList)
+// ============================================
 
-// Check if demo bookings already exist
-const existingBookings = db.Bookings.countDocuments({ PropertyID: -1 });
+use('ListingDB'); // Change to your database name if different
 
-if (existingBookings > 0) {
-  print(`⚠️  ${existingBookings} demo bookings already exist. Skipping creation.`);
+// ============================================
+// 1. CREATE DEMO PROPERTY
+// ============================================
+print('\n📝 Step 1: Creating Demo Property...');
+
+// Check if demo property already exists
+const existingProperty = db.Properties.findOne({ _id: -1 });
+
+if (existingProperty) {
+  print('⚠️  Demo property already exists. Skipping creation.');
+  print(`   Current demo property: ${existingProperty.Name}`);
 } else {
-  db.Bookings.insertMany([
-    {
-      "_id": -1,
-      "PropertyID": -1,
-      "RoomCode": "101",
-      "GuestName": "John Smith",
-      "GuestEmail": "john.smith@example.com",
-      "CheckIn": new Date(Date.now() - 10*24*60*60*1000), // 10 days ago
-      "CheckOut": new Date(Date.now() - 7*24*60*60*1000),  // 7 days ago
-      "Status": "Completed",
-      "TotalAmount": 450.00,
-      "CreatedAt": new Date(Date.now() - 15*24*60*60*1000),
-      "IsDemo": true
-    },
-    {
-      "_id": -2,
-      "PropertyID": -1,
-      "RoomCode": "201",
-      "GuestName": "Sarah Johnson",
-      "GuestEmail": "sarah.j@example.com",
-      "CheckIn": new Date(Date.now() - 2*24*60*60*1000),  // 2 days ago
-      "CheckOut": new Date(Date.now() + 2*24*60*60*1000),  // 2 days from now
-      "Status": "Active",
-      "TotalAmount": 800.00,
-      "CreatedAt": new Date(Date.now() - 5*24*60*60*1000),
-      "IsDemo": true
-    },
-    {
-      "_id": -3,
-      "PropertyID": -1,
-      "RoomCode": "302",
-      "GuestName": "Michael Brown",
-      "GuestEmail": "m.brown@example.com",
-      "CheckIn": new Date(Date.now() + 5*24*60*60*1000),  // 5 days from now
-      "CheckOut": new Date(Date.now() + 12*24*60*60*1000), // 12 days from now
-      "Status": "Confirmed",
-      "TotalAmount": 1200.00,
-      "CreatedAt": new Date(Date.now() - 3*24*60*60*1000),
-      "IsDemo": true
-    },
-    {
-      "_id": -4,
-      "PropertyID": -1,
-      "RoomCode": "102",
-      "GuestName": "Emma Davis",
-      "GuestEmail": "emma.davis@example.com",
-      "CheckIn": new Date(Date.now() + 10*24*60*60*1000), // 10 days from now
-      "CheckOut": new Date(Date.now() + 14*24*60*60*1000), // 14 days from now
-      "Status": "Pending",
-      "TotalAmount": 600.00,
-      "CreatedAt": new Date(),
-      "IsDemo": true
-    }
-  ]);
-  print('✅ 4 demo bookings created successfully!');
+  db.Properties.insertOne({
+    "_id": -1,
+    "Name": "The Grand Hotel - Demo",
+    "Active": true,
+    "PropertyCode": "DEMO0001",
+    "CompanyLogoURL": "https://placehold.co/200x200/4CAF50/white?text=DEMO",
+    "Rooms": [
+      {
+        "Id": "room-demo-101",  // Room.Id field (string)
+        "RoomCode": "101",       // Room.RoomCode
+        "RoomName": "Deluxe King Room",  // Room.RoomName
+        "Active": true,          // Room.Active
+        "CompanyLogoURL": "https://placehold.co/400x300/2196F3/white?text=Room+101"
+      },
+      {
+        "Id": "room-demo-102",
+        "RoomCode": "102",
+        "RoomName": "Deluxe Queen Room",
+        "Active": true,
+        "CompanyLogoURL": "https://placehold.co/400x300/2196F3/white?text=Room+102"
+      },
+      {
+        "Id": "room-demo-201",
+        "RoomCode": "201",
+        "RoomName": "Executive Suite",
+        "Active": true,
+        "CompanyLogoURL": "https://placehold.co/400x300/9C27B0/white?text=Suite+201"
+      },
+      {
+        "Id": "room-demo-202",
+        "RoomCode": "202",
+        "RoomName": "Presidential Suite",
+        "Active": true,
+        "CompanyLogoURL": "https://placehold.co/400x300/9C27B0/white?text=Suite+202"
+      },
+      {
+        "Id": "room-demo-301",
+        "RoomCode": "301",
+        "RoomName": "Family Room",
+        "Active": true,
+        "CompanyLogoURL": "https://placehold.co/400x300/FF9800/white?text=Family+301"
+      },
+      {
+        "Id": "room-demo-302",
+        "RoomCode": "302",
+        "RoomName": "Ocean View Room",
+        "Active": true,
+        "CompanyLogoURL": "https://placehold.co/400x300/00BCD4/white?text=Ocean+302"
+      }
+    ],
+    "AccessList": [],  // Empty - will be populated as users are granted access
+    "IsDemo": true
+  });
+  print('✅ Demo property created successfully with 6 rooms!');
 }
 
 // ============================================
-// 3. CREATE DEMO MENUS
-// ============================================
-print('\n📝 Step 3: Creating Demo Menus...');
-
-// Check if demo menus already exist
-const existingMenus = db.Menus.countDocuments({ PropertyID: -1 });
-
-if (existingMenus > 0) {
-  print(`⚠️  ${existingMenus} demo menus already exist. Skipping creation.`);
-} else {
-  db.Menus.insertMany([
-    {
-      "_id": -1,
-      "PropertyID": -1,
-      "MenuName": "Breakfast Menu",
-      "MenuType": "Breakfast",
-      "Active": true,
-      "AvailableFrom": "06:00",
-      "AvailableTo": "11:00",
-      "Items": [
-        {
-          "ItemName": "Continental Breakfast",
-          "Description": "Croissant, jam, butter, coffee/tea",
-          "Price": 12.99,
-          "Category": "Breakfast",
-          "Available": true
-        },
-        {
-          "ItemName": "Full English Breakfast",
-          "Description": "Eggs, bacon, sausage, beans, toast",
-          "Price": 18.99,
-          "Category": "Breakfast",
-          "Available": true
-        },
-        {
-          "ItemName": "Pancake Stack",
-          "Description": "Stack of 3 with maple syrup",
-          "Price": 14.99,
-          "Category": "Breakfast",
-          "Available": true
-        }
-      ],
-      "CreatedAt": new Date(),
-      "IsDemo": true
-    },
-    {
-      "_id": -2,
-      "PropertyID": -1,
-      "MenuName": "Lunch Menu",
-      "MenuType": "Lunch",
-      "Active": true,
-      "AvailableFrom": "12:00",
-      "AvailableTo": "15:00",
-      "Items": [
-        {
-          "ItemName": "Caesar Salad",
-          "Description": "Romaine lettuce, parmesan, croutons",
-          "Price": 16.99,
-          "Category": "Salads",
-          "Available": true
-        },
-        {
-          "ItemName": "Grilled Chicken Sandwich",
-          "Description": "With fries and coleslaw",
-          "Price": 19.99,
-          "Category": "Sandwiches",
-          "Available": true
-        },
-        {
-          "ItemName": "Fish & Chips",
-          "Description": "Battered cod with chunky chips",
-          "Price": 22.99,
-          "Category": "Mains",
-          "Available": true
-        }
-      ],
-      "CreatedAt": new Date(),
-      "IsDemo": true
-    },
-    {
-      "_id": -3,
-      "PropertyID": -1,
-      "MenuName": "Dinner Menu",
-      "MenuType": "Dinner",
-      "Active": true,
-      "AvailableFrom": "18:00",
-      "AvailableTo": "22:00",
-      "Items": [
-        {
-          "ItemName": "Ribeye Steak",
-          "Description": "12oz ribeye with vegetables",
-          "Price": 34.99,
-          "Category": "Steaks",
-          "Available": true
-        },
-        {
-          "ItemName": "Grilled Salmon",
-          "Description": "Atlantic salmon with lemon butter",
-          "Price": 28.99,
-          "Category": "Seafood",
-          "Available": true
-        },
-        {
-          "ItemName": "Vegetarian Pasta",
-          "Description": "Penne with roasted vegetables",
-          "Price": 22.99,
-          "Category": "Pasta",
-          "Available": true
-        }
-      ],
-      "CreatedAt": new Date(),
-      "IsDemo": true
-    }
-  ]);
-  print('✅ 3 demo menus created successfully!');
-}
-
-// ============================================
-// 4. VERIFICATION
+// 2. VERIFICATION
 // ============================================
 print('\n\n========================================');
 print('✨ VERIFICATION SUMMARY');
@@ -275,71 +171,64 @@ if (demoProperty) {
   print(`✅ Demo Property: "${demoProperty.Name}" (ID: ${demoProperty._id})`);
   print(`   - Rooms: ${demoProperty.Rooms.length}`);
   print(`   - Property Code: ${demoProperty.PropertyCode}`);
+  print(`   - Active: ${demoProperty.Active}`);
+  print(`   - Logo URL: ${demoProperty.CompanyLogoURL}`);
+
+  print('\n   📌 Rooms:');
+  demoProperty.Rooms.forEach((room, index) => {
+    print(`      ${index + 1}. ${room.RoomCode} - ${room.RoomName} (${room.Active ? 'Active' : 'Inactive'})`);
+  });
 } else {
   print('❌ Demo Property: NOT FOUND');
 }
 
-// Check demo bookings
-const bookingCount = db.Bookings.countDocuments({ PropertyID: -1 });
-print(`${bookingCount > 0 ? '✅' : '❌'} Demo Bookings: ${bookingCount}`);
-
-if (bookingCount > 0) {
-  const bookingStatuses = db.Bookings.aggregate([
-    { $match: { PropertyID: -1 } },
-    { $group: { _id: "$Status", count: { $sum: 1 } } }
-  ]).toArray();
-
-  bookingStatuses.forEach(status => {
-    print(`   - ${status._id}: ${status.count}`);
-  });
-}
-
-// Check demo menus
-const menuCount = db.Menus.countDocuments({ PropertyID: -1 });
-print(`${menuCount > 0 ? '✅' : '❌'} Demo Menus: ${menuCount}`);
-
-if (menuCount > 0) {
-  const menus = db.Menus.find({ PropertyID: -1 }, { MenuName: 1, MenuType: 1 }).toArray();
-  menus.forEach(menu => {
-    print(`   - ${menu.MenuName} (${menu.MenuType})`);
-  });
-}
-
 print('\n========================================');
 print('🎉 Demo Property Setup Complete!');
-print('========================================\n');
+print('========================================');
 
 // ============================================
-// 5. SHOW SAMPLE DATA
+// 3. SHOW COMPLETE STRUCTURE (for debugging)
 // ============================================
-print('📊 Sample Demo Property Data:\n');
-const finalProperty = db.Properties.findOne({ _id: -1 });
-if (finalProperty) {
-  print(JSON.stringify(finalProperty, null, 2));
+print('\n📊 Complete Demo Property Document:\n');
+const demoProp = db.Properties.findOne({ _id: -1 });
+if (demoProp) {
+  print(JSON.stringify(demoProp, null, 2));
 } else {
   print('❌ Demo property not found!');
 }
 
 // ============================================
-// 6. SAMPLE QUERY TO ADD DEMO ACCESS TO USER
+// 4. COMPARISON WITH YOUR EXISTING PROPERTY
 // ============================================
-print('\n📝 To add demo property access to a user, run:\n');
-print(`
-db.Users.updateOne(
-  { Email: "your-email@example.com" },
-  {
-    $push: {
-      PropertyAccessList: {
-        Id: -1,           // PropertyID (demo property)
-        IsActive: true,
-        From: new Date(),
-        To: new Date(Date.now() + 365*24*60*60*1000), // 1 year
-        CreatedDate: new Date(),
-        CreatedBy: 0      // System created
-      }
-    }
-  }
-)
-`);
+print('\n\n========================================');
+print('📋 SCHEMA COMPARISON');
+print('========================================');
 
-print('\n✨ Script execution complete! Check output above for verification.');
+const yourProperty = db.Properties.findOne({ _id: 100 });
+if (yourProperty) {
+  print('\n✅ Your Existing Property Structure:');
+  print(JSON.stringify(yourProperty, null, 2));
+
+  print('\n📝 Schema Fields:');
+  print(`   - _id: ${typeof yourProperty._id} (${yourProperty._id})`);
+  print(`   - Name: ${typeof yourProperty.Name} ("${yourProperty.Name}")`);
+  print(`   - Active: ${typeof yourProperty.Active} (${yourProperty.Active})`);
+  print(`   - PropertyCode: ${typeof yourProperty.PropertyCode} (${yourProperty.PropertyCode || 'undefined'})`);
+  print(`   - PropertCode (typo?): ${typeof yourProperty.PropertCode} (${yourProperty.PropertCode || 'undefined'})`);
+  print(`   - Rooms: Array with ${yourProperty.Rooms.length} items`);
+  print(`   - AccessList: ${yourProperty.AccessList ? `Array with ${yourProperty.AccessList.length} items` : 'undefined'}`);
+
+  if (yourProperty.Rooms && yourProperty.Rooms.length > 0) {
+    print('\n   📌 Room Structure:');
+    const room = yourProperty.Rooms[0];
+    Object.keys(room).forEach(key => {
+      print(`      - ${key}: ${typeof room[key]}`);
+    });
+  }
+} else {
+  print('⚠️  No property found with ID: 100');
+}
+
+print('\n========================================');
+print('✅ Script Execution Complete!');
+print('========================================\n');

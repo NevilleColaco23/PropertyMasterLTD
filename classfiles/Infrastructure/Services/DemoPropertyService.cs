@@ -181,15 +181,16 @@ public class DemoPropertyService : IDemoPropertyService
                 return true;
             }
 
-            // Add property access matching PropertyAccessList model
+            // Add property access
             var propertyAccess = new MongoDB.Bson.BsonDocument
             {
-                { "Id", propertyId },  // Matches PropertyAccessList.Id field
+                { "Id", propertyId },  // Using "Id" to match PropertyAccessList domain model
                 { "IsActive", true },
                 { "From", DateTime.UtcNow },
-                { "To", propertyId == DEMO_PROPERTY_ID ? DateTime.UtcNow.AddYears(1) : DateTime.MaxValue },
+                { "To", propertyId == DEMO_PROPERTY_ID ? DateTime.UtcNow.AddYears(1) : DateTime.MaxValue }, // Demo: 1 year, Real: Permanent
                 { "CreatedDate", DateTime.UtcNow },
-                { "CreatedBy", userId }
+                { "CreatedBy", userId },
+                { "IsDemo", propertyId == DEMO_PROPERTY_ID }
             };
 
             propertyAccessList.Add(propertyAccess);
@@ -198,9 +199,9 @@ public class DemoPropertyService : IDemoPropertyService
                 .Set("PropertyAccessList", propertyAccessList);
 
             await usersCollection.UpdateOneAsync(filter, update);
-
+            
             _logger.LogInformation("Granted user {UserId} access to property {PropertyId}", userId, propertyId);
-
+            
             return true;
         }
         catch (Exception ex)

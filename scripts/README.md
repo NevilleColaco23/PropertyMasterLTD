@@ -1,290 +1,393 @@
 # Demo Property MongoDB Seeding Scripts
 
-## Quick Setup
+## 🎯 Overview
 
-### Option 1: MongoDB Compass (GUI)
+This folder contains MongoDB scripts to seed demo property data for new users.
+
+**Two scripts:**
+1. ✅ `seed-demo-property.mongodb.js` - Creates the demo property
+2. ✅ `add-demo-access-to-user.mongodb.js` - Grants demo access to existing users
+
+---
+
+## 🚀 Quick Setup
+
+### Step 1: Create Demo Property
+
+**Using MongoDB Compass:**
 
 1. **Open MongoDB Compass**
 2. **Connect** to your MongoDB instance
-3. **Select** your database (e.g., `ListingDB`)
-4. **Open Mongosh tab** (bottom of the screen)
-5. **Copy & paste** the contents of `seed-demo-property.mongodb.js`
-6. **Press Enter** to execute
+3. **Select** database: `ListingDB`
+4. **Click** "Mongosh" tab (bottom of screen)
+5. **Copy** entire contents of `seed-demo-property.mongodb.js`
+6. **Paste** into Mongosh
+7. **Press Enter**
 
----
-
-### Option 2: Mongo Shell (CLI)
-
-```sh
-# Navigate to scripts directory
-cd scripts
-
-# Run the script
-mongosh "your-connection-string" < seed-demo-property.mongodb.js
-
-# Or connect first, then load
-mongosh "your-connection-string"
-> use ListingDB
-> load('seed-demo-property.mongodb.js')
+**Expected Output:**
 ```
+📝 Step 1: Creating Demo Property...
+✅ Demo property created successfully with 6 rooms!
 
----
-
-### Option 3: VS Code MongoDB Extension
-
-1. **Install**: [MongoDB for VS Code](https://marketplace.visualstudio.com/items?itemName=mongodb.mongodb-vscode)
-2. **Connect** to your MongoDB
-3. **Open** `scripts/seed-demo-property.mongodb.js`
-4. **Right-click** → "Run File"
-
----
-
-## What Gets Created
-
-### 1. Demo Property (ID: -1)
-```javascript
-{
-  "_id": -1,
-  "Name": "The Grand Hotel - Demo",
-  "PropertyCode": "DEMO0001",
-  "Rooms": [/* 6 rooms */],
-  "IsDemo": true
-}
-```
-
-**Rooms:**
-- 101 - Deluxe King Room
-- 102 - Deluxe Queen Room
-- 201 - Executive Suite
-- 202 - Presidential Suite
-- 301 - Family Room
-- 302 - Ocean View Room
-
----
-
-### 2. Demo Bookings (4 bookings)
-```javascript
-[
-  { "_id": -1, "GuestName": "John Smith", "Status": "Completed", ... },
-  { "_id": -2, "GuestName": "Sarah Johnson", "Status": "Active", ... },
-  { "_id": -3, "GuestName": "Michael Brown", "Status": "Confirmed", ... },
-  { "_id": -4, "GuestName": "Emma Davis", "Status": "Pending", ... }
-]
-```
-
-**Timeline:**
-- **Past**: John Smith (Completed - checked out)
-- **Current**: Sarah Johnson (Active - currently staying)
-- **Future**: Michael Brown (Confirmed - upcoming)
-- **Future**: Emma Davis (Pending - awaiting confirmation)
-
----
-
-### 3. Demo Menus (3 menus)
-```javascript
-[
-  { "_id": -1, "MenuName": "Breakfast Menu", "Items": [/* 3 items */] },
-  { "_id": -2, "MenuName": "Lunch Menu", "Items": [/* 3 items */] },
-  { "_id": -3, "MenuName": "Dinner Menu", "Items": [/* 3 items */] }
-]
-```
-
-**Menu Items (9 total):**
-- **Breakfast**: Continental, Full English, Pancakes
-- **Lunch**: Caesar Salad, Chicken Sandwich, Fish & Chips
-- **Dinner**: Ribeye Steak, Grilled Salmon, Vegetarian Pasta
-
----
-
-## Verification
-
-After running the script, you should see:
-
-```
 ========================================
 ✨ VERIFICATION SUMMARY
 ========================================
 ✅ Demo Property: "The Grand Hotel - Demo" (ID: -1)
    - Rooms: 6
    - Property Code: DEMO0001
-✅ Demo Bookings: 4
-   - Completed: 1
-   - Active: 1
-   - Confirmed: 1
-   - Pending: 1
-✅ Demo Menus: 3
-   - Breakfast Menu (Breakfast)
-   - Lunch Menu (Lunch)
-   - Dinner Menu (Dinner)
-
-========================================
-🎉 Demo Property Setup Complete!
-========================================
+   - Active: true
 ```
 
 ---
 
-## Troubleshooting
+### Step 2: Add Demo Access to Your User
 
-### Issue: "Script fails to run"
+**Edit the script first:**
+
+1. Open `add-demo-access-to-user.mongodb.js`
+2. **Line 13:** Change the email to yours:
+```javascript
+const userEmail = "your-email@example.com"; // 👈 CHANGE THIS
+```
+
+**Run the script:**
+
+1. **Copy** entire contents of `add-demo-access-to-user.mongodb.js`
+2. **Paste** into Mongosh
+3. **Press Enter**
+
+**Expected Output:**
+```
+✅ Demo property found: "The Grand Hotel - Demo"
+✅ User found: YourUsername (ID: 18)
+📝 Adding demo property access...
+✅ Demo property access added successfully!
+
+========================================
+✨ VERIFICATION
+========================================
+User: YourUsername (your-email@example.com)
+Properties Access: 1
+
+📌 Property Access List:
+   1. Property: The Grand Hotel - Demo (ID: -1) 🎪 DEMO
+      - Active: true
+      - From: 2024-03-15...
+      - To: 2025-03-15...
+```
+
+---
+
+## 📋 What Gets Created
+
+### Demo Property Structure
+
+Based on `classfiles/Domain/Property/Property.cs`:
+
+```javascript
+{
+  "_id": -1,                    // Property.Id (int)
+  "Name": "The Grand Hotel - Demo",  // Property.Name (string)
+  "Active": true,               // Property.Active (bool)
+  "PropertyCode": "DEMO0001",   // Property.PropertyCode (string)
+  "CompanyLogoURL": "https://placehold.co/200x200/4CAF50/white?text=DEMO",
+  "Rooms": [                    // Property.Rooms (List<Room>)
+    {
+      "Id": "room-demo-101",    // Room.Id (string) - BsonId
+      "RoomCode": "101",        // Room.RoomCode (string)
+      "RoomName": "Deluxe King Room",  // Room.RoomName (string)
+      "Active": true,           // Room.Active (bool)
+      "CompanyLogoURL": "..."   // Room.CompanyLogoURL (string)
+    }
+    // ... 5 more rooms
+  ],
+  "AccessList": [],             // Empty initially
+  "IsDemo": true                // Custom flag (not in domain model)
+}
+```
+
+### 6 Demo Rooms
+
+| Room Code | Room Name | Type |
+|-----------|-----------|------|
+| 101 | Deluxe King Room | Standard |
+| 102 | Deluxe Queen Room | Standard |
+| 201 | Executive Suite | Suite |
+| 202 | Presidential Suite | Suite |
+| 301 | Family Room | Family |
+| 302 | Ocean View Room | Premium |
+
+---
+
+## 🔍 Schema Comparison
+
+Your existing property structure vs demo property:
+
+### Your Existing Property (ID: 100)
+```javascript
+{
+  "_id": 100,
+  "Name": "The Grand Meredian",
+  "Active": true,
+  "PropertCode": "123AAAA",  // ⚠️ Typo: "PropertCode" instead of "PropertyCode"
+  "CompanyLogoURL": "https://i.postimg.cc/W174BkHS/hotel.jpg",
+  "Rooms": [
+    {
+      "RoomName": "R1",
+      "RoomCode": "xxxco10",
+      "Id": 1,
+      "Active": true
+    }
+  ],
+  "AccessList": [1, 100]
+}
+```
+
+### Demo Property (ID: -1)
+```javascript
+{
+  "_id": -1,
+  "Name": "The Grand Hotel - Demo",
+  "Active": true,
+  "PropertyCode": "DEMO0001",  // ✅ Correct spelling
+  "CompanyLogoURL": "https://placehold.co/200x200/4CAF50/white?text=DEMO",
+  "Rooms": [
+    {
+      "Id": "room-demo-101",
+      "RoomCode": "101",
+      "RoomName": "Deluxe King Room",
+      "Active": true,
+      "CompanyLogoURL": "..."
+    }
+    // ... 5 more rooms
+  ],
+  "AccessList": [],
+  "IsDemo": true
+}
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### Issue: "Demo property not created"
 
 **Check:**
-1. Are you connected to the correct database?
-2. Do you have write permissions?
-3. Is the database name correct in the script?
-
-**Fix:**
 ```javascript
-// Line 7 in seed-demo-property.mongodb.js
-use('ListingDB'); // ← Change to your database name
+db.Properties.findOne({ _id: -1 })
 ```
 
----
-
-### Issue: "Duplicate key error"
-
-**Cause:** Demo data already exists
-
-**Solution:**
+**If null, run:**
 ```javascript
-// Delete existing demo data first
+// Delete if exists
 db.Properties.deleteOne({ _id: -1 })
-db.Bookings.deleteMany({ PropertyID: -1 })
-db.Menus.deleteMany({ PropertyID: -1 })
 
-// Then run the seed script again
+// Run seed-demo-property.mongodb.js again
 ```
 
 ---
 
-### Issue: "Property created but not showing for users"
+### Issue: "User doesn't have demo access after signup"
 
 **Check user's PropertyAccessList:**
 ```javascript
 db.Users.findOne(
   { Email: "your-email@example.com" },
-  { PropertyAccessList: 1 }
+  { PropertyAccessList: 1, UserName: 1 }
+)
+```
+
+**If PropertyAccessList is empty or missing demo (-1):**
+- Run `add-demo-access-to-user.mongodb.js`
+
+---
+
+### Issue: "PropertyAccessList structure mismatch"
+
+Your `PropertyAccessList` schema (from `Domain/Users/Users.cs`):
+```javascript
+{
+  "Id": -1,          // int (Property ID reference)
+  "IsActive": true,  // bool
+  "From": ISODate("..."),      // DateTime
+  "To": ISODate("..."),        // DateTime
+  "CreatedDate": ISODate("..."), // DateTime
+  "CreatedBy": 18    // int (User ID)
+}
+```
+
+**Note:** Field is `Id` (not `PropertyID`)!
+
+---
+
+## 📊 Verify Everything Works
+
+### 1. Check Demo Property Exists
+```javascript
+db.Properties.find({ _id: -1 })
+```
+
+### 2. Check User Has Access
+```javascript
+db.Users.findOne(
+  { Email: "your-email@example.com" },
+  { UserName: 1, PropertyAccessList: 1 }
 )
 
 // Should show:
 // {
 //   "PropertyAccessList": [
-//     { "PropertyID": -1, "IsDemo": true, ... }
+//     { "Id": -1, "IsActive": true, ... }
 //   ]
 // }
 ```
 
-**If missing, manually add:**
+### 3. Count Properties
 ```javascript
-db.Users.updateOne(
-  { Email: "your-email@example.com" },
-  {
-    $push: {
-      PropertyAccessList: {
-        PropertyID: -1,
-        IsActive: true,
-        From: new Date(),
-        To: new Date(Date.now() + 365*24*60*60*1000), // 1 year
-        CreatedDate: new Date(),
-        IsDemo: true,
-        Permissions: ["ViewOnly", "CanExplore"]
-      }
-    }
-  }
-)
+// Your properties (ID >= 0)
+db.Properties.countDocuments({ _id: { $gte: 0 } })
+
+// Demo property (ID = -1)
+db.Properties.countDocuments({ _id: -1 })
+
+// Total
+db.Properties.countDocuments()
 ```
 
 ---
 
-## Manual Cleanup (If Needed)
+## 🗑️ Cleanup Commands
 
-### Remove Demo Property & All Related Data
+### Remove Demo Property
 ```javascript
-// WARNING: This deletes all demo data!
-
 db.Properties.deleteOne({ _id: -1 })
-db.Bookings.deleteMany({ PropertyID: -1 })
-db.Menus.deleteMany({ PropertyID: -1 })
+print('✅ Demo property deleted');
+```
+
+### Remove Demo Access from All Users
+```javascript
+db.Users.updateMany(
+  {},
+  { $pull: { PropertyAccessList: { Id: -1 } } }
+)
+print('✅ Demo access removed from all users');
+```
+
+### Complete Cleanup
+```javascript
+// Remove demo property
+db.Properties.deleteOne({ _id: -1 })
 
 // Remove demo access from all users
 db.Users.updateMany(
   {},
-  {
-    $pull: {
-      PropertyAccessList: { PropertyID: -1 }
-    }
-  }
+  { $pull: { PropertyAccessList: { Id: -1 } } }
 )
 
 print('✅ All demo data removed');
 ```
 
-### Reset Demo Property (Keep Structure, Reset Data)
-```javascript
-// Keep property but reset bookings/menus to original state
-
-db.Bookings.deleteMany({ PropertyID: -1 })
-db.Menus.deleteMany({ PropertyID: -1 })
-
-// Then run seed-demo-property.mongodb.js again
-```
-
 ---
 
-## Next Steps
+## 🎓 Understanding PropertyAccessList
 
-After running this script:
-
-1. ✅ **Sign up a new user** (without property code)
-2. ✅ **Check MongoDB**: User should have PropertyAccessList with PropertyID: -1
-3. ✅ **Login** with the user
-4. ✅ **Verify**: User should see "The Grand Hotel - Demo" in property selector
-
----
-
-## Production Deployment
-
-### Railway MongoDB
-
-If deploying to Railway, update the connection string in the script:
-
-```javascript
-// For Railway MongoDB
-use('railway'); // Railway default database name
-
-// Or use your custom database
-use('YourProductionDBName');
-```
-
-Run the script **once** on production database after first deployment.
-
----
-
-## Automation (Future)
-
-**Option A: Run on Application Startup**
+### Your Domain Model
 ```csharp
-// In WebApi/Program.cs or Startup.cs
-using (var scope = app.Services.CreateScope())
+// classfiles/Domain/Users/Users.cs
+public class PropertyAccessList
 {
-    var seeder = scope.ServiceProvider.GetRequiredService<DemoPropertySeeder>();
-    await seeder.SeedDemoPropertyIfNotExistsAsync();
+    public int Id { get; set; }          // Property ID (references Property._id)
+    public bool IsActive { get; set; }
+    public DateTime From { get; set; }
+    public DateTime To { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public int CreatedBy { get; set; }   // User ID who granted access
 }
 ```
 
-**Option B: Admin API Endpoint**
-```csharp
-[HttpPost("admin/seed-demo")]
-[Authorize(Roles = "Admin")]
-public async Task<IActionResult> SeedDemoProperty()
+### MongoDB Document
+```javascript
 {
-    await _demoPropertyService.EnsureDemoPropertyExistsAsync();
-    return Ok("Demo property seeded");
+  "_id": 18,
+  "Email": "user@example.com",
+  "PropertyAccessList": [
+    {
+      "Id": 100,           // Your real property
+      "IsActive": true,
+      "From": ISODate("..."),
+      "To": ISODate("..."),
+      "CreatedDate": ISODate("..."),
+      "CreatedBy": 1
+    },
+    {
+      "Id": -1,            // Demo property
+      "IsActive": true,
+      "From": ISODate("..."),
+      "To": ISODate("..."),
+      "CreatedDate": ISODate("..."),
+      "CreatedBy": 18,
+      "IsDemo": true       // Custom flag (not in domain model)
+    }
+  ]
 }
 ```
+
+---
+
+## ⚠️ Important Notes
+
+### Field Name: "Id" not "PropertyID"
+
+Your domain model uses `Id`:
+```csharp
+public class PropertyAccessList
+{
+    public int Id { get; set; }  // ← Not "PropertyID"!
+}
+```
+
+So MongoDB documents must use:
+```javascript
+{ "Id": -1 }  // ✅ Correct
+// NOT:
+{ "PropertyID": -1 }  // ❌ Wrong
+```
+
+### PropertyCode Typo
+
+Your existing property has:
+```javascript
+"PropertCode": "123AAAA"  // ⚠️ Typo
+```
+
+But your domain model uses:
+```csharp
+public string PropertyCode { get; set; }  // ✅ Correct
+```
+
+**Recommendation:** Fix the typo in your existing property:
+```javascript
+db.Properties.updateOne(
+  { _id: 100 },
+  {
+    $set: { PropertyCode: "123AAAA" },
+    $unset: { PropertCode: "" }
+  }
+)
+```
+
+---
+
+## 📞 Support
+
+If you encounter issues:
+
+1. **Check logs**: Look at Serilog output in console
+2. **Verify schema**: Run `seed-demo-property.mongodb.js` - it shows schema comparison
+3. **Check DemoPropertyService**: Line 174 uses `"Id"` (not `"PropertyID"`)
 
 ---
 
 **Created:** March 2024  
-**Last Updated:** March 2024  
-**Script Version:** 1.0.0
+**Based on:** Your actual Property and PropertyAccessList domain models  
+**Last Updated:** March 2024
