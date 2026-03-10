@@ -15,12 +15,14 @@ use('ListingDB'); // Change to your database name if different
 print('\n📝 Step 1: Creating Demo Property...');
 
 // Check if demo property already exists
-const existingProperty = db.Properties.findOne({ _id: -1 });
+// NOTE: Collection name is "Property" (singular), not "Properties"!
+const existingProperty = db.Property.findOne({ _id: -1 });
 
 if (existingProperty) {
   print('⚠️  Demo property already exists. Skipping creation.');
+  print(`   Current demo property: ${existingProperty.Name}`);
 } else {
-  db.Properties.insertOne({
+  db.Property.insertOne({
     "_id": -1,
     "Name": "The Grand Hotel - Demo",
     "Active": true,
@@ -165,8 +167,8 @@ print('\n\n========================================');
 print('✨ VERIFICATION SUMMARY');
 print('========================================');
 
-// Check demo property
-const demoProperty = db.Properties.findOne({ _id: -1 });
+// Check demo property (using correct collection name)
+const demoProperty = db.Property.findOne({ _id: -1 });
 if (demoProperty) {
   print(`✅ Demo Property: "${demoProperty.Name}" (ID: ${demoProperty._id})`);
   print(`   - Rooms: ${demoProperty.Rooms.length}`);
@@ -190,7 +192,7 @@ print('========================================');
 // 3. SHOW COMPLETE STRUCTURE (for debugging)
 // ============================================
 print('\n📊 Complete Demo Property Document:\n');
-const demoProp = db.Properties.findOne({ _id: -1 });
+const demoProp = db.Property.findOne({ _id: -1 });
 if (demoProp) {
   print(JSON.stringify(demoProp, null, 2));
 } else {
@@ -204,7 +206,7 @@ print('\n\n========================================');
 print('📋 SCHEMA COMPARISON');
 print('========================================');
 
-const yourProperty = db.Properties.findOne({ _id: 100 });
+const yourProperty = db.Property.findOne({ _id: 100 });
 if (yourProperty) {
   print('\n✅ Your Existing Property Structure:');
   print(JSON.stringify(yourProperty, null, 2));

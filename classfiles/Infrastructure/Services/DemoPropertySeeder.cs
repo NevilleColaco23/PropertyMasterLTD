@@ -30,7 +30,7 @@ public class DemoPropertySeeder
     {
         try
         {
-            var propertiesCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Properties");
+            var propertiesCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Property");
             var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("_id", DEMO_PROPERTY_ID);
             
             var existingProperty = await propertiesCollection.Find(filter).FirstOrDefaultAsync();
@@ -142,14 +142,14 @@ public class DemoPropertySeeder
 
     private async Task CreateDemoPropertyFromTemplateAsync(MongoDB.Bson.BsonDocument template)
     {
-        var propertiesCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Properties");
+        var propertiesCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Property");
         var bookingsCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Bookings");
         var menusCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Menus");
 
-        // Create property matching actual Property model schema
+        // Create property
         var rooms = template["Rooms"].AsBsonArray.Select(r => new MongoDB.Bson.BsonDocument
         {
-            { "Id", $"room-{r["RoomCode"].AsString}" },  // Matches Property.Room.Id (string)
+            { "_id", $"room-{r["RoomCode"].AsString}" },
             { "RoomCode", r["RoomCode"].AsString },
             { "RoomName", r["RoomName"].AsString },
             { "Active", true },

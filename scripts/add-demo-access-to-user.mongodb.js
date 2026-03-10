@@ -20,7 +20,7 @@ print('========================================\n');
 // ============================================
 // 1. Check if demo property exists
 // ============================================
-const demoProperty = db.Properties.findOne({ _id: DEMO_PROPERTY_ID });
+const demoProperty = db.Property.findOne({ _id: DEMO_PROPERTY_ID });
 
 if (!demoProperty) {
   print('❌ Error: Demo property does not exist!');
@@ -54,7 +54,7 @@ print('\n📋 Current Property Access:');
 if (user.PropertyAccessList && user.PropertyAccessList.length > 0) {
   print(`   User has access to ${user.PropertyAccessList.length} properties:`);
   user.PropertyAccessList.forEach((access, index) => {
-    const prop = db.Properties.findOne({ _id: access.Id });
+    const prop = db.Property.findOne({ _id: access.Id });
     const propName = prop ? prop.Name : 'Unknown Property';
     print(`   ${index + 1}. Property ID: ${access.Id} - ${propName} (Active: ${access.IsActive})`);
   });
@@ -113,7 +113,7 @@ print(`Properties Access: ${updatedUser.PropertyAccessList ? updatedUser.Propert
 if (updatedUser.PropertyAccessList && updatedUser.PropertyAccessList.length > 0) {
   print('\n📌 Property Access List:');
   updatedUser.PropertyAccessList.forEach((access, index) => {
-    const prop = db.Properties.findOne({ _id: access.Id });
+    const prop = db.Property.findOne({ _id: access.Id });
     const propName = prop ? prop.Name : 'Unknown';
     const isDemo = access.Id === DEMO_PROPERTY_ID ? '🎪 DEMO' : '';
     print(`   ${index + 1}. Property: ${propName} (ID: ${access.Id}) ${isDemo}`);

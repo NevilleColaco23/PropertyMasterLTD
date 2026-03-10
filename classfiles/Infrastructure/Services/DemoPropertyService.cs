@@ -69,7 +69,7 @@ public class DemoPropertyService : IDemoPropertyService
     {
         try
         {
-            var propertiesCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Properties");
+            var propertiesCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Property");
             var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.And(
                 MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("PropertyCode", propertyCode),
                 MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("Active", true),
@@ -103,7 +103,7 @@ public class DemoPropertyService : IDemoPropertyService
     {
         try
         {
-            var propertiesCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Properties");
+            var propertiesCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Property");
             var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("_id", DEMO_PROPERTY_ID);
             
             var existingProperty = await propertiesCollection.Find(filter).FirstOrDefaultAsync();
