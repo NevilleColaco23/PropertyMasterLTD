@@ -84,11 +84,35 @@
   border: 1px solid rgba(255,255,255,0.28);
   color: #ffffff;
   background: transparent;
+  font-size: 13px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar-btn.mat-mdc-button mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
 }
 
 .topbar-btn.mat-mdc-button:hover {
   background: rgba(255,255,255,0.10);
   border-color: rgba(255,255,255,0.36);
+}
+
+.topbar-btn--primary.mat-mdc-button {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.topbar-btn--primary.mat-mdc-button:hover {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.6);
 }
 
 .topbar-btn--danger.mat-mdc-button {

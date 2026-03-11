@@ -14,9 +14,10 @@ namespace MyWarehouse.Application.Common.Bookings.BookingsQuery
         private readonly string _orderBy;
         private readonly int _sortDirection;
         private readonly bool _getAllProperties;
+        private readonly List<int> _propertyIds;
 
         public GetBookingsMongoQuery(string bookingId, string filterString, int pageIndex, int pageSize, string orderBy, int sortDirection
-            ,bool getAllProperties = false)
+            , List<int> propertyIds = null, bool getAllProperties = false)
         {
             _bookingId = bookingId;
             _filterString = filterString;
@@ -24,6 +25,7 @@ namespace MyWarehouse.Application.Common.Bookings.BookingsQuery
             _pageSize = pageSize;
             _orderBy = orderBy;
             _sortDirection = sortDirection;
+            _propertyIds = propertyIds ?? new List<int>();
             _getAllProperties = getAllProperties;
         }
 
@@ -36,10 +38,11 @@ namespace MyWarehouse.Application.Common.Bookings.BookingsQuery
             // Build a single match document with optional conditions
             var matchDoc = new BsonDocument();
 
-            // Conditionally apply propertyId filter
-            if (_getAllProperties)
+            // Conditionally apply propertyIds filter using $in operator for multiple properties
+            if (!_getAllProperties && _propertyIds != null && _propertyIds.Any())
             {
-                matchDoc.Add("propertyId", new BsonDocument("$in", new BsonArray { 1, 1 })); //TODO: Adjust this as needed for "all properties" logic
+                var propertyIdsArray = new BsonArray(_propertyIds.Select(id => new BsonInt32(id)));
+                matchDoc.Add("propertyId", new BsonDocument("$in", propertyIdsArray));
             }
 
             // Conditionally apply text/number search filter

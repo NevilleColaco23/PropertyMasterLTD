@@ -12,6 +12,7 @@ import { LOG_LOGOUT } from '../../common/Constants/Constants';
 import { LoggingService } from '../../core/system/service/logging.service';
 import { SystemMessagesSnackbarComponent } from '../../core/system/system-messages-snackbar/system-messages-snackbar.component';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-property-landing',
@@ -21,7 +22,8 @@ import { MatButtonModule } from '@angular/material/button';
     RouterOutlet,
     SearchBoxAutocompleteComponent,
     SystemMessagesSnackbarComponent,
-    MatButtonModule
+    MatButtonModule,
+    MatIconModule
   ],
   templateUrl: './property-landing.component.html',
   styleUrls: ['./property-landing.component.css']
@@ -127,5 +129,10 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
   signOut() {
     this.loggingService.logPageNavigation(`loginSuccess`, LOG_LOGOUT, `User logged out successfully`);
     this.router.navigate(['/']);
+  }
+
+  changeProperties() {
+    // Navigate back to property selection page
+    this.router.navigate(['/propertySelector']);
   }
 }

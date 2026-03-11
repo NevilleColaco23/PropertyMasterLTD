@@ -6,7 +6,9 @@ import { Observable } from 'rxjs';
 import { map,catchError } from 'rxjs/operators';
 
 export interface PropertyModel {
+  id: number;
   name: string;
+  rooms?: any[];
 }
 
 @Injectable({
@@ -38,9 +40,9 @@ export class GetAllPropertiesServiceService {
       map(response => {
         if (Array.isArray(response.results)) {
           return response.results.map((property: any) => ({
-            id: property.id,
-            name: property.name,
-            rooms: property.rooms ?? []
+            id: property.Id || property.id || property._id,  // Handle Id, id, and _id
+            name: property.Name || property.name,
+            rooms: property.Rooms || property.rooms || []
           }));
         } else {
           console.error('Unexpected response format: results is not an array');

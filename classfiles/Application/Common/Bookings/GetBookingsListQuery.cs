@@ -8,6 +8,7 @@ namespace MyWarehouse.Application.Common.Bookings
     public class GetBookingsListQuery : ListQueryModel<GetBookingsListDTO>
     {
         public string BookingId { get; init; }
+        public List<int> PropertyIds { get; init; } = new List<int>();
     }
 
     public class GetBookingsListQueryHandler : IRequestHandler<GetBookingsListQuery, IListResponseModel<GetBookingsListDTO>>
@@ -23,7 +24,7 @@ namespace MyWarehouse.Application.Common.Bookings
             DataTable templateTable = new();
 
             var menuList = _unitOfWork.Bookings?.GetPagedListBy<GetBookingsListDTO>(MongoCollections.BookingsCollection
-                      , new GetBookingsMongoQuery(request.BookingId,request.SearchItem,request.PageIndex,request.PageSize,request.OrderBy,request.ActiveSortDirection));
+                      , new GetBookingsMongoQuery(request.BookingId, request.SearchItem, request.PageIndex, request.PageSize, request.OrderBy, request.ActiveSortDirection, request.PropertyIds));
 
             var response = new ListResponseModel<GetBookingsListDTO>
             {

@@ -15,11 +15,18 @@
         </div>
 
         <div class="topbar-user">
+          <button mat-button class="topbar-btn topbar-btn--primary" type="button" (click)="changeProperties()">
+            <mat-icon>business</mat-icon>
+            Change Properties
+          </button>
+
           <button mat-button class="topbar-btn" type="button" (click)="goToProfile()">
+            <mat-icon>account_circle</mat-icon>
             My Profile
           </button>
 
           <button mat-button class="topbar-btn topbar-btn--danger" type="button" (click)="signOut()">
+            <mat-icon>logout</mat-icon>
             Sign Out
           </button>
         </div>

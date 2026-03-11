@@ -66,11 +66,11 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
                 { "userAccess.hasAccess", true }
             }),
 
-            // STEP 4: Filter active rooms
+            // STEP 4: Filter active rooms and project fields
             new BsonDocument(MongoStages.PROJECT, new BsonDocument
             {
-                { "_id", 0 },
-                { "Id", "$_id" },
+                { "_id", 1 },  // Include _id field
+                { "Id", "$_id" },  // Also create Id field from _id
                 { "Name", 1 },
                 { "Rooms", new BsonDocument(MongoStages.FILTER, new BsonDocument
                     {

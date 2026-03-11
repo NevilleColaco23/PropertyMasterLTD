@@ -1,21 +1,30 @@
-<div class="property-selection">
-  <mat-form-field appearance="fill" class="property-field narrow">
-    <mat-label>Select Properties  </mat-label>
-    <mat-select [formControl]="toppings" multiple [compareWith]="compareProperties">
-      <mat-select-trigger>{{ selectedLabel }}</mat-select-trigger>
-      @for (topping of toppingList; track topping.name) {
-        <mat-option [value]="topping">
-          {{ topping.name }}
-        </mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
-
-  <div class="actions">
-    <button mat-raised-button color="primary"
-            (click)="applySelection()" [disabled]="!toppings.value || toppings.value.length === 0">
-      Apply
+<div class="property-selection-container">
+  <div class="header-actions">
+    <button mat-button color="warn" (click)="signOut()" class="sign-out-btn">
+      <mat-icon>logout</mat-icon>
+      Sign Out
     </button>
-    <button mat-button type="button" (click)="clearSelection()">Clear</button>
+  </div>
+
+  <div class="property-selection">
+    <mat-form-field appearance="fill" class="property-field narrow">
+      <mat-label>Select Properties  </mat-label>
+      <mat-select [formControl]="toppings" multiple [compareWith]="compareProperties">
+        <mat-select-trigger>{{ selectedLabel }}</mat-select-trigger>
+        @for (topping of toppingList; track topping.name) {
+          <mat-option [value]="topping">
+            {{ topping.name }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <div class="actions">
+      <button mat-raised-button color="primary"
+              (click)="applySelection()" [disabled]="!toppings.value || toppings.value.length === 0">
+        Apply
+      </button>
+      <button mat-button type="button" (click)="clearSelection()">Clear</button>
+    </div>
   </div>
 </div>
