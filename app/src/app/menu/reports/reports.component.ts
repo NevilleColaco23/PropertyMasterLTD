@@ -12,12 +12,15 @@
   import { MatCheckboxModule } from '@angular/material/checkbox';
   import { MatIconModule } from '@angular/material/icon'; // For search icon
   import { MatPaginatorModule } from '@angular/material/paginator';
-  import { DatePipe, CurrencyPipe, CommonModule } from '@angular/common'; 
+  import { MatButtonModule } from '@angular/material/button';
+  import { DatePipe, CurrencyPipe, CommonModule } from '@angular/common';
+  import { Router } from '@angular/router';
 
   import { APP_CONFIG, AppConfig } from '../../configuration/app.config.token';
   import { ErrorHandlingService } from '../../core/system/service/error-handling-service.service';
   import { LoggingService } from '../../core/system/service/logging.service';
   import { LOG_DELETE_BOOKING, LOG_EDIT_GRID, LOG_EDIT_VIEW } from '../../common/Constants/Constants';
+  import { PropertySelectionComponent } from '../../property/property-selection/property-selection.component';
 
   export interface Booking {
     _id: string;
@@ -33,7 +36,7 @@
     selector: 'app-reports',
     standalone: true,
     imports: [MatExpansionModule, MatProgressBarModule, MatFormFieldModule, MatTableModule, MatCheckboxModule, MatIconModule
-      , MatPaginatorModule, DatePipe, CurrencyPipe, CommonModule, MatInputModule, MatSortModule],
+      , MatPaginatorModule, MatButtonModule, DatePipe, CurrencyPipe, CommonModule, MatInputModule, MatSortModule],
     templateUrl: './reports.component.html',
     styleUrl: './reports.component.css'
   })
@@ -57,20 +60,27 @@
     // Corrected: Initialize totalCount to 0 to be updated by API response.
     totalCount = 0; 
     pageSize = 10;
-    
+
     // Corrected: pageIndex should be 0-based for MatPaginator.
-    pageIndex = 0; 
+    pageIndex = 0;
+    selectedPropertyIds: number[] = [];
     private appConfig = inject<AppConfig>(APP_CONFIG);
 
     constructor(
       private http: HttpClient,
-      private errorHandling: ErrorHandlingService,private loggingService: LoggingService) {
+      private errorHandling: ErrorHandlingService,private loggingService: LoggingService, private router: Router) {
 
       this.pathAPI = this.appConfig.apiUrl;
     }
 
     ngOnInit(): void {
+      this.loadSelectedProperty();
       this.getBookings();
+    }
+
+    loadSelectedProperty(): void {
+      this.selectedPropertyIds = PropertySelectionComponent.getSelectedPropertyIds();
+      console.log('Selected Property IDs:', this.selectedPropertyIds);
     }
 
     ngAfterViewInit(): void {
@@ -132,15 +142,22 @@
       params = params.set('PageIndex', (this.pageIndex + 1).toString());
       params = params.set('PageSize', this.pageSize.toString());
       params = params.set('BookingId', '66');
-      
+
+      // Add PropertyIds parameter for multiple property selection
+      if (this.selectedPropertyIds && this.selectedPropertyIds.length > 0) {
+        this.selectedPropertyIds.forEach(id => {
+          params = params.append('PropertyIds', id.toString());
+        });
+      }
+
       // Added dynamic sort parameters to the request
       params = params.set('OrderBy', this.orderBy);
       params = params.set('ActiveOrderBy', this.sortOrder);
-      
+
       params = params.set('ActiveFilter', '10');
       params = params.set('SearchItem', this.filterString);
       params = params.set('ActiveSortDirection', this.sortOrder == 'asc' ? 1 : -1);
-      
+
 
       this.http.get<any>(this.pathAPI + '/Bookings/GetBookings', { params: params })
         .pipe(
@@ -151,7 +168,7 @@
               this.totalCount = 0;
               return [];
             }
-            
+
             this.totalCount = response.totalRowCount || 0;
             return response.results as Booking[];
           }),
