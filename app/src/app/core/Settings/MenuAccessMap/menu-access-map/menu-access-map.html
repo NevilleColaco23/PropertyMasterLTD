@@ -214,12 +214,18 @@
 										<div class="date-range">
 											<div class="date-item">
 												<mat-icon class="date-icon">event</mat-icon>
-												{{ row.from | date:'mediumDate' }}
+												<div class="datetime-display">
+													<div class="date-text">{{ row.from | date:'mediumDate' }}</div>
+													<div class="time-text">{{ row.from | date:'shortTime' }}</div>
+												</div>
 											</div>
 											<mat-icon class="arrow-icon">arrow_forward</mat-icon>
 											<div class="date-item">
 												<mat-icon class="date-icon">event</mat-icon>
-												{{ row.to | date:'mediumDate' }}
+												<div class="datetime-display">
+													<div class="date-text">{{ row.to | date:'mediumDate' }}</div>
+													<div class="time-text">{{ row.to | date:'shortTime' }}</div>
+												</div>
 											</div>
 										</div>
 									} @else {

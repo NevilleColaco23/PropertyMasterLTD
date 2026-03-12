@@ -19,22 +19,30 @@ namespace MyWarehouse.Application.Common.MenuPermissions
     public class UpdateMenuPermissionCommandHandler : IRequestHandler<UpdateMenuPermissionCommand, Unit>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public UpdateMenuPermissionCommandHandler(IUnitOfWork unitOfWork)
+        public UpdateMenuPermissionCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Unit> Handle(UpdateMenuPermissionCommand request, CancellationToken cancellationToken)
         {
+            // Get current user ID
+            var currentUserId = int.TryParse(_currentUserService.UserId, out var userId) ? userId : 0;
+
             var menuPermission = new MenusPermissions
             {
                 Id = request.Id,
                 UserId = request.UserId,
                 MenuID = request.MenuId,
                 AccessLevel = request.AccessLevel,
+                IsActive = request.IsActive,
                 From = request.From,
-                To = request.To
+                To = request.To,
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = currentUserId
             };
 
             await _unitOfWork.MenuPermissions.Update(menuPermission, cancellationToken);

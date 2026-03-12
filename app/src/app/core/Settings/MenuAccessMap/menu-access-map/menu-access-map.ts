@@ -26,6 +26,7 @@ interface User {
   id: number;
   username: string;
   email: string;
+  updatedAt?: Date;
 }
 
 interface Menu {
@@ -146,7 +147,19 @@ export class MenuAccessMap implements OnInit, AfterViewInit {
       })
     ).subscribe(users => {
       console.log('Loaded users from API:', users);
-      this.users = users;
+
+      // Sort users by UpdatedAt (latest first)
+      this.users = users.sort((a: any, b: any) => {
+        const dateA = a.updatedAt || a.UpdatedAt ? new Date(a.updatedAt || a.UpdatedAt).getTime() : 0;
+        const dateB = b.updatedAt || b.UpdatedAt ? new Date(b.updatedAt || b.UpdatedAt).getTime() : 0;
+        return dateB - dateA; // Descending order (latest first)
+      });
+
+      // Auto-select first user if available
+      if (this.users.length > 0 && !this.selectedUserId) {
+        this.selectedUserId = this.users[0].id;
+        this.loadUserPermissions();
+      }
     });
   }
 
@@ -306,16 +319,6 @@ export class MenuAccessMap implements OnInit, AfterViewInit {
     const from = row.from ? new Date(row.from) : null;
     const to = row.to ? new Date(row.to) : null;
 
-    // Debug logging
-    console.log('getRowStatus for menu:', row.label);
-    console.log('  permissionId:', row.permissionId);
-    console.log('  isActive:', row.isActive);
-    console.log('  now:', now);
-    console.log('  from:', from);
-    console.log('  to:', to);
-    console.log('  now < from:', from && now < from);
-    console.log('  now > to:', to && now > to);
-
     if (from && now < from) return 'inactive';
     if (to && now > to) return 'expired';
 
@@ -403,6 +406,8 @@ export class MenuAccessMap implements OnInit, AfterViewInit {
 
   editPermission(row: MenuPermissionRow): void {
     console.log('Editing permission:', row.permissionId);
+    console.log('From date:', row.from);
+    console.log('To date:', row.to);
 
     const dialogRef = this.dialog.open(PermissionDialogComponent, {
       width: '600px',
@@ -456,6 +461,9 @@ export class MenuAccessMap implements OnInit, AfterViewInit {
   }
 
   updatePermission(data: any): void {
+    this.isLoading = true;
+    this.cdr.detectChanges();
+
     const payload = {
       id: data.permissionId,
       userId: data.userId,
@@ -466,16 +474,26 @@ export class MenuAccessMap implements OnInit, AfterViewInit {
       to: data.to
     };
 
-    this.http.put(`${this.pathAPI}/menupermissions/${data.permissionId}`, payload).pipe(
+    this.http.put(`${this.pathAPI}/menupermissions/${data.permissionId}`, payload, { observe: 'response' }).pipe(
       catchError(err => {
         this.errorHandling.handleError(err);
+        this.isLoading = false;
+        this.cdr.detectChanges();
         return of(null);
       })
-    ).subscribe(result => {
-      if (result !== null) {
-        this.errorHandling.handleSuccess('Permission updated successfully');
-        this.loadUserPermissions();
+    ).subscribe(response => {
+      if (response === null) {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        return;
       }
+
+      this.errorHandling.handleSuccess('Permission updated successfully');
+
+      // Small delay to ensure backend completes the save
+      setTimeout(() => {
+        this.loadUserPermissions();
+      }, 300);
     });
   }
 

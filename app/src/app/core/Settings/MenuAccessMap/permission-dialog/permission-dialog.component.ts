@@ -55,12 +55,26 @@ export class PermissionDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<PermissionDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: PermissionDialogData
   ) {
+    // Extract time from existing dates if in edit mode
+    // Ensure dates are proper Date objects
+    const fromDate = data.existingPermission?.from 
+      ? new Date(data.existingPermission.from) 
+      : new Date();
+    const toDate = data.existingPermission?.to 
+      ? new Date(data.existingPermission.to) 
+      : this.getDefaultEndDate();
+
+    const fromTime = this.formatTimeFromDate(fromDate);
+    const toTime = this.formatTimeFromDate(toDate);
+
     this.permissionForm = this.fb.group({
       menuId: [data.menuId || null, Validators.required],
       accessLevel: [data.existingPermission?.accessLevel || 'read', Validators.required],
       isActive: [data.existingPermission?.isActive ?? true],
-      from: [data.existingPermission?.from || new Date(), Validators.required],
-      to: [data.existingPermission?.to || this.getDefaultEndDate(), Validators.required]
+      from: [fromDate, Validators.required],
+      fromTime: [fromTime, Validators.required],
+      to: [toDate, Validators.required],
+      toTime: [toTime, Validators.required]
     });
 
     if (data.mode === 'edit' && data.menuId) {
@@ -71,6 +85,16 @@ export class PermissionDialogComponent implements OnInit {
   ngOnInit(): void {
     console.log('Dialog data received:', this.data);
     console.log('All menus:', this.data.allMenus);
+
+    // Log form values for debugging
+    if (this.data.mode === 'edit' && this.data.existingPermission) {
+      console.log('Edit mode - existing permission:', this.data.existingPermission);
+      console.log('From date type:', typeof this.data.existingPermission.from);
+      console.log('From date value:', this.data.existingPermission.from);
+      console.log('To date type:', typeof this.data.existingPermission.to);
+      console.log('To date value:', this.data.existingPermission.to);
+      console.log('Form values:', this.permissionForm.value);
+    }
 
     // Show ALL menus
     this.availableMenus = this.data.allMenus;
@@ -97,8 +121,19 @@ export class PermissionDialogComponent implements OnInit {
   onSubmit(): void {
     if (this.permissionForm.valid) {
       const formValue = this.permissionForm.getRawValue();
+
+      // Combine date and time for 'from' field
+      const fromDateTime = this.combineDateAndTime(formValue.from, formValue.fromTime);
+
+      // Combine date and time for 'to' field
+      const toDateTime = this.combineDateAndTime(formValue.to, formValue.toTime);
+
       this.dialogRef.close({
-        ...formValue,
+        menuId: formValue.menuId,
+        accessLevel: formValue.accessLevel,
+        isActive: formValue.isActive,
+        from: fromDateTime,
+        to: toDateTime,
         userId: this.data.userId,
         permissionId: this.data.existingPermission?.id
       });
@@ -117,5 +152,19 @@ export class PermissionDialogComponent implements OnInit {
     const selectedMenuId = this.permissionForm.get('menuId')?.value;
     const selectedMenu = this.availableMenus.find(m => m.id === selectedMenuId);
     return selectedMenu ? selectedMenu.label : '';
+  }
+
+  private formatTimeFromDate(date: Date): string {
+    const d = new Date(date);
+    const hours = d.getHours().toString().padStart(2, '0');
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+
+  private combineDateAndTime(date: Date, time: string): Date {
+    const [hours, minutes] = time.split(':').map(Number);
+    const combined = new Date(date);
+    combined.setHours(hours, minutes, 0, 0);
+    return combined;
   }
 }

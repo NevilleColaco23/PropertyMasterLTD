@@ -9,7 +9,10 @@ public class MenusPermissions : IEntity<int>
     public int UserId { get; set; }
     public int MenuID { get; set; }
     public string AccessLevel { get; set; }
+
+    [BsonElement("isActive")]
     public bool IsActive { get; set; } = true;
+
     public DateTime From { get; set; }
     public DateTime To { get; set; }
     public DateTime CreatedAt { get; set; }

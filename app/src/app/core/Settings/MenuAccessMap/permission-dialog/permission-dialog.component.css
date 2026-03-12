@@ -79,8 +79,12 @@ mat-dialog-content {
     padding-right: 36px;
   }
 
-  .date-fields {
+  .datetime-field {
     grid-template-columns: 1fr !important;
+  }
+
+  .time-field {
+    width: 100%;
   }
 }
 
@@ -184,13 +188,26 @@ mat-dialog-content {
 }
 
 .date-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
 }
 
+.datetime-field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: start;
+}
+
 .date-field {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
+}
+
+.time-field {
+  width: 140px;
+  flex-shrink: 0;
 }
 
 /* Dialog Actions */
