@@ -26,7 +26,7 @@ namespace MyWarehouse.Application.Common.Menus
             DataTable templateTable = new();
 
             var menuList = _unitOfWork.MenuPermissions?.GetListBy<GetMenuPermissionMappingListDTO>(MongoCollections.MenuPermissionsCollection
-            , new GetMenuListQueryByUserId(1));
+            , new GetMenuListQueryByUserId(request.userId));
 
             var response = new ListResponseModel<GetMenuPermissionMappingListDTO>
             {

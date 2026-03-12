@@ -3,7 +3,7 @@ import {
 ,ChangeDetectorRef } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatMenuTrigger } from '@angular/material/menu';
-import { takeUntil, Subject, catchError, map } from 'rxjs';
+import { takeUntil, Subject, catchError, map, Observable } from 'rxjs';
 import { APP_CONFIG, AppConfig } from '../../configuration/app.config.token';
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { ErrorHandlingService } from '../../core/system/service/error-handling-service.service';
@@ -13,6 +13,7 @@ import { LoggingService } from '../../core/system/service/logging.service';
 import { SystemMessagesSnackbarComponent } from '../../core/system/system-messages-snackbar/system-messages-snackbar.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { AuthService } from '../../core/auth/services/auth.service';
 
 @Component({
   selector: 'app-property-landing',
@@ -55,7 +56,9 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
     private router: Router,
     private http: HttpClient,
     private errorHandling: ErrorHandlingService,
-    private loggingService: LoggingService,private cdr: ChangeDetectorRef
+    private loggingService: LoggingService,
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) {
     this.pathAPI = this.appConfig.apiUrl;
   }
@@ -84,7 +87,15 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
   }
 
   getMenuItems() {
-    const params = new HttpParams().set('userId', 10); // TODO: remove hardcoding
+    const userId = this.authService.getUserId();
+
+    if (!userId) {
+      console.error('User ID not found. User may not be logged in.');
+      this.router.navigate(['/login']);
+      return new Observable(observer => observer.complete());
+    }
+
+    const params = new HttpParams().set('userId', userId);
 
     return this.http.get<any>(this.pathAPI + '/menu/GetinitialData', { params }).pipe(
       map(response => {

@@ -152,6 +152,32 @@ public signUp(data: SignUpDto){
     return expiresAt ? (+expiresAt - Date.now()) / 1000 / (3600 * 24) : 0;
   }
 
+  public getUserId(): number | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+
+    const token = localStorage.getItem('auth_tokenString');
+    if (!token) {
+      return null;
+    }
+
+    try {
+      // Extract the JWT token (remove "Bearer " prefix if present)
+      const jwt = token.replace('Bearer ', '');
+
+      // Decode the JWT payload (middle part between dots)
+      const payload = jwt.split('.')[1];
+      const decodedPayload = JSON.parse(atob(payload));
+
+      // The userId is stored in the 'sub' (subject) claim
+      return decodedPayload.sub ? parseInt(decodedPayload.sub, 10) : null;
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return null;
+    }
+  }
+
   private getStoredUserData(): AuthenticationSuccessData | null {
     const userData = localStorage.getItem('auth_userData');
     return userData ? (JSON.parse(userData) as AuthenticationSuccessData) : null;
