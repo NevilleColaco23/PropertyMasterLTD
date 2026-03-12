@@ -1,0 +1,219 @@
+.dialog-container {
+  min-width: 500px;
+  max-width: 600px;
+  width: 100%;
+}
+
+h2[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #2c3e50;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  position: relative;
+  padding-right: 40px;
+}
+
+h2[mat-dialog-title] mat-icon:first-child {
+  color: #667eea;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+h2[mat-dialog-title] .close-button {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #7f8c8d;
+}
+
+h2[mat-dialog-title] .close-button:hover {
+  color: #e74c3c;
+  background-color: #f8f9fa;
+}
+
+mat-dialog-content {
+  padding: 20px 24px;
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+.permission-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dialog-container {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  h2[mat-dialog-title] {
+    font-size: 18px;
+  }
+
+  mat-dialog-content {
+    padding: 16px;
+    max-height: 60vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .dialog-container {
+    min-width: 100%;
+  }
+
+  h2[mat-dialog-title] {
+    font-size: 16px;
+    padding-right: 36px;
+  }
+
+  .date-fields {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Menu Option Styling */
+.menu-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menu-option mat-icon {
+  color: #667eea;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Selected Access Display */
+.selected-access {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selected-access mat-icon {
+  color: #667eea;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.selected-access span {
+  font-size: 14px;
+}
+/* Access Option Styling */
+.access-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.access-option mat-icon {
+  color: #667eea;
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.option-title {
+  font-weight: 500;
+  font-size: 14px;
+  color: #2c3e50;
+}
+
+.option-desc {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-top: 2px;
+}
+
+/* Toggle Field */
+.toggle-field {
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toggle-label mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.toggle-hint {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-top: 8px;
+  margin-left: 56px;
+}
+
+/* Date Range Section */
+.date-range-container {
+  margin-top: 8px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 16px 0;
+}
+
+.date-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.date-field {
+  width: 100%;
+}
+
+/* Dialog Actions */
+mat-dialog-actions {
+  padding: 16px 24px;
+  background: #f8f9fa;
+  margin: 0;
+  gap: 12px;
+}
+
+mat-dialog-actions button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .dialog-container {
+    min-width: 100%;
+  }
+
+  .date-fields {
+    grid-template-columns: 1fr;
+  }
+}

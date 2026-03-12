@@ -26,5 +26,9 @@ namespace MyWarehouse.WebApi.API.DomainControllers
         [HttpGet("GetinitialData")]
         public async Task<ActionResult<IListResponseModel<GetMenuListDTO>>> GetinitialData([FromQuery] GetInitialDataForLandingPageQuery query)
             => Ok(await _mediator.Send(query));
+
+        [HttpGet("getall")]
+        public async Task<ActionResult<IListResponseModel<GetAllMenusDTO>>> GetAllMenus([FromQuery] GetAllMenusQuery query)
+            => Ok(await _mediator.Send(query));
     }
 }

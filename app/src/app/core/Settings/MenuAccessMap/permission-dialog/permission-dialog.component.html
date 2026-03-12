@@ -1,0 +1,111 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>
+    <mat-icon>{{ data.mode === 'add' ? 'add_circle' : 'edit' }}</mat-icon>
+    {{ dialogTitle }}
+    <button mat-icon-button class="close-button" (click)="onCancel()" matTooltip="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </h2>
+
+  <mat-dialog-content>
+    <form [formGroup]="permissionForm" class="permission-form">
+      
+      <!-- Menu Selection -->
+      <mat-form-field class="full-width">
+        <mat-label>Menu</mat-label>
+        <mat-select formControlName="menuId">
+          <mat-select-trigger>
+            {{ getSelectedMenuLabel() }}
+          </mat-select-trigger>
+          @for (menu of availableMenus; track menu.id) {
+            <mat-option [value]="menu.id">
+              <div class="menu-option">
+                <mat-icon>{{ menu.hasDropdown ? 'folder' : 'article' }}</mat-icon>
+                <span>{{ menu.label }}</span>
+              </div>
+            </mat-option>
+          }
+        </mat-select>
+        <mat-hint>Select the menu to grant access to</mat-hint>
+      </mat-form-field>
+
+      <!-- Access Level -->
+      <mat-form-field class="full-width">
+        <mat-label>Access Level</mat-label>
+        <mat-select formControlName="accessLevel">
+          <mat-select-trigger>
+            <div class="selected-access">
+              <mat-icon>{{ permissionForm.get('accessLevel')?.value === 'write' ? 'edit' : 'visibility' }}</mat-icon>
+              <span>{{ permissionForm.get('accessLevel')?.value === 'write' ? 'Read & Write' : 'Read Only' }}</span>
+            </div>
+          </mat-select-trigger>
+          <mat-option value="read">
+            <div class="access-option">
+              <mat-icon>visibility</mat-icon>
+              <div>
+                <div class="option-title">Read Only</div>
+                <div class="option-desc">Can view menu items</div>
+              </div>
+            </div>
+          </mat-option>
+          <mat-option value="write">
+            <div class="access-option">
+              <mat-icon>edit</mat-icon>
+              <div>
+                <div class="option-title">Read & Write</div>
+                <div class="option-desc">Can view and modify items</div>
+              </div>
+            </div>
+          </mat-option>
+        </mat-select>
+        <mat-hint>Choose the level of access</mat-hint>
+      </mat-form-field>
+
+      <!-- Active Status -->
+      <div class="toggle-field">
+        <mat-slide-toggle formControlName="isActive" color="primary">
+          <span class="toggle-label">
+            <mat-icon>{{ permissionForm.get('isActive')?.value ? 'check_circle' : 'cancel' }}</mat-icon>
+            {{ permissionForm.get('isActive')?.value ? 'Active' : 'Inactive' }}
+          </span>
+        </mat-slide-toggle>
+        <div class="toggle-hint">Enable or disable this permission</div>
+      </div>
+
+      <!-- Date Range -->
+      <div class="date-range-container">
+        <h3 class="section-title">Validity Period</h3>
+        
+        <div class="date-fields">
+          <mat-form-field class="date-field">
+            <mat-label>Start Date</mat-label>
+            <input matInput [matDatepicker]="pickerFrom" formControlName="from">
+            <mat-datepicker-toggle matSuffix [for]="pickerFrom"></mat-datepicker-toggle>
+            <mat-datepicker #pickerFrom></mat-datepicker>
+            <mat-hint>When access begins</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field class="date-field">
+            <mat-label>End Date</mat-label>
+            <input matInput [matDatepicker]="pickerTo" formControlName="to">
+            <mat-datepicker-toggle matSuffix [for]="pickerTo"></mat-datepicker-toggle>
+            <mat-datepicker #pickerTo></mat-datepicker>
+            <mat-hint>When access expires</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">
+      <mat-icon>close</mat-icon>
+      Cancel
+    </button>
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!permissionForm.valid">
+      <mat-icon>{{ data.mode === 'add' ? 'add' : 'save' }}</mat-icon>
+      {{ submitButtonText }}
+    </button>
+  </mat-dialog-actions>
+</div>

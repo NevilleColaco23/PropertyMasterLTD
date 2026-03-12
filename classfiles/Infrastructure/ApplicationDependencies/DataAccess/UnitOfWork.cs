@@ -22,9 +22,10 @@ internal class UnitOfWork : IUnitOfWork
     public IBookingsRepository Bookings { get; }
     public ISystemMessagesRepository SystemMessages { get; }
     public IEmailOutboxRepository EmailOutbox { get; }
+    public IAuditLogRepository AuditLogs { get; }
 
     public UnitOfWork(ApplicationDbContext dbContext, IPartnerRepository partners, IProductRepository products, ITransactionRepository transactions, IPropertyRepository properties
-        , IAccessLogRepository accessLogs, IUsersRepository users, IMenuRepository menus, IMenuPermissionRepository menusPermissions, IBookingsRepository bookings, ISystemMessagesRepository systemMessages,IEmailOutboxRepository emailOutbox)
+        , IAccessLogRepository accessLogs, IUsersRepository users, IMenuRepository menus, IMenuPermissionRepository menusPermissions, IBookingsRepository bookings, ISystemMessagesRepository systemMessages, IEmailOutboxRepository emailOutbox, IAuditLogRepository auditLogs)
     {
         _dbContext = dbContext;
         Partners = partners;

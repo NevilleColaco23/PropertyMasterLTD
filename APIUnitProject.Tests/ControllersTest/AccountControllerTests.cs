@@ -261,11 +261,9 @@ namespace APIUnitProject.Tests.ControllersTest
                 signUpDto.Username,
                 signUpDto.Email,
                 signUpDto.Password,
-                It.IsAny<string>())) // Using It.IsAny<string>() for the phoneNumber parameter
-                                     // *** CHANGE THIS LINE ***
-                                     // The tuple element names for the return type of SignUp method are 'result' and 'data'.
-                                     // The type for 'data' is 'SignUpResultData'.
-                .ReturnsAsync((SignUpResult.Success, signUpResultData)); // Use signUpResultData variable
+                It.IsAny<string>(),  // phoneNumber parameter
+                It.IsAny<string?>())) // propertyCode optional parameter (must be explicit for Moq)
+                .ReturnsAsync((SignUpResult.Success, signUpResultData));
 
             // Act
             var result = await _controller.SignUp(signUpDto);
@@ -281,7 +279,8 @@ namespace APIUnitProject.Tests.ControllersTest
                 signUpDto.Username,
                 signUpDto.Email,
                 signUpDto.Password,
-                It.IsAny<string>()), Times.Once);
+                It.IsAny<string>(),
+                It.IsAny<string?>()), Times.Once);
         }
 
         [Fact]
@@ -299,7 +298,7 @@ namespace APIUnitProject.Tests.ControllersTest
 
             // Verify that no service methods were called
             _mockUserService.Verify(s => s.SignUp(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
         }
 
         [Theory]
@@ -325,7 +324,7 @@ namespace APIUnitProject.Tests.ControllersTest
             Assert.Equal(expectedMessage, badRequestResult.Value);
 
             _mockUserService.Verify(s => s.SignUp(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
         }
 
         [Fact]
@@ -343,7 +342,8 @@ namespace APIUnitProject.Tests.ControllersTest
                 signUpDto.Username,
                 signUpDto.Email,
                 signUpDto.Password,
-                It.IsAny<string>()))
+                It.IsAny<string>(),
+                It.IsAny<string?>()))
                 .ReturnsAsync((SignUpResult.Failed, null)); // Simulate failure
 
             // Act
@@ -357,7 +357,8 @@ namespace APIUnitProject.Tests.ControllersTest
                 signUpDto.Username,
                 signUpDto.Email,
                 signUpDto.Password,
-                It.IsAny<string>()), Times.Once);
+                It.IsAny<string>(),
+                It.IsAny<string?>()), Times.Once);
         }
 
         [Fact]
@@ -376,7 +377,8 @@ namespace APIUnitProject.Tests.ControllersTest
                 signUpDto.Username,
                 signUpDto.Email,
                 signUpDto.Password,
-                It.IsAny<string>()))
+                It.IsAny<string>(),
+                It.IsAny<string?>()))
                 .ReturnsAsync((unknownResult, null));
 
             // Act & Assert
@@ -386,7 +388,8 @@ namespace APIUnitProject.Tests.ControllersTest
                 signUpDto.Username,
                 signUpDto.Email,
                 signUpDto.Password,
-                It.IsAny<string>()), Times.Once);
+                It.IsAny<string>(),
+                It.IsAny<string?>()), Times.Once);
         }
 
         #endregion

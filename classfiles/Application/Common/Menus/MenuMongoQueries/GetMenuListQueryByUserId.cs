@@ -25,16 +25,16 @@ namespace MyWarehouse.Application.Common.Menus.MenuQueries
         // 1. Match user-specific active permissions (excluding hidden)
         new BsonDocument(MongoStages.MATCH, new BsonDocument
         {
-            { "userId", userId },
-            { "isActive", true },
-            { "accessLevel", new BsonDocument("$ne", "hidden") }
+            { "UserId", userId },  // ✅ Changed to PascalCase to match MongoDB document
+            { "isActive", true },  // ✅ Changed to camelCase to match actual MongoDB document
+            { "AccessLevel", new BsonDocument("$ne", "hidden") }  // ✅ Changed to PascalCase
         }),
 
         // 2. Join with Menus collection
         new BsonDocument(MongoStages.LOOKUP, new BsonDocument
         {
             { "from", "Menus" },
-            { "localField", "menuId" },
+            { "localField", "MenuID" },  // ✅ Changed to match your MongoDB field
             { "foreignField", "_id" },
             { "as", "menu" }
         }),
@@ -55,10 +55,10 @@ namespace MyWarehouse.Application.Common.Menus.MenuQueries
         new BsonDocument(MongoStages.PROJECT, new BsonDocument
         {
             { "_id", "$_id" }, // The _id from the original permission document
-            { "userId", "$userId" },
-            { "isActive", "$isActive" },
-            { "accessLevel", "$accessLevel" },
-            { "menuId", "$menuId" }, // The menuId from the original permission document
+            { "userId", "$UserId" },  // ✅ Map MongoDB PascalCase to DTO camelCase
+            { "isActive", "$IsActive" },  // ✅ Map MongoDB PascalCase to DTO camelCase
+            { "accessLevel", "$AccessLevel" },  // ✅ Map MongoDB PascalCase to DTO camelCase
+            { "menuId", "$MenuID" }, // ✅ Map MongoDB PascalCase to DTO camelCase
 
             // Fields from the 'menu' document (now at the root level, prioritized by mergeObjects)
             { "label", "$label" },

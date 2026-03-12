@@ -10,6 +10,7 @@ using MyWarehouse.Infrastructure.ApplicationDependencies.Services;
 using System.Diagnostics.CodeAnalysis;
 using MyWarehouse.Application.Services;
 using MyWarehouse.Infrastructure.Services;
+using MyWarehouse.Application.Common.Audit;
 
 namespace MyWarehouse.Infrastructure.ApplicationDependencies;
 
@@ -31,9 +32,11 @@ internal static class Startup
         services.AddScoped<IBookingsRepository, BookingsRepositoryMongo>();
         services.AddScoped<ISystemMessagesRepository, SystemMessagesRepositoryMongo>();
         services.AddScoped<IEmailOutboxRepository, EmailOutboxRepositoryMongo>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepositoryMongo>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddTransient<IDateTime, DateTimeService>();
         services.AddTransient<IStockStatisticsService, StockStatisticsService>();
+        services.AddScoped<IAuditService, AuditService>();
     }
 }

@@ -15,6 +15,7 @@ public interface IUnitOfWork : IDisposable
     public IBookingsRepository? Bookings { get; }
     public ISystemMessagesRepository? SystemMessages { get; }
     public IEmailOutboxRepository? EmailOutbox { get; }
+    public IAuditLogRepository? AuditLogs { get; }
 
     bool HasActiveTransaction { get; }
 
