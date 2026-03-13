@@ -16,4 +16,9 @@ public static class MongoCollections
     public const string AuditLogsCollection = "AuditLogs";
     public const string PropertyAuditCollection = "PropertyAudit";
     public const string RoomAuditCollection = "RoomAudit";
+
+    // Dashboard collections
+    public const string DashboardConfigurationsCollection = "DashboardConfigurations";
+    public const string WidgetLibraryCollection = "WidgetLibrary";
+    public const string DashboardTemplatesCollection = "DashboardTemplates";
 }

@@ -1,0 +1,451 @@
+/* Phase 3: Gridster Dashboard Styles */
+
+/* ===== Dashboard Container ===== */
+.dashboard-container {
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  min-height: calc(100vh - 64px);
+  position: relative;
+}
+
+.dashboard-container.edit-mode {
+  background: #f5f5f5;
+}
+
+/* ===== Header ===== */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 24px;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  min-width: 280px;
+}
+
+.dashboard-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 500;
+  color: #1a237e;
+}
+
+.dashboard-header h1 mat-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+}
+
+.dashboard-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 16px;
+}
+
+/* ===== Edit Mode Toolbar ===== */
+.edit-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  color: white;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.edit-icon {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.edit-label {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.unsaved-icon {
+  color: #ffd700;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 12px;
+}
+
+.cancel-btn {
+  background: white;
+  color: #667eea;
+}
+
+/* ===== Gridster Container ===== */
+.gridster-container {
+  background: transparent;
+  min-height: 400px;
+}
+
+/* Gridster Grid Lines (Edit Mode) */
+::ng-deep gridster {
+  background: transparent;
+}
+
+::ng-deep gridster-item {
+  background: transparent;
+  transition: all 0.3s ease;
+}
+
+/* ===== Gridster Item ===== */
+.gridster-item-content {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.edit-mode .gridster-item-content {
+  border: 2px dashed #1976d2;
+}
+
+.gridster-item-content:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.edit-mode gridster-item.gridster-item-moving .gridster-item-content {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  transform: scale(1.02);
+  opacity: 0.9;
+}
+
+/* ===== Drag Handle ===== */
+.drag-handler {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  cursor: move;
+  background: #1976d2;
+  color: white;
+  border-radius: 4px;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: background 0.2s;
+}
+
+.drag-handler:hover {
+  background: #1565c0;
+}
+
+.drag-handler mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* ===== Remove Button ===== */
+.remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  background: #f44336;
+  color: white;
+}
+
+.remove-btn:hover {
+  background: #d32f2f;
+}
+
+.remove-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* ===== Widget Wrapper ===== */
+.widget-wrapper {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  overflow: auto;
+}
+
+.edit-mode .widget-wrapper {
+  padding-top: 48px; /* Space for drag handle and remove button */
+}
+
+/* Adjust nested widget cards */
+.widget-wrapper ::ng-deep mat-card {
+  height: 100%;
+  margin: 0;
+  box-shadow: none;
+}
+
+/* ===== Floating Action Buttons ===== */
+.fab-container {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 1000;
+}
+
+.edit-fab,
+.add-widget-fab {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  transition: transform 0.2s;
+}
+
+.edit-fab:hover,
+.add-widget-fab:hover {
+  transform: scale(1.1);
+}
+
+.add-widget-fab {
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ===== Loading State ===== */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 20px;
+}
+
+.loading-container p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin: 40px 0;
+  min-height: 400px;
+}
+
+.empty-state mat-icon {
+  font-size: 80px;
+  width: 80px;
+  height: 80px;
+  color: #1976d2;
+  margin-bottom: 20px;
+}
+
+.empty-state h2 {
+  margin: 0 0 12px 0;
+  font-size: 24px;
+  font-weight: 500;
+  color: #333;
+}
+
+.empty-state p {
+  margin: 0 0 24px 0;
+  color: #666;
+  font-size: 16px;
+}
+
+/* ===== Dashboard Selector ===== */
+.dashboard-selector {
+  width: 100%;
+}
+
+.dashboard-selector ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.dashboard-selector ::ng-deep .mat-mdc-text-field-wrapper {
+  background-color: white;
+}
+
+.dashboard-selector ::ng-deep .mat-mdc-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== Gridster Resize Handles ===== */
+::ng-deep .gridster-item-resizable-handler {
+  background-color: #1976d2 !important;
+  border-radius: 50%;
+  width: 12px !important;
+  height: 12px !important;
+}
+
+::ng-deep .gridster-item-resizable-handler.handle-se {
+  bottom: 4px !important;
+  right: 4px !important;
+}
+
+::ng-deep .gridster-item-resizable-handler.handle-s {
+  bottom: 4px !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+}
+
+::ng-deep .gridster-item-resizable-handler.handle-e {
+  right: 4px !important;
+  top: 50% !important;
+  transform: translateY(-50%);
+}
+
+/* ===== Gridster Grid Display (Edit Mode) ===== */
+::ng-deep gridster.gridster--ready.gridster--dragging .gridster-column,
+::ng-deep gridster.gridster--ready.gridster--resizing .gridster-column {
+  border-right: 1px dotted #ccc;
+}
+
+::ng-deep gridster.gridster--ready.gridster--dragging .gridster-row,
+::ng-deep gridster.gridster--ready.gridster--resizing .gridster-row {
+  border-bottom: 1px dotted #ccc;
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 1200px) {
+  .dashboard-container {
+    padding: 16px;
+  }
+
+  .fab-container {
+    bottom: 16px;
+    right: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-right {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .edit-toolbar {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .toolbar-right {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .toolbar-right button {
+    flex: 1;
+  }
+
+  .fab-container {
+    bottom: 12px;
+    right: 12px;
+  }
+
+  /* Stack widgets on mobile */
+  ::ng-deep gridster-item {
+    position: relative !important;
+    height: auto !important;
+    margin-bottom: 16px;
+  }
+}
+
+/* ===== Custom Scrollbar ===== */
+.widget-wrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.widget-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.widget-wrapper::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.widget-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* ===== Transitions ===== */
+.gridster-item-content,
+.drag-handler,
+.remove-btn,
+.fab-container button {
+  transition: all 0.2s ease-in-out;
+}
+
+/* ===== Print Styles ===== */
+@media print {
+  .fab-container,
+  .edit-toolbar,
+  .drag-handler,
+  .remove-btn {
+    display: none !important;
+  }
+
+  .dashboard-container {
+    padding: 0;
+  }
+
+  .gridster-item-content {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

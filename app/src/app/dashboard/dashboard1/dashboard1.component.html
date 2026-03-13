@@ -23,85 +23,75 @@
     </div>
   </div>
 
-  <div class="dashboard-grid">
-    <!-- Summary Cards -->
-    <mat-card class="dashboard-card">
-      <mat-card-header>
-        <mat-icon class="card-icon">hotel</mat-icon>
-        <mat-card-title>Total Properties</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="card-value">0</div>
-        <div class="card-description">Active properties</div>
-      </mat-card-content>
-    </mat-card>
+  <!-- Loading Spinner -->
+  @if (loading) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>Loading dashboard...</p>
+    </div>
+  }
 
-    <mat-card class="dashboard-card">
-      <mat-card-header>
-        <mat-icon class="card-icon">meeting_room</mat-icon>
-        <mat-card-title>Total Rooms</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="card-value">0</div>
-        <div class="card-description">Available rooms</div>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="dashboard-card">
-      <mat-card-header>
-        <mat-icon class="card-icon">event_available</mat-icon>
-        <mat-card-title>Bookings Today</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="card-value">0</div>
-        <div class="card-description">Check-ins/Check-outs</div>
-      </mat-card-content>
-    </mat-card>
-
-    <mat-card class="dashboard-card">
-      <mat-card-header>
-        <mat-icon class="card-icon">people</mat-icon>
-        <mat-card-title>Occupancy Rate</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="card-value">0%</div>
-        <div class="card-description">Current occupancy</div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-
-  <div class="dashboard-section">
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>Quick Actions</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="quick-actions">
-          <button mat-raised-button color="primary">
-            <mat-icon>add</mat-icon>
-            New Booking
-          </button>
-          <button mat-raised-button color="accent">
-            <mat-icon>event</mat-icon>
-            View Calendar
-          </button>
-          <button mat-raised-button>
-            <mat-icon>assessment</mat-icon>
-            View Reports
-          </button>
+  <!-- Dashboard Widgets -->
+  @if (!loading) {
+    <!-- KPI Cards Grid -->
+    @if (kpiCards.length > 0) {
+      <div class="widget-section">
+        <h2 class="section-title">Key Metrics</h2>
+        <div class="dashboard-grid">
+          @for (card of kpiCards; track card.title) {
+            <app-kpi-card-widget [data]="card"></app-kpi-card-widget>
+          }
         </div>
-      </mat-card-content>
-    </mat-card>
-  </div>
+      </div>
+    }
 
-  <div class="dashboard-section">
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>Recent Activity</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <p class="no-data">No recent activity to display</p>
-      </mat-card-content>
-    </mat-card>
-  </div>
+    <!-- Charts Section -->
+    @if (chartWidgets.length > 0) {
+      <div class="widget-section">
+        <h2 class="section-title">Analytics</h2>
+        <div class="dashboard-grid chart-grid">
+          @for (chart of chartWidgets; track chart.title) {
+            <app-chart-widget [data]="chart"></app-chart-widget>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Two Column Layout: List + Calendar -->
+    <div class="two-column-layout">
+      <!-- List Widgets -->
+      @if (listWidgets.length > 0) {
+        <div class="widget-section">
+          <h2 class="section-title">Activity Feed</h2>
+          @for (list of listWidgets; track list.title) {
+            <app-list-widget [data]="list"></app-list-widget>
+          }
+        </div>
+      }
+
+      <!-- Calendar Widgets -->
+      @if (calendarWidgets.length > 0) {
+        <div class="widget-section">
+          <h2 class="section-title">Calendar</h2>
+          @for (calendar of calendarWidgets; track calendar.title) {
+            <app-calendar-widget [data]="calendar"></app-calendar-widget>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Empty State -->
+    @if (kpiCards.length === 0 && listWidgets.length === 0 && chartWidgets.length === 0 && calendarWidgets.length === 0) {
+      <div class="empty-state">
+        <mat-icon>dashboard_customize</mat-icon>
+        <h2>No Dashboard Configured</h2>
+        <p>Start customizing your dashboard by adding widgets</p>
+        <button mat-raised-button color="primary">
+          <mat-icon>add</mat-icon>
+          Add Widgets
+        </button>
+      </div>
+    }
+  }
 </div>
+

@@ -188,8 +188,10 @@
       <mat-spinner diameter="20" style="display: inline-block; margin-right: 8px;"></mat-spinner>
       Saving...
     } @else {
-      <mat-icon>{{ data.mode === 'add' ? 'add' : 'save' }}</mat-icon>
-      {{ submitButtonText }}
+      <ng-container>
+        <mat-icon>{{ data.mode === 'add' ? 'add' : 'save' }}</mat-icon>
+        {{ submitButtonText }}
+      </ng-container>
     }
   </button>
 </mat-dialog-actions>

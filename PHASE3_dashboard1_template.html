@@ -1,0 +1,170 @@
+<!-- Phase 3: Gridster-Enabled Dashboard Template -->
+<div class="dashboard-container" [class.edit-mode]="editMode">
+  
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-left">
+      <h1>
+        <mat-icon>dashboard</mat-icon>
+        Dashboard
+      </h1>
+      <p class="dashboard-subtitle">
+        {{ editMode ? 'Customize your dashboard' : 'Welcome to your property management dashboard' }}
+      </p>
+    </div>
+
+    <div class="header-right">
+      @if (!editMode) {
+        <mat-form-field appearance="outline" class="dashboard-selector">
+          <mat-label>Dashboard Type</mat-label>
+          <mat-select [(value)]="selectedDashboard" (selectionChange)="onDashboardChange($event)">
+            @for (dashboard of dashboardTypes; track dashboard.value) {
+              <mat-option [value]="dashboard.value">
+                <mat-icon>{{ dashboard.icon }}</mat-icon>
+                {{ dashboard.label }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+    </div>
+  </div>
+
+  <!-- Edit Mode Toolbar -->
+  @if (editMode) {
+    <div class="edit-toolbar">
+      <div class="toolbar-left">
+        <mat-icon class="edit-icon">edit</mat-icon>
+        <span class="edit-label">Edit Mode</span>
+        @if (hasUnsavedChanges) {
+          <mat-icon class="unsaved-icon" matTooltip="You have unsaved changes">
+            warning
+          </mat-icon>
+        }
+      </div>
+      <div class="toolbar-right">
+        <button mat-stroked-button (click)="cancelEdit()" class="cancel-btn">
+          <mat-icon>close</mat-icon>
+          Cancel
+        </button>
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="saveDashboard()"
+          [disabled]="!hasUnsavedChanges || loading">
+          <mat-icon>save</mat-icon>
+          Save Changes
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Loading Spinner -->
+  @if (loading) {
+    <div class="loading-container">
+      <mat-spinner></mat-spinner>
+      <p>{{ editMode ? 'Saving dashboard...' : 'Loading dashboard...' }}</p>
+    </div>
+  }
+
+  <!-- Gridster Dashboard -->
+  @if (!loading) {
+    <gridster [options]="options" class="gridster-container">
+      @for (item of dashboardItems; track item.widgetId) {
+        <gridster-item [item]="item" (itemChange)="itemChange($event)">
+          <div class="gridster-item-content">
+            
+            <!-- Drag Handle (Edit Mode Only) -->
+            @if (editMode) {
+              <div class="drag-handler" matTooltip="Drag to move">
+                <mat-icon>drag_indicator</mat-icon>
+              </div>
+            }
+
+            <!-- Remove Button (Edit Mode Only) -->
+            @if (editMode) {
+              <button 
+                mat-icon-button 
+                class="remove-btn"
+                (click)="removeWidget(item)"
+                matTooltip="Remove widget">
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+
+            <!-- Widget Content -->
+            <div class="widget-wrapper">
+              @switch (item.widgetType) {
+                @case ('kpi-card') {
+                  <app-kpi-card-widget [data]="item.data"></app-kpi-card-widget>
+                }
+                @case ('chart') {
+                  <app-chart-widget [data]="item.data"></app-chart-widget>
+                }
+                @case ('list') {
+                  <app-list-widget [data]="item.data"></app-list-widget>
+                }
+                @case ('calendar') {
+                  <app-calendar-widget [data]="item.data"></app-calendar-widget>
+                }
+                @default {
+                  <mat-card>
+                    <mat-card-content>
+                      <p>Unknown widget type: {{ item.widgetType }}</p>
+                    </mat-card-content>
+                  </mat-card>
+                }
+              }
+            </div>
+
+          </div>
+        </gridster-item>
+      }
+    </gridster>
+
+    <!-- Empty State -->
+    @if (dashboardItems.length === 0) {
+      <div class="empty-state">
+        <mat-icon>dashboard_customize</mat-icon>
+        <h2>No Widgets Yet</h2>
+        <p>{{ editMode ? 'Click the + button to add your first widget' : 'Enable edit mode to customize your dashboard' }}</p>
+        @if (!editMode) {
+          <button mat-raised-button color="primary" (click)="toggleEditMode()">
+            <mat-icon>edit</mat-icon>
+            Customize Dashboard
+          </button>
+        }
+      </div>
+    }
+  }
+
+  <!-- Floating Action Buttons -->
+  <div class="fab-container">
+    @if (!editMode) {
+      <!-- Edit Mode FAB -->
+      <button 
+        mat-fab 
+        color="primary" 
+        (click)="toggleEditMode()"
+        matTooltip="Customize Dashboard"
+        matTooltipPosition="left"
+        class="edit-fab">
+        <mat-icon>edit</mat-icon>
+      </button>
+    }
+
+    @if (editMode) {
+      <!-- Add Widget FAB -->
+      <button 
+        mat-fab 
+        color="accent" 
+        (click)="openWidgetPicker()"
+        matTooltip="Add Widget"
+        matTooltipPosition="left"
+        class="add-widget-fab">
+        <mat-icon>add</mat-icon>
+      </button>
+    }
+  </div>
+
+</div>
