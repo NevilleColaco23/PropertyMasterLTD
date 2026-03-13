@@ -42,8 +42,8 @@ namespace MyWarehouse.Infrastructure.Services
                 UserId = userId,
                 Username = username ?? userId.ToString(),
                 Timestamp = DateTime.UtcNow,
-                OldValue = JsonSerializer.Serialize(oldValue, new JsonSerializerOptions { WriteIndented = true }),
-                NewValue = JsonSerializer.Serialize(newValue, new JsonSerializerOptions { WriteIndented = true })
+                OldValue = oldValue != null ? JsonSerializer.Serialize(oldValue, new JsonSerializerOptions { WriteIndented = true }) : null,
+                NewValue = newValue != null ? JsonSerializer.Serialize(newValue, new JsonSerializerOptions { WriteIndented = true }) : null
             };
 
             await _unitOfWork.AuditLogs.Add(auditLog);
@@ -60,7 +60,7 @@ namespace MyWarehouse.Infrastructure.Services
                 UserId = userId,
                 Username = username ?? userId.ToString(),
                 Timestamp = DateTime.UtcNow,
-                OldValue = JsonSerializer.Serialize(oldValue, new JsonSerializerOptions { WriteIndented = true }),
+                OldValue = oldValue != null ? JsonSerializer.Serialize(oldValue, new JsonSerializerOptions { WriteIndented = true }) : null,
                 NewValue = null
             };
 

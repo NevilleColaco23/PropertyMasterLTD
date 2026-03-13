@@ -39,6 +39,7 @@ internal class UnitOfWork : IUnitOfWork
         Bookings = bookings;
         SystemMessages = systemMessages;
         EmailOutbox = emailOutbox;
+        AuditLogs = auditLogs;
     }
 
     public void Dispose()

@@ -20,17 +20,22 @@ namespace MyWarehouse.Application.Common.MenuPermissions
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IAuditService _auditService;
 
-        public UpdateMenuPermissionCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public UpdateMenuPermissionCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IAuditService auditService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _auditService = auditService;
         }
 
         public async Task<Unit> Handle(UpdateMenuPermissionCommand request, CancellationToken cancellationToken)
         {
             // Get current user ID
             var currentUserId = int.TryParse(_currentUserService.UserId, out var userId) ? userId : 0;
+
+            // Get old value for audit trail
+            var oldPermission = await _unitOfWork.MenuPermissions.GetByIdAsync(request.Id);
 
             var menuPermission = new MenusPermissions
             {
@@ -47,6 +52,15 @@ namespace MyWarehouse.Application.Common.MenuPermissions
 
             await _unitOfWork.MenuPermissions.Update(menuPermission, cancellationToken);
             await _unitOfWork.SaveChanges();
+
+            // Log the update operation to audit trail (even if oldPermission is null)
+            await _auditService.LogUpdate(
+                "MenuPermissions",
+                request.Id,
+                oldPermission,
+                menuPermission,
+                currentUserId
+            );
 
             return Unit.Value;
         }

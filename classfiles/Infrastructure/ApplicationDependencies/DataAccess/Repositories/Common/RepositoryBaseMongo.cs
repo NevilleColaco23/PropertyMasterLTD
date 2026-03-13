@@ -32,9 +32,10 @@ public abstract class RepositoryBaseMongo<TDocument, TId> : IRepository<TDocumen
     }
 
     // Implement other IRepository<TDocument> methods specifically for MongoDB...
-    public Task<TDocument?> GetByIdAsync(TId id)
+    public async Task<TDocument?> GetByIdAsync(TId id)
     {
-        throw new NotImplementedException();
+        var filter = Builders<TDocument>.Filter.Eq(x => x.Id, id);
+        return await Collection.Find(filter).FirstOrDefaultAsync();
     }
 
     public Task<IEnumerable<TDocument>> GetFiltered(Expression<Func<TDocument, bool>> filter, bool readOnly = false)
@@ -104,9 +105,15 @@ public abstract class RepositoryBaseMongo<TDocument, TId> : IRepository<TDocumen
         throw new NotImplementedException();
     }
 
-    public void Remove(TDocument entity)
+    public async void Remove(TDocument entity)
     {
-        throw new NotImplementedException();
+        if (entity == null)
+        {
+            throw new ArgumentNullException(nameof(entity));
+        }
+
+        var filter = Builders<TDocument>.Filter.Eq(x => x.Id, entity.Id);
+        await Collection.DeleteOneAsync(filter);
     }
 
     public void RemoveRange(IEnumerable<TDocument> entities)
