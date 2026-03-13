@@ -29,6 +29,10 @@
             <mat-icon>cancel</mat-icon>
             Inactive: {{ getInactiveCount() }}
           </mat-chip>
+          <mat-chip class="stat-chip stat-chip--deleted">
+            <mat-icon>delete</mat-icon>
+            Deleted: {{ getDeletedCount() }}
+          </mat-chip>
         </div>
       </div>
     </mat-card-content>
@@ -58,6 +62,7 @@
             <option value="all">All Status</option>
             <option value="active">Active Only</option>
             <option value="inactive">Inactive Only</option>
+            <option value="deleted">Deleted Only</option>
           </select>
         </mat-form-field>
 
@@ -120,6 +125,7 @@
                 mat-icon-button 
                 color="primary" 
                 (click)="editProperty(property)"
+                [disabled]="property.isDeleted"
                 matTooltip="Edit Property">
                 <mat-icon>edit</mat-icon>
               </button>
@@ -127,22 +133,31 @@
                 mat-icon-button 
                 color="warn" 
                 (click)="deleteProperty(property)"
+                [disabled]="property.isDeleted"
                 matTooltip="Delete Property">
                 <mat-icon>delete</mat-icon>
+              </button>
+              <button 
+                mat-icon-button 
+                color="accent" 
+                (click)="reinitiateProperty(property)"
+                [disabled]="!property.isDeleted"
+                matTooltip="Reinitiate Property">
+                <mat-icon>restore</mat-icon>
               </button>
             </div>
           </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" [ngClass]="getRowClass(row)"></tr>
 
         <tr class="mat-row" *matNoDataRow>
           <td class="mat-cell" [attr.colspan]="displayedColumns.length">
             <div class="no-data">
               <mat-icon>inventory_2</mat-icon>
               <p>No properties found</p>
-              @if (searchText || statusFilter !== 'all') {
+              @if (searchText || statusFilter !== 'active') {
                 <button mat-button color="primary" (click)="resetFilters()">Clear Filters</button>
               } @else {
                 <button mat-raised-button color="primary" (click)="openAddDialog()">Add First Property</button>

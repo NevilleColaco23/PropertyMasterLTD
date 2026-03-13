@@ -17,7 +17,8 @@ public class GetAllPropertiesMongoQuery : INamedQuery
     {
         return new BsonArray
         {
-            // Simple projection - no filtering, returns ALL properties
+            // Return ALL properties including deleted ones for Property Master admin page
+            // The frontend will handle filtering by status (active/inactive/deleted)
             new BsonDocument(MongoStages.PROJECT, new BsonDocument
             {
                 { "_id", 1 },
@@ -37,6 +38,9 @@ public class GetAllPropertiesMongoQuery : INamedQuery
                 { "CreatedBy", 1 },
                 { "UpdatedAt", 1 },
                 { "UpdatedBy", 1 },
+                { "IsDeleted", 1 },
+                { "DeletedAt", 1 },
+                { "DeletedBy", 1 },
                 { "AccessList", 1 }
             })
         };

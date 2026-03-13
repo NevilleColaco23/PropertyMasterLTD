@@ -25,6 +25,9 @@ internal static class Startup
         services.AddScoped<IPartnerRepository, PartnerRepositoryEf>();
         services.AddScoped<ITransactionRepository, TransactionRepositoryEf>();
         services.AddScoped<IPropertyRepository, PropertyRepositoryMongo>();
+        services.AddScoped<IRoomRepository, RoomRepositoryMongo>();
+        services.AddScoped<IPropertyAuditRepository, PropertyAuditRepositoryMongo>();
+        services.AddScoped<IRoomAuditRepository, RoomAuditRepositoryMongo>();
         services.AddScoped<IUsersRepository, UsersRepositoryMongo>();
         services.AddScoped<IAccessLogRepository, AccessLogRepositoryMongo>();
         services.AddScoped<IMenuRepository, MenuRepositoryMongo>();

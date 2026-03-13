@@ -30,6 +30,9 @@ interface Property {
   updatedBy?: number;
   companyLogoURL?: string;
   rooms?: RoomData[];
+  isDeleted?: boolean;
+  deletedAt?: Date;
+  deletedBy?: number;
 }
 
 interface RoomData {
@@ -73,9 +76,10 @@ export class PropertyMasterComponent implements OnInit, AfterViewInit {
 
   displayedColumns: string[] = ['id', 'name', 'isActive', 'createdAt', 'actions'];
   dataSource = new MatTableDataSource<Property>([]);
+  allProperties: Property[] = []; // Store original unfiltered data
 
   searchText: string = '';
-  statusFilter: string = 'all';
+  statusFilter: string = 'active'; // Default to 'active' to show only active properties
   isLoading: boolean = false;
   totalCount: number = 0;
   pageSize: number = 25;
@@ -109,25 +113,33 @@ export class PropertyMasterComponent implements OnInit, AfterViewInit {
         console.log('Properties from API:', properties);
 
         const mapped = properties.map((p: any) => {
-          console.log('Property object:', p);
-          console.log('p.active:', p.active);
-          console.log('p.Active:', p.Active);
-          console.log('p.isActive:', p.isActive);
+          console.log('=== Property mapping ===');
+          console.log('Full property object:', p);
+          console.log('Active field - p.active:', p.active, 'p.Active:', p.Active);
+          console.log('IsDeleted field - p.isDeleted:', p.isDeleted, 'p.IsDeleted:', p.IsDeleted);
 
-          return {
-            id: p.id || p.Id,
-            name: p.name || p.Name,
-            isActive: p.active ?? p.Active ?? false,
-            createdAt: p.createdAt || p.CreatedAt,
-            createdBy: p.createdBy || p.CreatedBy,
-            updatedAt: p.updatedAt || p.UpdatedAt,
-            updatedBy: p.updatedBy || p.UpdatedBy,
-            companyLogoURL: p.companyLogoURL || p.CompanyLogoURL || p.companyLogo || p.CompanyLogo,
-            rooms: p.rooms || p.Rooms || []
+          // API returns camelCase due to JsonNamingPolicy.CamelCase in ApiStartup.cs
+          const mappedProp = {
+            id: p.id ?? p.Id,
+            name: p.name ?? p.Name,
+            isActive: p.active ?? p.Active ?? false, // API returns 'active' (camelCase)
+            createdAt: p.createdAt ?? p.CreatedAt,
+            createdBy: p.createdBy ?? p.CreatedBy,
+            updatedAt: p.updatedAt ?? p.UpdatedAt,
+            updatedBy: p.updatedBy ?? p.UpdatedBy,
+            companyLogoURL: p.companyLogo ?? p.companyLogoURL ?? p.CompanyLogoURL ?? p.CompanyLogo ?? '',
+            rooms: p.rooms ?? p.Rooms ?? [],
+            isDeleted: p.isDeleted ?? p.IsDeleted ?? false, // API returns 'isDeleted' (camelCase)
+            deletedAt: p.deletedAt ?? p.DeletedAt ?? null,
+            deletedBy: p.deletedBy ?? p.DeletedBy ?? null
           };
+
+          console.log('Mapped to:', mappedProp);
+          console.log('========================');
+          return mappedProp;
         });
 
-        console.log('Mapped properties:', mapped);
+        console.log('All mapped properties:', mapped);
         return mapped;
       }),
       catchError(err => {
@@ -140,22 +152,34 @@ export class PropertyMasterComponent implements OnInit, AfterViewInit {
         this.cdr.detectChanges();
       })
     ).subscribe(properties => {
-      this.dataSource.data = properties;
-      this.totalCount = properties.length;
+      this.allProperties = properties;
       this.applyFilters();
     });
   }
 
   applyFilters(): void {
-    let filtered = [...this.dataSource.data];
+    let filtered = [...this.allProperties];
 
-    // Status Filter
-    if (this.statusFilter !== 'all') {
-      const isActive = this.statusFilter === 'active';
-      filtered = filtered.filter(p => p.isActive === isActive);
+    // Apply status filters
+    if (this.statusFilter === 'deleted') {
+      // Show only deleted properties
+      filtered = filtered.filter(p => p.isDeleted === true);
+    } else if (this.statusFilter === 'all') {
+      // Show ALL properties (active, inactive, and deleted)
+      // No filtering needed - keep all properties
+    } else {
+      // For active/inactive filters, exclude deleted properties first
+      filtered = filtered.filter(p => !p.isDeleted);
+
+      // Then apply active/inactive filter
+      if (this.statusFilter === 'active') {
+        filtered = filtered.filter(p => p.isActive === true);
+      } else if (this.statusFilter === 'inactive') {
+        filtered = filtered.filter(p => p.isActive === false);
+      }
     }
 
-    // Search
+    // Search filter
     if (this.searchText) {
       const search = this.searchText.toLowerCase();
       filtered = filtered.filter(p => 
@@ -178,9 +202,13 @@ export class PropertyMasterComponent implements OnInit, AfterViewInit {
   }
 
   resetFilters(): void {
-    this.statusFilter = 'all';
+    this.statusFilter = 'active'; // Reset to 'active' instead of 'all'
     this.searchText = '';
     this.applyFilters();
+  }
+
+  getRowClass(property: Property): string {
+    return property.isDeleted ? 'deleted-row' : '';
   }
 
   getStatusClass(property: Property): string {
@@ -323,11 +351,60 @@ export class PropertyMasterComponent implements OnInit, AfterViewInit {
     });
   }
 
+  reinitiateProperty(property: Property): void {
+    if (!property.isDeleted) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to reinitiate property "${property.name}"?`)) {
+      return;
+    }
+
+    this.isLoading = true;
+    this.cdr.detectChanges();
+
+    // Create a payload to mark the property as not deleted
+    const payload = {
+      id: property.id,
+      name: property.name,
+      isActive: property.isActive,
+      companyLogoURL: property.companyLogoURL || '',
+      rooms: property.rooms || [],
+      isDeleted: false,
+      deletedAt: null,
+      deletedBy: null
+    };
+
+    this.http.put(`${this.pathAPI}/property/${property.id}`, payload).pipe(
+      catchError(err => {
+        this.errorHandling.handleError(err);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        return of(null);
+      })
+    ).subscribe(response => {
+      if (response === null) {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        return;
+      }
+
+      this.errorHandling.handleSuccess('Property reinitiated successfully');
+      setTimeout(() => {
+        this.loadProperties();
+      }, 300);
+    });
+  }
+
   getActiveCount(): number {
-    return this.dataSource.data.filter(p => p.isActive).length;
+    return this.allProperties.filter(p => p.isActive && !p.isDeleted).length;
   }
 
   getInactiveCount(): number {
-    return this.dataSource.data.filter(p => !p.isActive).length;
+    return this.allProperties.filter(p => !p.isActive && !p.isDeleted).length;
+  }
+
+  getDeletedCount(): number {
+    return this.allProperties.filter(p => p.isDeleted).length;
   }
 }

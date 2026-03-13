@@ -8,6 +8,9 @@ public interface IUnitOfWork : IDisposable
     public IProductRepository Products { get; }
     public ITransactionRepository Transactions { get; }
     public IPropertyRepository? Properties { get; }
+    public IRoomRepository? Rooms { get; }
+    public IPropertyAuditRepository? PropertyAudits { get; }
+    public IRoomAuditRepository? RoomAudits { get; }
     public IUsersRepository? Users { get; }
     public IAccessLogRepository? AccessLogs { get; }
     public IMenuRepository? Menus { get; }

@@ -14,6 +14,9 @@ public class GetPropertyDto : IMapFrom<Domain.Property.Property>
     public int CreatedBy { get; init; }
     public DateTime? UpdatedAt { get; init; }
     public int? UpdatedBy { get; init; }
+    public bool IsDeleted { get; init; }
+    public DateTime? DeletedAt { get; init; }
+    public int? DeletedBy { get; init; }
 
     public GetPropertyDto() { }
 
@@ -27,6 +30,9 @@ public class GetPropertyDto : IMapFrom<Domain.Property.Property>
             .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy))
             .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt))
             .ForMember(dest => dest.UpdatedBy, opt => opt.MapFrom(src => src.UpdatedBy))
+            .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => src.IsDeleted))
+            .ForMember(dest => dest.DeletedAt, opt => opt.MapFrom(src => src.DeletedAt))
+            .ForMember(dest => dest.DeletedBy, opt => opt.MapFrom(src => src.DeletedBy))
             .ForMember(dest => dest.Rooms, opt => opt.MapFrom(src => src.Rooms));
 
         profile.CreateMap<Domain.Property.Property.Room, RoomDto>();

@@ -15,6 +15,9 @@ internal class UnitOfWork : IUnitOfWork
     public IProductRepository Products { get; }
     public ITransactionRepository Transactions { get; }
     public IPropertyRepository Properties { get; }
+    public IRoomRepository Rooms { get; }
+    public IPropertyAuditRepository PropertyAudits { get; }
+    public IRoomAuditRepository RoomAudits { get; }
     public IUsersRepository Users { get; }
     public IAccessLogRepository AccessLogs { get; }
     public IMenuRepository Menus { get; }
@@ -24,7 +27,7 @@ internal class UnitOfWork : IUnitOfWork
     public IEmailOutboxRepository EmailOutbox { get; }
     public IAuditLogRepository AuditLogs { get; }
 
-    public UnitOfWork(ApplicationDbContext dbContext, IPartnerRepository partners, IProductRepository products, ITransactionRepository transactions, IPropertyRepository properties
+    public UnitOfWork(ApplicationDbContext dbContext, IPartnerRepository partners, IProductRepository products, ITransactionRepository transactions, IPropertyRepository properties, IRoomRepository rooms, IPropertyAuditRepository propertyAudits, IRoomAuditRepository roomAudits
         , IAccessLogRepository accessLogs, IUsersRepository users, IMenuRepository menus, IMenuPermissionRepository menusPermissions, IBookingsRepository bookings, ISystemMessagesRepository systemMessages, IEmailOutboxRepository emailOutbox, IAuditLogRepository auditLogs)
     {
         _dbContext = dbContext;
@@ -32,6 +35,9 @@ internal class UnitOfWork : IUnitOfWork
         Products = products;
         Transactions = transactions;
         Properties = properties;
+        Rooms = rooms;
+        PropertyAudits = propertyAudits;
+        RoomAudits = roomAudits;
         AccessLogs = accessLogs;
         Users = users;
         Menus = menus;

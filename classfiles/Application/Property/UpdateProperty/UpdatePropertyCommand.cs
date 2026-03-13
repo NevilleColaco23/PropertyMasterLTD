@@ -81,6 +81,56 @@ public class UpdatePropertyCommandHandler : IRequestHandler<UpdatePropertyComman
         await _unitOfWork.Properties.Update(updatedProperty, cancellationToken);
         await _unitOfWork.SaveChanges();
 
+        // Get existing rooms from the room collection
+        var existingRooms = await _unitOfWork.Rooms.GetRoomsByPropertyIdAsync(request.Id);
+
+        // Update or create rooms in the separate room collection
+        foreach (var roomDto in request.Rooms)
+        {
+            var existingRoom = existingRooms.FirstOrDefault(r => r.Id == roomDto.Id);
+
+            if (existingRoom != null)
+            {
+                // Update existing room
+                existingRoom.RoomCode = roomDto.RoomCode;
+                existingRoom.RoomName = roomDto.RoomName;
+                existingRoom.Active = roomDto.Active;
+                existingRoom.CompanyLogoURL = roomDto.CompanyLogoURL;
+                existingRoom.UpdatedAt = DateTime.UtcNow;
+                existingRoom.UpdatedBy = currentUserId;
+
+                await _unitOfWork.Rooms.Update(existingRoom, cancellationToken);
+            }
+            else
+            {
+                // Create new room
+                var newRoom = new Domain.Property.Room(
+                    propertyId: request.Id,
+                    roomCode: roomDto.RoomCode,
+                    roomName: roomDto.RoomName,
+                    isActive: roomDto.Active,
+                    companyLogoURL: roomDto.CompanyLogoURL
+                )
+                {
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = currentUserId
+                };
+
+                await _unitOfWork.Rooms.Add(newRoom, cancellationToken);
+            }
+        }
+
+        // Delete rooms that are no longer in the request
+        var roomIdsToKeep = request.Rooms.Select(r => r.Id).ToList();
+        var roomsToDelete = existingRooms.Where(r => !roomIdsToKeep.Contains(r.Id)).ToList();
+
+        foreach (var roomToDelete in roomsToDelete)
+        {
+            _unitOfWork.Rooms.Remove(roomToDelete);
+        }
+
+        await _unitOfWork.SaveChanges();
+
         // Log the update operation to audit trail
         await _auditService.LogUpdate(
             "Properties",

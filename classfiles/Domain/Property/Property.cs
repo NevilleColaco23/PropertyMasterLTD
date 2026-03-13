@@ -24,6 +24,11 @@ namespace MyWarehouse.Domain.Property
         public DateTime? UpdatedAt { get; set; }
         public int? UpdatedBy { get; set; }
 
+        // Soft delete fields
+        public bool IsDeleted { get; set; }
+        public DateTime? DeletedAt { get; set; }
+        public int? DeletedBy { get; set; }
+
         public Property(string name,bool isActive, List<Room> rooms)
         {
             Name = name;

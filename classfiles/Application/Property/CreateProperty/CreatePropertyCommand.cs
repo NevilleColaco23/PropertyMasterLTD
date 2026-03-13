@@ -50,19 +50,25 @@ public class CreatePropertyCommandHandler : IRequestHandler<CreatePropertyComman
             throw new InvalidOperationException("At least one room must be added to the property.");
         }
 
-        // Map RoomDto to Domain.Property.Room
-        var rooms = request.Rooms.Select(r => new Domain.Property.Property.Room(
+        // Verify Rooms repository is available
+        if (_unitOfWork.Rooms == null)
+        {
+            throw new InvalidOperationException("Rooms repository is not available in UnitOfWork.");
+        }
+
+        // First, create a temporary property to get the property ID
+        var tempRooms = request.Rooms.Select(r => new Domain.Property.Property.Room(
             roomCode: r.RoomCode,
             roomName: r.RoomName,
             isActive: r.Active,
-            id: r.Id,
+            id: 0, // Temporary ID, will be updated
             companyLogoURL: r.CompanyLogoURL
         )).ToList();
 
         var property = new Domain.Property.Property(
             name: request.Name.Trim(),
             isActive: request.IsActive,
-            rooms: rooms
+            rooms: tempRooms
         )
         {
             CompanyLogoURL = request.CompanyLogoURL ?? string.Empty,
@@ -70,14 +76,67 @@ public class CreatePropertyCommandHandler : IRequestHandler<CreatePropertyComman
             CreatedBy = currentUserId
         };
 
-        _unitOfWork.Properties?.Add(property);
+        await _unitOfWork.Properties.Add(property, cancellationToken);
+        await _unitOfWork.SaveChanges();
+
+        // Now save rooms to separate collection and get their IDs
+        var savedRooms = new List<Domain.Property.Room>();
+        foreach (var roomDto in request.Rooms)
+        {
+            var room = new Domain.Property.Room(
+                propertyId: property.Id,
+                roomCode: roomDto.RoomCode,
+                roomName: roomDto.RoomName,
+                isActive: roomDto.Active,
+                companyLogoURL: roomDto.CompanyLogoURL
+            )
+            {
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = currentUserId
+            };
+
+            var addedRoom = await _unitOfWork.Rooms.Add(room, cancellationToken);
+
+            if (addedRoom == null)
+            {
+                throw new InvalidOperationException($"Failed to add room '{roomDto.RoomName}' to collection.");
+            }
+
+            savedRooms.Add(addedRoom);
+        }
+
+        await _unitOfWork.SaveChanges();
+
+        // Update property with correct room IDs from the separate collection
+        var roomsWithCorrectIds = savedRooms.Select(r => new Domain.Property.Property.Room(
+            roomCode: r.RoomCode,
+            roomName: r.RoomName,
+            isActive: r.Active,
+            id: r.Id, // Use the ID from the separate Room collection
+            companyLogoURL: r.CompanyLogoURL
+        )).ToList();
+
+        var updatedProperty = new Domain.Property.Property(
+            name: property.Name,
+            isActive: property.Active,
+            rooms: roomsWithCorrectIds
+        )
+        {
+            Id = property.Id,
+            CompanyLogoURL = property.CompanyLogoURL,
+            PropertyCode = property.PropertyCode,
+            CreatedAt = property.CreatedAt,
+            CreatedBy = property.CreatedBy
+        };
+
+        await _unitOfWork.Properties.Update(updatedProperty, cancellationToken);
         await _unitOfWork.SaveChanges();
 
         // Log the create operation to audit trail
         await _auditService.LogCreate(
             "Properties",
             property.Id,
-            property,
+            updatedProperty,
             currentUserId
         );
 
