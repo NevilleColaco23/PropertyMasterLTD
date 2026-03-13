@@ -18,6 +18,12 @@ namespace MyWarehouse.Domain.Property
         public string CompanyLogoURL { get; set; }
         public string PropertyCode { get; set; }
 
+        // Audit fields
+        public DateTime CreatedAt { get; set; }
+        public int CreatedBy { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public int? UpdatedBy { get; set; }
+
         public Property(string name,bool isActive, List<Room> rooms)
         {
             Name = name;
@@ -29,13 +35,13 @@ namespace MyWarehouse.Domain.Property
         public class Room 
         {
             [BsonId]
-            public string Id { get; set; }
+            public int Id { get; set; }
             public string CompanyLogoURL { get; }
             public string RoomCode { get; protected set; }
             public string RoomName { get; protected set; }
             public bool Active { get; protected set; }
 
-            public Room(string roomCode, string roomName, bool isActive, string id, string companyLogoURL)
+            public Room(string roomCode, string roomName, bool isActive, int id, string companyLogoURL)
             {
                 RoomCode = roomCode;
                 RoomName = roomName;

@@ -6,8 +6,14 @@ public class GetPropertyDto : IMapFrom<Domain.Property.Property>
 {
     public int Id { get; init; }
     public string Name { get; init; }
+    public bool Active { get; init; }
     public List<RoomDto> Rooms { get; init; }
     public string CompanyLogo { get; init; }
+    public string PropertyCode { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public int CreatedBy { get; init; }
+    public DateTime? UpdatedAt { get; init; }
+    public int? UpdatedBy { get; init; }
 
     public GetPropertyDto() { }
 
@@ -15,6 +21,12 @@ public class GetPropertyDto : IMapFrom<Domain.Property.Property>
     {
         profile.CreateMap<Domain.Property.Property, GetPropertyDto>()
             .ForMember(dest => dest.CompanyLogo, opt => opt.MapFrom(src => src.CompanyLogoURL))
+            .ForMember(dest => dest.Active, opt => opt.MapFrom(src => src.Active))
+            .ForMember(dest => dest.PropertyCode, opt => opt.MapFrom(src => src.PropertyCode))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+            .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt))
+            .ForMember(dest => dest.UpdatedBy, opt => opt.MapFrom(src => src.UpdatedBy))
             .ForMember(dest => dest.Rooms, opt => opt.MapFrom(src => src.Rooms));
 
         profile.CreateMap<Domain.Property.Property.Room, RoomDto>();
@@ -23,7 +35,7 @@ public class GetPropertyDto : IMapFrom<Domain.Property.Property>
 
 public class RoomDto
 {
-    public string Id { get; set; }
+    public int Id { get; set; }
     public string CompanyLogoURL { get; set; }
     public string RoomCode { get; set; }
     public string RoomName { get; set; }

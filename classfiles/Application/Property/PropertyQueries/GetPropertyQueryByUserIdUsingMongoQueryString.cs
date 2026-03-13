@@ -5,25 +5,29 @@ using MyWarehouse.Application.Common.Dependencies.DataAccess;
 
 namespace MyWarehouse.Application.Property.PropertyQueries;
 
+/// <summary>
+/// Returns ONLY properties the user has access to based on User.PropertyAccessList
+/// Used by: Property Selector (user selecting which property to work with)
+/// </summary>
 public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
 {
-    private readonly int _propertyId;
+    private readonly int _userId;
     private readonly string _filterString;
 
-    public GetPropertyQueryByUserIdUsingMongoQueryString(int propertyid, string filterString)
+    public GetPropertyQueryByUserIdUsingMongoQueryString(int userId, string filterString)
     {
         _filterString = filterString;
-        _propertyId = propertyid;
+        _userId = userId;
     }
 
-    public BsonArray? BsonPipeline => string.IsNullOrEmpty(_filterString) ? GetPropertyListPipeline(_propertyId)
+    public BsonArray? BsonPipeline => string.IsNullOrEmpty(_filterString) ? GetUserAccessiblePropertiesPipeline(_userId)
         : null;
 
-    private BsonArray? GetPropertyListPipeline(int userId)
+    private BsonArray GetUserAccessiblePropertiesPipeline(int userId)
     {
         return new BsonArray
         {
-            // STEP 1: Lookup Users collection to get user's PropertyAccessList
+            // STEP 1: Lookup the User to get their PropertyAccessList
             new BsonDocument(MongoStages.LOOKUP, new BsonDocument
             {
                 { MongoStages.FROM, "Users" },
@@ -32,7 +36,7 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
                     {
                         new BsonDocument(MongoStages.MATCH, new BsonDocument
                         {
-                            { "_id", userId }  // Match the current user
+                            { "_id", userId }
                         }),
                         new BsonDocument(MongoStages.PROJECT, new BsonDocument
                         {
@@ -41,7 +45,7 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
                                     "$$propertyId", 
                                     new BsonDocument("$map", new BsonDocument
                                     {
-                                        { "input", "$PropertyAccessList" },
+                                        { "input", new BsonDocument("$ifNull", new BsonArray { "$PropertyAccessList", new BsonArray() }) },
                                         { "as", "pa" },
                                         { "in", "$$pa.Id" }
                                     })
@@ -60,26 +64,32 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
                 { "preserveNullAndEmptyArrays", false }
             }),
 
-            // STEP 3: Match only properties where user has access
+            // STEP 3: Match ONLY properties where user has access
             new BsonDocument(MongoStages.MATCH, new BsonDocument
             {
                 { "userAccess.hasAccess", true }
             }),
 
-            // STEP 4: Filter active rooms and project fields
+            // STEP 4: Project fields
             new BsonDocument(MongoStages.PROJECT, new BsonDocument
             {
-                { "_id", 1 },  // Include _id field
-                { "Id", "$_id" },  // Also create Id field from _id
+                { "_id", 1 },
+                { "Id", "$_id" },
                 { "Name", 1 },
+                { "Active", 1 },
+                { "PropertyCode", 1 },
                 { "Rooms", new BsonDocument(MongoStages.FILTER, new BsonDocument
                     {
-                        { "input", "$Rooms" },
+                        { "input", new BsonDocument("$ifNull", new BsonArray { "$Rooms", new BsonArray() }) },
                         { "as", "room" },
                         { "cond", new BsonDocument(MongoStages.EQ, new BsonArray { "$$room.Active", true }) }
                     })
                 },
-                { "CompanyLogoURL", 1 }
+                { "CompanyLogoURL", 1 },
+                { "CreatedAt", 1 },
+                { "CreatedBy", 1 },
+                { "UpdatedAt", 1 },
+                { "UpdatedBy", 1 }
             })
         };
     }
@@ -89,16 +99,4 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
     public IReadOnlyList<Common.Dependencies.DataAccess.NamedQueryParameter> Parameters => null;
 
     public string QueryStr => throw new NotImplementedException();
-
-
-    // Uncomment the following if you want to use a string-based query instead of BsonArray
-    //public string QueryStr => string.IsNullOrEmpty(_filterString) ?
-    //$"[{{ $match: {{ _id: {_propertyId} }} }}" +
-    //$"," +
-    //$"{{ $lookup: {{ from: \"Property\", let: {{ propertyIds: {{ $map: {{ input: \"$PropertyAccessList\", as: \"pa\", in: \"$$pa.PropertyID\" }} }} }}, pipeline: [ {{ $match: {{ $expr: {{ $and: [ {{ $in: [\"$_id\", \"$$propertyIds\"] }}, {{ $eq: [\"$Active\", true] }} ] }} }} }}" +
-    //$", {{ $project: {{ _id: 1, Name: 1, Rooms: {{ $filter: {{ input: \"$Rooms\", as: \"room\", cond: {{ $eq: [\"$$room.Active\", true] }} }} }} }} }} ], as: \"PropertyList\" }} }}, {{ $unwind: \"$PropertyList\" }}" +
-    //$", {{ $project: {{ _id: 0, Name: \"$PropertyList.Name\", Id: \"$PropertyList._id\", Rooms: \"$PropertyList.Rooms\" }} }}" +
-    //$"]"
-    //:
-    //$"[{{ \"$match\": {{ $expr: {_filterString} }} }}]";
 }

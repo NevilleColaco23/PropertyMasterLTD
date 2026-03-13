@@ -1,0 +1,162 @@
+<div class="property-master-container">
+  <mat-card class="header-card">
+    <mat-card-header>
+      <mat-card-title>
+        <div class="header-title">
+          <mat-icon class="title-icon">business</mat-icon>
+          <h1>Property Master</h1>
+        </div>
+      </mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="header-actions">
+        <button mat-raised-button color="primary" (click)="openAddDialog()" class="add-button">
+          <mat-icon>add</mat-icon>
+          Add Property
+        </button>
+
+        <div class="stats">
+          <mat-chip class="stat-chip stat-chip--primary">
+            <mat-icon>inventory</mat-icon>
+            Total: {{ totalCount }}
+          </mat-chip>
+          <mat-chip class="stat-chip stat-chip--success">
+            <mat-icon>check_circle</mat-icon>
+            Active: {{ getActiveCount() }}
+          </mat-chip>
+          <mat-chip class="stat-chip stat-chip--inactive">
+            <mat-icon>cancel</mat-icon>
+            Inactive: {{ getInactiveCount() }}
+          </mat-chip>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field class="search-field" appearance="outline">
+          <mat-label>Search Properties</mat-label>
+          <input 
+            matInput 
+            [(ngModel)]="searchText" 
+            (keyup)="filterProperties()"
+            placeholder="Search by name or ID">
+          <mat-icon matSuffix>search</mat-icon>
+          @if (searchText) {
+            <button mat-icon-button matSuffix (click)="clearSearch()" matTooltip="Clear">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="filter-field" appearance="outline">
+          <mat-label>Status</mat-label>
+          <select matNativeControl [(ngModel)]="statusFilter" (change)="filterProperties()">
+            <option value="all">All Status</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+        </mat-form-field>
+
+        <button mat-stroked-button (click)="resetFilters()" class="reset-button">
+          <mat-icon>refresh</mat-icon>
+          Reset Filters
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="table-card">
+    @if (isLoading) {
+      <div class="loading-overlay">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Loading properties...</p>
+      </div>
+    }
+
+    <div class="table-container">
+      <table mat-table [dataSource]="dataSource" matSort class="property-table">
+        
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+          <td mat-cell *matCellDef="let property">{{ property.id }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Property Name</th>
+          <td mat-cell *matCellDef="let property">
+            <div class="property-name">
+              <mat-icon class="property-icon">business</mat-icon>
+              <span class="name-text">{{ property.name }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="isActive">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+          <td mat-cell *matCellDef="let property">
+            <mat-chip [class]="getStatusClass(property)">
+              <mat-icon>{{ getStatusIcon(property) }}</mat-icon>
+              {{ getStatusText(property) }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Created</th>
+          <td mat-cell *matCellDef="let property">
+            {{ property.createdAt | date:'short' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let property">
+            <div class="action-buttons">
+              <button 
+                mat-icon-button 
+                color="primary" 
+                (click)="editProperty(property)"
+                matTooltip="Edit Property">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button 
+                mat-icon-button 
+                color="warn" 
+                (click)="deleteProperty(property)"
+                matTooltip="Delete Property">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+            <div class="no-data">
+              <mat-icon>inventory_2</mat-icon>
+              <p>No properties found</p>
+              @if (searchText || statusFilter !== 'all') {
+                <button mat-button color="primary" (click)="resetFilters()">Clear Filters</button>
+              } @else {
+                <button mat-raised-button color="primary" (click)="openAddDialog()">Add First Property</button>
+              }
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <mat-paginator 
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        [pageSize]="pageSize"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+  </mat-card>
+</div>

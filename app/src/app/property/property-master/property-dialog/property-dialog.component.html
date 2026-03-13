@@ -1,0 +1,158 @@
+<h2 mat-dialog-title>
+  <mat-icon>{{ data.mode === 'add' ? 'add_business' : 'edit' }}</mat-icon>
+  {{ dialogTitle }}
+  <button mat-icon-button class="close-button" (click)="onCancel()" matTooltip="Close">
+    <mat-icon>close</mat-icon>
+  </button>
+</h2>
+
+<mat-dialog-content class="dialog-content-scrollable">
+  <form [formGroup]="propertyForm" class="property-form">
+
+    <!-- Property Name -->
+    <mat-form-field class="full-width" appearance="outline">
+      <mat-label>Property Name</mat-label>
+      <input 
+        matInput 
+        formControlName="name" 
+        placeholder="Enter property name"
+        required>
+      <mat-icon matPrefix>business</mat-icon>
+      @if (propertyForm.get('name')?.invalid && propertyForm.get('name')?.touched) {
+        <mat-error>{{ nameError }}</mat-error>
+      }
+      <mat-hint>The name that identifies this property</mat-hint>
+    </mat-form-field>
+
+    <!-- Company Logo Upload -->
+    <div class="logo-section">
+      <label class="section-label">
+        <mat-icon>image</mat-icon>
+        Company Logo
+      </label>
+
+      <div class="logo-upload-area">
+        @if (logoPreviewUrl) {
+          <div class="logo-preview">
+            <img [src]="logoPreviewUrl" alt="Logo Preview">
+            <button mat-icon-button class="remove-logo-btn" (click)="removeLogo()" matTooltip="Remove logo">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        } @else {
+          <div class="logo-placeholder" (click)="triggerLogoUpload()">
+            <mat-icon>add_photo_alternate</mat-icon>
+            <p>Click to upload logo</p>
+            <span class="hint-text">Max 2MB, JPG/PNG</span>
+          </div>
+        }
+
+        <input 
+          type="file" 
+          id="logoFileInput" 
+          accept="image/*" 
+          (change)="onLogoSelected($event)"
+          style="display: none;">
+
+        <button mat-stroked-button type="button" (click)="triggerLogoUpload()" class="upload-btn">
+          <mat-icon>upload</mat-icon>
+          {{ logoPreviewUrl ? 'Change Logo' : 'Upload Logo' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Rooms Section -->
+    <div class="rooms-section">
+      <label class="section-label">
+        <mat-icon>meeting_room</mat-icon>
+        Rooms
+      </label>
+
+      <!-- Add New Room -->
+      <div class="add-room-form">
+        <mat-form-field class="room-field" appearance="outline">
+          <mat-label>Room Name</mat-label>
+          <input matInput formControlName="newRoomName" placeholder="e.g., Deluxe Suite">
+          <mat-icon matPrefix>door_front</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field class="room-field" appearance="outline">
+          <mat-label>Room Code</mat-label>
+          <input matInput formControlName="newRoomCode" placeholder="e.g., DS101">
+          <mat-icon matPrefix>tag</mat-icon>
+        </mat-form-field>
+
+        <button mat-mini-fab color="primary" type="button" (click)="addRoom()" matTooltip="Add Room">
+          <mat-icon>add</mat-icon>
+        </button>
+      </div>
+
+      <!-- Rooms List -->
+      @if (rooms.length > 0) {
+        <div class="rooms-list">
+          @for (room of rooms; track room.id; let i = $index) {
+            <div class="room-item" [class.room-inactive]="!room.active">
+              <div class="room-info">
+                <mat-icon class="room-icon">meeting_room</mat-icon>
+                <div class="room-details">
+                  <span class="room-name">{{ room.roomName }}</span>
+                  <span class="room-code">{{ room.roomCode }}</span>
+                </div>
+              </div>
+
+              <div class="room-actions">
+                <button 
+                  mat-icon-button 
+                  [color]="room.active ? 'primary' : 'warn'"
+                  (click)="toggleRoomActive(room)"
+                  [matTooltip]="room.active ? 'Deactivate' : 'Activate'">
+                  <mat-icon>{{ room.active ? 'check_circle' : 'cancel' }}</mat-icon>
+                </button>
+
+                <button 
+                  mat-icon-button 
+                  color="warn" 
+                  (click)="removeRoom(i)"
+                  matTooltip="Remove Room">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="no-rooms">
+          <mat-icon>info</mat-icon>
+          <p>No rooms added yet</p>
+        </div>
+      }
+    </div>
+
+    <!-- Active Status -->
+    <div class="toggle-field">
+      <mat-slide-toggle formControlName="isActive" color="primary">
+        <span class="toggle-label">
+          <mat-icon>{{ propertyForm.get('isActive')?.value ? 'check_circle' : 'cancel' }}</mat-icon>
+          {{ propertyForm.get('isActive')?.value ? 'Active' : 'Inactive' }}
+        </span>
+      </mat-slide-toggle>
+      <div class="toggle-hint">Enable or disable this property</div>
+    </div>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">
+    <mat-icon>close</mat-icon>
+    Cancel
+  </button>
+  <button 
+    mat-raised-button 
+    color="primary" 
+    (click)="onSubmit()" 
+    [disabled]="!propertyForm.valid">
+    <mat-icon>{{ data.mode === 'add' ? 'add' : 'save' }}</mat-icon>
+    {{ submitButtonText }}
+  </button>
+</mat-dialog-actions>

@@ -1,16 +1,11 @@
-﻿using MyWarehouse.Application.Common.Dependencies.DataAccess;
+using MyWarehouse.Application.Common.Dependencies.DataAccess;
 using MyWarehouse.Application.Dependencies.Services;
 using MyWarehouse.Application.Common.Audit;
 
-namespace MyWarehouse.Application.Property.CreateProperty;
+namespace MyWarehouse.Application.Property.UpdateProperty;
 
-public class CreatePropertyCommand : IRequest<int>
+public class UpdatePropertyCommand : IRequest<Unit>
 {
-    public CreatePropertyCommand(bool isActive)
-    {
-        IsActive = isActive;
-    }
-
     public int Id { get; init; }
     public string Name { get; init; } = null!;
     public bool IsActive { get; init; }
@@ -27,20 +22,20 @@ public class RoomDto
     public string CompanyLogoURL { get; set; } = string.Empty;
 }
 
-public class CreatePropertyCommandHandler : IRequestHandler<CreatePropertyCommand, int>
+public class UpdatePropertyCommandHandler : IRequestHandler<UpdatePropertyCommand, Unit>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
     private readonly IAuditService _auditService;
 
-    public CreatePropertyCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IAuditService auditService)
+    public UpdatePropertyCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IAuditService auditService)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
         _auditService = auditService;
     }
 
-    public async Task<int> Handle(CreatePropertyCommand request, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(UpdatePropertyCommand request, CancellationToken cancellationToken)
     {
         var currentUserId = int.TryParse(_currentUserService.UserId, out var userId) ? userId : 0;
 
@@ -48,6 +43,14 @@ public class CreatePropertyCommandHandler : IRequestHandler<CreatePropertyComman
         if (request.Rooms == null || !request.Rooms.Any())
         {
             throw new InvalidOperationException("At least one room must be added to the property.");
+        }
+
+        // Get old value for audit trail
+        var oldProperty = await _unitOfWork.Properties.GetByIdAsync(request.Id);
+
+        if (oldProperty == null)
+        {
+            throw new KeyNotFoundException($"Property with ID {request.Id} not found.");
         }
 
         // Map RoomDto to Domain.Property.Room
@@ -59,28 +62,34 @@ public class CreatePropertyCommandHandler : IRequestHandler<CreatePropertyComman
             companyLogoURL: r.CompanyLogoURL
         )).ToList();
 
-        var property = new Domain.Property.Property(
+        // Create new property instance with updated values
+        var updatedProperty = new Domain.Property.Property(
             name: request.Name.Trim(),
             isActive: request.IsActive,
             rooms: rooms
         )
         {
+            Id = request.Id,
             CompanyLogoURL = request.CompanyLogoURL ?? string.Empty,
-            CreatedAt = DateTime.UtcNow,
-            CreatedBy = currentUserId
+            PropertyCode = oldProperty.PropertyCode,
+            CreatedAt = oldProperty.CreatedAt,
+            CreatedBy = oldProperty.CreatedBy,
+            UpdatedAt = DateTime.UtcNow,
+            UpdatedBy = currentUserId
         };
 
-        _unitOfWork.Properties?.Add(property);
+        await _unitOfWork.Properties.Update(updatedProperty, cancellationToken);
         await _unitOfWork.SaveChanges();
 
-        // Log the create operation to audit trail
-        await _auditService.LogCreate(
+        // Log the update operation to audit trail
+        await _auditService.LogUpdate(
             "Properties",
-            property.Id,
-            property,
+            request.Id,
+            oldProperty,
+            updatedProperty,
             currentUserId
         );
 
-        return property.Id;
+        return Unit.Value;
     }
 }

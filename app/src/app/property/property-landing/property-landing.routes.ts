@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { PropertyLandingComponent } from './property-landing.component';
 import { ReportsComponent } from '../../menu/reports/reports.component';
 import { MenuAccessMap } from '../../core/Settings/MenuAccessMap/menu-access-map/menu-access-map';
+import { PropertyMasterComponent } from '../property-master/property-master.component';
 
 export const PROPERTY_LANDING_ROUTES: Routes = [
   {
@@ -16,6 +17,9 @@ export const PROPERTY_LANDING_ROUTES: Routes = [
       // via a path like /propertyLanding/menu-access-map returned by the
       // /menu/GetinitialData endpoint.
       { path: 'MenuAccessmapping', component: MenuAccessMap },
+
+      // Property Master Management
+      { path: 'property-master', component: PropertyMasterComponent },
     ],
   },
 ];

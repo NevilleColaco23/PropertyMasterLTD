@@ -2,6 +2,8 @@
 using MyWarehouse.Application.Partners.CreatePartner;
 using MyWarehouse.Application.Property.CreateProperty;
 using MyWarehouse.Application.Property.GetProperty;
+using MyWarehouse.Application.Property.UpdateProperty;
+using MyWarehouse.Application.Property.DeleteProperty;
 
 namespace MyWarehouse.Infrastructure.API.V1;
 
@@ -15,31 +17,85 @@ public class PropertyController : ControllerBase
 
     public PropertyController(IMediator mediator) => _mediator = mediator;
 
+    /// <summary>
+    /// Get ALL properties - Used by Property Master admin page
+    /// Returns every property in the database for management purposes
+    /// </summary>
     [HttpGet]
     [AllowAnonymous]  // TEMPORARY: Remove this after testing!
     public async Task<ActionResult<IListResponseModel<GetPropertyDto>>> GetList([FromQuery] GetPropertyListQuery query)
     {
         try
         {
-            Console.WriteLine($"=== PropertyController.GetList called ===");
-            Console.WriteLine($"PageIndex: {query.PageIndex}, PageSize: {query.PageSize}, OrderBy: {query.OrderBy}");
-
+            Console.WriteLine($"=== PropertyController.GetList (ALL PROPERTIES) ===");
             var result = await _mediator.Send(query);
-
-            Console.WriteLine($"Results count: {result.Results?.Count() ?? 0}");
+            Console.WriteLine($"Properties returned: {result.Results?.Count() ?? 0}");
             return Ok(result);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"=== ERROR in PropertyController ===");
+            Console.WriteLine($"=== ERROR in PropertyController.GetList ===");
             Console.WriteLine($"Exception: {ex.Message}");
-            Console.WriteLine($"StackTrace: {ex.StackTrace}");
-            Console.WriteLine($"InnerException: {ex.InnerException?.Message}");
             return BadRequest(new { error = ex.Message, innerError = ex.InnerException?.Message });
         }
     }
 
+    /// <summary>
+    /// Get ONLY properties user has access to - Used by Property Selector
+    /// Filters based on User.PropertyAccessList
+    /// </summary>
+    [HttpGet("accessible")]
+    [AllowAnonymous]  // TEMPORARY: Remove this after testing!
+    public async Task<ActionResult<IListResponseModel<GetPropertyDto>>> GetAccessibleProperties([FromQuery] GetUserAccessiblePropertiesQuery query)
+    {
+        try
+        {
+            Console.WriteLine($"=== PropertyController.GetAccessibleProperties (USER ACCESS FILTERED) ===");
+            var result = await _mediator.Send(query);
+            Console.WriteLine($"Properties returned: {result.Results?.Count() ?? 0}");
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"=== ERROR in PropertyController.GetAccessibleProperties ===");
+            Console.WriteLine($"Exception: {ex.Message}");
+            return BadRequest(new { error = ex.Message, innerError = ex.InnerException?.Message });
+        }
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<GetPropertyDto>> GetById(int id)
+    {
+        var result = await _mediator.Send(new GetPropertyListQuery());
+        var property = result.Results?.FirstOrDefault(p => p.Id == id);
+
+        if (property == null)
+            return NotFound();
+
+        return Ok(property);
+    }
+
     [HttpPost]
     public async Task<ActionResult<int>> Create(CreatePropertyCommand command)
-        => Ok(await _mediator.Send(command));
+    {
+        var id = await _mediator.Send(command);
+        return CreatedAtAction(nameof(GetById), new { id }, id);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult> Update(int id, [FromBody] UpdatePropertyCommand command)
+    {
+        if (id != command.Id)
+            return BadRequest("ID mismatch");
+
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> Delete(int id)
+    {
+        await _mediator.Send(new DeletePropertyCommand { Id = id });
+        return NoContent();
+    }
 }

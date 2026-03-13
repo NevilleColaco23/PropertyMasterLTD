@@ -85,7 +85,10 @@ namespace MyWarehouse.Application.Common.Menus.MenuQueries
                     new BsonDocument(MongoStages.MATCH,
                         new BsonDocument("$expr",
                             new BsonDocument("$in",
-                                new BsonArray { "$$uid", "$AccessList" }
+                                new BsonArray { 
+                                    "$$uid", 
+                                    new BsonDocument("$ifNull", new BsonArray { "$AccessList", new BsonArray() })
+                                }
                             )
                         )
                     ),

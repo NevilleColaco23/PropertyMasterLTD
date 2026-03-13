@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { FormControl, ReactiveFormsModule  } from '@angular/forms';
-import { GetAllPropertiesServiceService, PropertyModel } from '../services/get-all-properties-service.service';
+import { UserPropertyAccessService, PropertyModel } from '../services/user-property-access.service';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -19,7 +19,7 @@ export class PropertySelectionComponent implements OnInit {
 
   toppings = new FormControl<PropertyModel[] | null>([]);
   toppingList: PropertyModel[] = [];
-  private loaderService = inject(GetAllPropertiesServiceService);
+  private loaderService = inject(UserPropertyAccessService);
 
   constructor( private router: Router) {  }
 
