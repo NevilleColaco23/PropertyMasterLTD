@@ -151,6 +151,68 @@ mat-dialog-content {
   gap: 8px;
 }
 
+.logo-uploading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px;
+  background: white;
+  border-radius: 8px;
+  border: 2px solid #1976d2;
+}
+
+.logo-uploading p {
+  margin: 0;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.upload-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #ffebee;
+  border: 1px solid #ef5350;
+  border-radius: 4px;
+  color: #c62828;
+  font-size: 14px;
+  width: 100%;
+}
+
+.upload-error mat-icon {
+  color: #ef5350;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.upload-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #1976d2;
+}
+
+.upload-progress mat-progress-bar {
+  height: 8px;
+  border-radius: 4px;
+}
+
+.progress-text {
+  font-size: 13px;
+  color: #1976d2;
+  font-weight: 500;
+  text-align: center;
+}
+
+
 /* Rooms Section */
 .rooms-section {
   display: flex;

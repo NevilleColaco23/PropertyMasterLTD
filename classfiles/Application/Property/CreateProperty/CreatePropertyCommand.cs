@@ -24,7 +24,7 @@ public class RoomDto
     public string RoomName { get; set; } = string.Empty;
     public string RoomCode { get; set; } = string.Empty;
     public bool Active { get; set; }
-    public string CompanyLogoURL { get; set; } = string.Empty;
+    public string? CompanyLogoURL { get; set; } // Made nullable - rooms don't require logos
 }
 
 public class CreatePropertyCommandHandler : IRequestHandler<CreatePropertyCommand, int>
@@ -62,7 +62,7 @@ public class CreatePropertyCommandHandler : IRequestHandler<CreatePropertyComman
             roomName: r.RoomName,
             isActive: r.Active,
             id: 0, // Temporary ID, will be updated
-            companyLogoURL: r.CompanyLogoURL
+            companyLogoURL: r.CompanyLogoURL ?? string.Empty // Handle nullable
         )).ToList();
 
         var property = new Domain.Property.Property(
@@ -88,7 +88,7 @@ public class CreatePropertyCommandHandler : IRequestHandler<CreatePropertyComman
                 roomCode: roomDto.RoomCode,
                 roomName: roomDto.RoomName,
                 isActive: roomDto.Active,
-                companyLogoURL: roomDto.CompanyLogoURL
+                companyLogoURL: roomDto.CompanyLogoURL ?? string.Empty // Handle nullable
             )
             {
                 CreatedAt = DateTime.UtcNow,

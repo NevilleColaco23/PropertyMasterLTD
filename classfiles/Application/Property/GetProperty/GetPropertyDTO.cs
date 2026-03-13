@@ -8,7 +8,7 @@ public class GetPropertyDto : IMapFrom<Domain.Property.Property>
     public string Name { get; init; }
     public bool Active { get; init; }
     public List<RoomDto> Rooms { get; init; }
-    public string CompanyLogo { get; init; }
+    public string CompanyLogoURL { get; init; }
     public string PropertyCode { get; init; }
     public DateTime CreatedAt { get; init; }
     public int CreatedBy { get; init; }
@@ -23,7 +23,7 @@ public class GetPropertyDto : IMapFrom<Domain.Property.Property>
     public void Mapping(Profile profile)
     {
         profile.CreateMap<Domain.Property.Property, GetPropertyDto>()
-            .ForMember(dest => dest.CompanyLogo, opt => opt.MapFrom(src => src.CompanyLogoURL))
+            .ForMember(dest => dest.CompanyLogoURL, opt => opt.MapFrom(src => src.CompanyLogoURL))
             .ForMember(dest => dest.Active, opt => opt.MapFrom(src => src.Active))
             .ForMember(dest => dest.PropertyCode, opt => opt.MapFrom(src => src.PropertyCode))
             .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))

@@ -9,6 +9,14 @@ export const environment = {
   production: false,
   apiUrl: `https://localhost:${apiPort}/api/${apiVersion}`,
 
+  // Cloudinary Configuration
+  // TODO: Replace these with your actual Cloudinary credentials
+  cloudinary: {
+    cloudName: 'dsgimrtxr',
+    uploadPreset: 'propertymaster',  //Settings > Upload > Upload presets (unsigned)
+    apiKey: '',  // Optional: Only needed for authenticated requests
+  },
+
   // Development test data - DO NOT use in production
   testData: {
     signup: {

@@ -243,6 +243,10 @@ export class PropertyMasterComponent implements OnInit, AfterViewInit {
   }
 
   editProperty(property: Property): void {
+    console.log('🔧 Opening edit dialog for property:', property);
+    console.log('🖼️ Property logo URL:', property.companyLogoURL);
+    console.log('🏠 Property rooms:', property.rooms);
+
     const dialogRef = this.dialog.open(PropertyDialogComponent, {
       width: '700px',
       maxWidth: '95vw',
@@ -255,7 +259,7 @@ export class PropertyMasterComponent implements OnInit, AfterViewInit {
           id: property.id,
           name: property.name,
           isActive: property.isActive,
-          companyLogoURL: property.companyLogoURL,
+          companyLogoURL: property.companyLogoURL || '', // Ensure it's never undefined
           rooms: property.rooms || []
         }
       } as PropertyDialogData
@@ -293,6 +297,8 @@ export class PropertyMasterComponent implements OnInit, AfterViewInit {
     this.isLoading = true;
     this.cdr.detectChanges();
 
+    console.log('🔄 Updating property with data:', data);
+
     const payload = {
       id: data.propertyId,
       name: data.name,
@@ -300,6 +306,9 @@ export class PropertyMasterComponent implements OnInit, AfterViewInit {
       companyLogoURL: data.companyLogoURL || '',
       rooms: data.rooms || []
     };
+
+    console.log('📤 PUT payload:', payload);
+    console.log('🌐 API endpoint:', `${this.pathAPI}/property/${data.propertyId}`);
 
     this.http.put(`${this.pathAPI}/property/${data.propertyId}`, payload).pipe(
       catchError(err => {

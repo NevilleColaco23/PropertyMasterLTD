@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
@@ -10,6 +10,9 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatListModule } from '@angular/material/list';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { CloudinaryUploadService } from '../../services/cloudinary-upload.service';
 
 export interface PropertyDialogData {
   mode: 'add' | 'edit';
@@ -44,7 +47,9 @@ export interface RoomData {
     MatSlideToggleModule,
     MatListModule,
     MatChipsModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatProgressBarModule
   ],
   templateUrl: './property-dialog.component.html',
   styleUrl: './property-dialog.component.css'
@@ -54,11 +59,18 @@ export class PropertyDialogComponent implements OnInit {
   selectedLogoFile: File | null = null;
   logoPreviewUrl: string | null = null;
   rooms: RoomData[] = [];
+  isUploadingLogo: boolean = false;
+  uploadProgress: number = 0; // Track upload progress (0-100)
+  uploadError: string | null = null;
+  isSubmitting: boolean = false; // Track form submission state
+  imageLoadError: boolean = false; // Track if image failed to load
 
   constructor(
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<PropertyDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: PropertyDialogData
+    @Inject(MAT_DIALOG_DATA) public data: PropertyDialogData,
+    private cloudinaryService: CloudinaryUploadService,
+    private cdr: ChangeDetectorRef
   ) {
     this.propertyForm = this.fb.group({
       name: [data.existingProperty?.name || '', [Validators.required, Validators.minLength(2)]],
@@ -75,6 +87,16 @@ export class PropertyDialogComponent implements OnInit {
 
   ngOnInit(): void {
     console.log('Property Dialog opened in mode:', this.data.mode);
+
+    // Debug: Log existing property data
+    if (this.data.mode === 'edit' && this.data.existingProperty) {
+      console.log('📝 Edit mode - Existing property data:', this.data.existingProperty);
+      console.log('🖼️ Existing logo URL:', this.data.existingProperty.companyLogoURL);
+      console.log('🏠 Existing rooms:', this.data.existingProperty.rooms);
+
+      // Verify logoPreviewUrl was set
+      console.log('🎨 logoPreviewUrl set to:', this.logoPreviewUrl);
+    }
   }
 
   onLogoSelected(event: Event): void {
@@ -85,24 +107,28 @@ export class PropertyDialogComponent implements OnInit {
 
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        alert('Please select a valid image file');
+        this.uploadError = 'Please select a valid image file';
         return;
       }
 
       // Validate file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        alert('File size must be less than 2MB');
+        this.uploadError = 'File size must be less than 2MB';
         return;
       }
 
-      this.selectedLogoFile = file;
+      this.uploadError = null;
+      this.selectedLogoFile = file; // Store file for later upload
 
-      // Create preview
+      // Create local preview (base64) for UI feedback
       const reader = new FileReader();
       reader.onload = (e) => {
         this.logoPreviewUrl = e.target?.result as string;
       };
       reader.readAsDataURL(file);
+
+      console.log('📁 Image selected:', file.name, 'Size:', (file.size / 1024).toFixed(2), 'KB');
+      console.log('⏳ Image will be uploaded to Cloudinary when you click "Create Property"');
     }
   }
 
@@ -114,7 +140,20 @@ export class PropertyDialogComponent implements OnInit {
   removeLogo(): void {
     this.selectedLogoFile = null;
     this.logoPreviewUrl = null;
+    this.uploadError = null;
+    this.imageLoadError = false;
     this.propertyForm.patchValue({ companyLogoURL: '' });
+  }
+
+  onImageError(event: Event): void {
+    console.error('❌ Failed to load image:', this.logoPreviewUrl);
+    this.imageLoadError = true;
+    this.uploadError = 'Failed to load existing image. You may need to upload a new one.';
+  }
+
+  onImageLoad(event: Event): void {
+    console.log('✅ Image loaded successfully:', this.logoPreviewUrl);
+    this.imageLoadError = false;
   }
 
   addRoom(): void {
@@ -168,19 +207,99 @@ export class PropertyDialogComponent implements OnInit {
         return;
       }
 
-      const formValue = this.propertyForm.value;
+      // Use setTimeout to avoid change detection error
+      setTimeout(() => {
+        this.isSubmitting = true;
+        this.cdr.detectChanges();
 
-      // Convert logo to base64 or URL (simplified for now)
-      const logoURL = this.logoPreviewUrl || formValue.companyLogoURL || '';
-
-      this.dialogRef.close({
-        name: formValue.name.trim(),
-        isActive: formValue.isActive,
-        companyLogoURL: logoURL,
-        rooms: this.rooms,
-        propertyId: this.data.existingProperty?.id
-      });
+        // If user selected a logo, upload it to Cloudinary first
+        if (this.selectedLogoFile) {
+          console.log('📤 Uploading image to Cloudinary...');
+          this.uploadToCloudinary();
+        } else {
+          // No new image selected, proceed with form submission
+          this.submitForm();
+        }
+      }, 0);
     }
+  }
+
+  private uploadToCloudinary(): void {
+    if (!this.selectedLogoFile) {
+      this.submitForm();
+      return;
+    }
+
+    // Set uploading state with setTimeout to avoid change detection error
+    setTimeout(() => {
+      this.isUploadingLogo = true;
+      this.uploadProgress = 0;
+      this.uploadError = null;
+      this.cdr.detectChanges();
+    }, 0);
+
+    this.cloudinaryService.uploadImageWithProgress(this.selectedLogoFile, 'property-logos').subscribe({
+      next: (progressData) => {
+        this.uploadProgress = progressData.progress;
+        console.log(`📊 Upload progress: ${progressData.progress}%`);
+        this.cdr.detectChanges();
+
+        // When upload is completed
+        if (progressData.status === 'completed' && progressData.response) {
+          console.log('✅ Cloudinary upload successful:', progressData.response);
+          console.log('🖼️ Image URL:', progressData.response.secure_url);
+          console.log('🆔 Public ID:', progressData.response.public_id);
+
+          // Store the Cloudinary URL in the form
+          this.propertyForm.patchValue({ companyLogoURL: progressData.response.secure_url });
+          this.isUploadingLogo = false;
+          this.cdr.detectChanges();
+
+          // Now submit the form with the Cloudinary URL
+          this.submitForm();
+        }
+      },
+      error: (err) => {
+        console.error('❌ Cloudinary upload failed:', err);
+        this.uploadError = 'Failed to upload image. Please try again.';
+        this.isUploadingLogo = false;
+        this.uploadProgress = 0;
+        this.isSubmitting = false;
+        this.cdr.detectChanges();
+
+        // Ask user if they want to proceed without image
+        if (confirm('Image upload failed. Do you want to create the property without a logo?')) {
+          this.propertyForm.patchValue({ companyLogoURL: '' });
+          this.submitForm();
+        }
+      }
+    });
+  }
+
+  private submitForm(): void {
+    const formValue = this.propertyForm.value;
+
+    // Use the Cloudinary URL from the form (or empty string if no image)
+    const logoURL = formValue.companyLogoURL || '';
+
+    console.log('💾 Submitting property with logo URL:', logoURL);
+    console.log('🏠 Property ID:', this.data.existingProperty?.id);
+    console.log('📝 Mode:', this.data.mode);
+    console.log('📦 Full result object:', {
+      name: formValue.name.trim(),
+      isActive: formValue.isActive,
+      companyLogoURL: logoURL,
+      rooms: this.rooms,
+      propertyId: this.data.existingProperty?.id
+    });
+
+    this.dialogRef.close({
+      name: formValue.name.trim(),
+      isActive: formValue.isActive,
+      companyLogoURL: logoURL,
+      rooms: this.rooms,
+      propertyId: this.data.existingProperty?.id
+    });
   }
 
   get dialogTitle(): string {

@@ -19,7 +19,7 @@ public class RoomDto
     public string RoomName { get; set; } = string.Empty;
     public string RoomCode { get; set; } = string.Empty;
     public bool Active { get; set; }
-    public string CompanyLogoURL { get; set; } = string.Empty;
+    public string? CompanyLogoURL { get; set; } // Made nullable - rooms don't require logos
 }
 
 public class UpdatePropertyCommandHandler : IRequestHandler<UpdatePropertyCommand, Unit>
@@ -59,7 +59,7 @@ public class UpdatePropertyCommandHandler : IRequestHandler<UpdatePropertyComman
             roomName: r.RoomName,
             isActive: r.Active,
             id: r.Id,
-            companyLogoURL: r.CompanyLogoURL
+            companyLogoURL: r.CompanyLogoURL ?? string.Empty // Handle nullable value
         )).ToList();
 
         // Create new property instance with updated values
@@ -95,7 +95,7 @@ public class UpdatePropertyCommandHandler : IRequestHandler<UpdatePropertyComman
                 existingRoom.RoomCode = roomDto.RoomCode;
                 existingRoom.RoomName = roomDto.RoomName;
                 existingRoom.Active = roomDto.Active;
-                existingRoom.CompanyLogoURL = roomDto.CompanyLogoURL;
+                existingRoom.CompanyLogoURL = roomDto.CompanyLogoURL ?? string.Empty; // Handle nullable
                 existingRoom.UpdatedAt = DateTime.UtcNow;
                 existingRoom.UpdatedBy = currentUserId;
 
@@ -109,7 +109,7 @@ public class UpdatePropertyCommandHandler : IRequestHandler<UpdatePropertyComman
                     roomCode: roomDto.RoomCode,
                     roomName: roomDto.RoomName,
                     isActive: roomDto.Active,
-                    companyLogoURL: roomDto.CompanyLogoURL
+                    companyLogoURL: roomDto.CompanyLogoURL ?? string.Empty // Handle nullable
                 )
                 {
                     CreatedAt = DateTime.UtcNow,
