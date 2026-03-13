@@ -39,6 +39,13 @@
   <div class="mainbar">
     <div class="mainbar-inner">
       <nav class="nav" aria-label="Primary navigation">
+        <!-- Debug message when no menu items -->
+        @if (navItems.length === 0) {
+          <div class="nav-empty-message">
+            <span style="color: #ff9800; font-weight: 500;">⚠️ No menu items loaded</span>
+          </div>
+        }
+
         @for (item of navItems; track item.label) {
           <div class="nav-item-wrapper">
             <a

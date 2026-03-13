@@ -1,0 +1,107 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <div class="header-left">
+      <h1>
+        <mat-icon>dashboard</mat-icon>
+        Dashboard
+      </h1>
+      <p class="dashboard-subtitle">Welcome to your property management dashboard</p>
+    </div>
+
+    <div class="header-right">
+      <mat-form-field appearance="outline" class="dashboard-selector">
+        <mat-label>Dashboard Type</mat-label>
+        <mat-select [(value)]="selectedDashboard" (selectionChange)="onDashboardChange($event)">
+          @for (dashboard of dashboardTypes; track dashboard.value) {
+            <mat-option [value]="dashboard.value">
+              <mat-icon>{{ dashboard.icon }}</mat-icon>
+              {{ dashboard.label }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <!-- Summary Cards -->
+    <mat-card class="dashboard-card">
+      <mat-card-header>
+        <mat-icon class="card-icon">hotel</mat-icon>
+        <mat-card-title>Total Properties</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="card-value">0</div>
+        <div class="card-description">Active properties</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dashboard-card">
+      <mat-card-header>
+        <mat-icon class="card-icon">meeting_room</mat-icon>
+        <mat-card-title>Total Rooms</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="card-value">0</div>
+        <div class="card-description">Available rooms</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dashboard-card">
+      <mat-card-header>
+        <mat-icon class="card-icon">event_available</mat-icon>
+        <mat-card-title>Bookings Today</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="card-value">0</div>
+        <div class="card-description">Check-ins/Check-outs</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dashboard-card">
+      <mat-card-header>
+        <mat-icon class="card-icon">people</mat-icon>
+        <mat-card-title>Occupancy Rate</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="card-value">0%</div>
+        <div class="card-description">Current occupancy</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="dashboard-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Quick Actions</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="quick-actions">
+          <button mat-raised-button color="primary">
+            <mat-icon>add</mat-icon>
+            New Booking
+          </button>
+          <button mat-raised-button color="accent">
+            <mat-icon>event</mat-icon>
+            View Calendar
+          </button>
+          <button mat-raised-button>
+            <mat-icon>assessment</mat-icon>
+            View Reports
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="dashboard-section">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Recent Activity</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="no-data">No recent activity to display</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

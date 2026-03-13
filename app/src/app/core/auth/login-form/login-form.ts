@@ -71,10 +71,19 @@ export class LoginFormComponent  {
         ).subscribe(
       _ => {
         this.localLoginState = LocalLoginState.Success;
-    
-    this.loggingService.logPageNavigation(`loginSuccess`, LOG_LOGIN_SUCCESS, `User logged in successfully with email: ${email}`);
-        
-    this.router.navigate(['/propertySelector']).then(navigated => {});
+
+        this.loggingService.logPageNavigation(`loginSuccess`, LOG_LOGIN_SUCCESS, `User logged in successfully with email: ${email}`);
+
+        // Check if there's a redirect URL from auth guard
+        const redirectUrl = sessionStorage.getItem('redirect_after_login');
+        if (redirectUrl) {
+          console.log('🔄 Redirecting to originally requested page:', redirectUrl);
+          sessionStorage.removeItem('redirect_after_login');
+          this.router.navigate([redirectUrl]);
+        } else {
+          // Default navigation to property selector
+          this.router.navigate(['/propertySelector']).then(navigated => {});
+        }
 
         timer(5000).subscribe(() => this.localLoginState = LocalLoginState.None); // In case user logs out without navigating elsewhere; the 'success' would still be visible.
         this.loginForm.enable();

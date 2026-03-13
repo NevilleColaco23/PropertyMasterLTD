@@ -64,16 +64,41 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
   }
 
   ngOnInit(): void {
-  this.getMenuItems().subscribe({
-    next: (data) => {
-      this.navItems = data.results || [];
+    console.log('🚀 PropertyLandingComponent initialized');
+    console.log('📍 API URL:', this.pathAPI);
 
-      // Force the template to update immediately
-      this.cdr.detectChanges(); //issue 21.1
-    },
-    error: (err) => console.error('Error occurred while fetching menu items:', err)
-  });
-}
+    this.getMenuItems().subscribe({
+      next: (data) => {
+        console.log('✅ Menu data received:', data);
+        console.log('📋 Menu results:', data.results);
+
+        this.navItems = data.results || [];
+
+        if (this.navItems.length === 0) {
+          console.warn('⚠️ WARNING: No menu items received from API!');
+          console.warn('This could mean:');
+          console.warn('1. User has no menu permissions');
+          console.warn('2. Menu data is not in database');
+          console.warn('3. API endpoint returned empty results');
+        } else {
+          console.log(`✅ Loaded ${this.navItems.length} menu items:`, this.navItems);
+        }
+
+        // Force the template to update immediately
+        this.cdr.detectChanges(); //issue 21.1
+      },
+      error: (err) => {
+        console.error('❌ ERROR: Failed to fetch menu items');
+        console.error('Error details:', err);
+        console.error('Status:', err.status);
+        console.error('Message:', err.message);
+
+        // Show empty menu rather than crashing
+        this.navItems = [];
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
   onSearchSelected(selectedResult: GetSearchResultsDTO) {
     this.searchQuery = selectedResult.label;
