@@ -1,5 +1,5 @@
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
-import {BehaviorSubject, Observable, of } from 'rxjs';
+import {BehaviorSubject, Observable, of, interval, Subscription } from 'rxjs';
 import {HttpClient, HttpResponse} from '@angular/common/http';
 import { tap,catchError,shareReplay } from 'rxjs/operators';
 import { Router } from '@angular/router';
@@ -26,6 +26,12 @@ export class AuthService {
   public signInState: Observable<AuthenticationSuccessData | null>;
   private _signInState = new BehaviorSubject<AuthenticationSuccessData | null>(null);
 
+  // Token expiration monitoring
+  private tokenExpirationTimer?: Subscription;
+  private readonly CHECK_INTERVAL = 60000; // Check every 60 seconds
+  private readonly WARNING_BEFORE_EXPIRY = 5 * 60 * 1000; // Warn 5 minutes before expiry
+  private hasShownWarning = false;
+
   constructor(private _http: HttpClient, private router: Router) {
     this.signInState = this._signInState.asObservable();
     console.log('PRODUCTION:', environment.production);
@@ -36,6 +42,7 @@ export class AuthService {
       if (userData != null) { 
         this._signInState.next(userData);
         this.checkTokenExpirationAndSignOut();
+        this.startTokenExpirationMonitoring(); // Start automatic monitoring
       }
     } 
     }
@@ -88,9 +95,16 @@ public signUp(data: SignUpDto){
     localStorage.setItem('auth_tokenString', `${data.tokenType} ${data.accessToken}`);
     localStorage.setItem('auth_tokenExpiresAt', expiresAt.getTime().toString());
     this._signInState.next(data);
+
+    // Start monitoring token expiration
+    this.hasShownWarning = false;
+    this.startTokenExpirationMonitoring();
   }
 
   public signOut() : Observable<void> { // <-- Now returns Observable<void>
+    // Stop monitoring token expiration
+    this.stopTokenExpirationMonitoring();
+
     localStorage.removeItem('auth_userData');
     localStorage.removeItem('auth_tokenString');
     localStorage.removeItem('auth_tokenExpiresAt');
@@ -181,5 +195,111 @@ public signUp(data: SignUpDto){
   private getStoredUserData(): AuthenticationSuccessData | null {
     const userData = localStorage.getItem('auth_userData');
     return userData ? (JSON.parse(userData) as AuthenticationSuccessData) : null;
+  }
+
+  /**
+   * Start automatic token expiration monitoring
+   * Checks token validity every minute and automatically logs out when expired
+   */
+  private startTokenExpirationMonitoring(): void {
+    // Stop any existing timer first
+    this.stopTokenExpirationMonitoring();
+
+    if (!this.isBrowser) {
+      return;
+    }
+
+    console.log('🔐 Started token expiration monitoring');
+
+    // Check immediately
+    this.checkTokenExpiration();
+
+    // Then check every minute
+    this.tokenExpirationTimer = interval(this.CHECK_INTERVAL).subscribe(() => {
+      this.checkTokenExpiration();
+    });
+  }
+
+  /**
+   * Stop the token expiration monitoring timer
+   */
+  private stopTokenExpirationMonitoring(): void {
+    if (this.tokenExpirationTimer) {
+      this.tokenExpirationTimer.unsubscribe();
+      this.tokenExpirationTimer = undefined;
+      console.log('🔓 Stopped token expiration monitoring');
+    }
+  }
+
+  /**
+   * Check if token is about to expire or has expired
+   */
+  private checkTokenExpiration(): void {
+    const expiresAtString = localStorage.getItem('auth_tokenExpiresAt');
+    if (!expiresAtString) {
+      return;
+    }
+
+    const expiresAt = +expiresAtString;
+    const now = Date.now();
+    const timeUntilExpiry = expiresAt - now;
+
+    // Token has expired - logout immediately
+    if (timeUntilExpiry <= 0) {
+      console.warn('⏰ Token has expired! Logging out automatically...');
+      this.autoLogout('Your session has expired. Please login again.');
+      return;
+    }
+
+    // Token is about to expire - show warning
+    if (timeUntilExpiry <= this.WARNING_BEFORE_EXPIRY && !this.hasShownWarning) {
+      this.hasShownWarning = true;
+      const minutesLeft = Math.ceil(timeUntilExpiry / 60000);
+      console.warn(`⚠️ Token will expire in ${minutesLeft} minutes`);
+
+      // Silent warning - logged to console only
+      // You can integrate with Angular Material Snackbar here if needed
+    }
+  }
+
+  /**
+   * Automatically logout the user and redirect to login page
+   */
+  private autoLogout(message?: string): void {
+    this.stopTokenExpirationMonitoring();
+
+    this.signOut().subscribe({
+      next: () => {
+        console.log('🚪 Auto logout successful');
+        if (message) {
+          // Store message to show after redirect
+          sessionStorage.setItem('logout_message', message);
+        }
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        console.error('❌ Auto logout failed:', err);
+        this.router.navigate(['/login']);
+      }
+    });
+  }
+
+  /**
+   * Get remaining time until token expires (in milliseconds)
+   */
+  public getTimeUntilExpiry(): number {
+    const expiresAtString = localStorage.getItem('auth_tokenExpiresAt');
+    if (!expiresAtString) {
+      return 0;
+    }
+    return (+expiresAtString) - Date.now();
+  }
+
+  /**
+   * Check if token will expire soon (within WARNING_BEFORE_EXPIRY time)
+   */
+  public isTokenExpiringSoon(): boolean {
+    const timeUntilExpiry = this.getTimeUntilExpiry();
+    return timeUntilExpiry > 0 && timeUntilExpiry <= this.WARNING_BEFORE_EXPIRY;
   }
 }
