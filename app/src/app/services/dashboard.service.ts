@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 import {
   DashboardConfiguration,
@@ -24,13 +25,25 @@ export class DashboardService {
 
   /**
    * Get user's dashboard (default or specific)
+   * Returns null if dashboard doesn't exist (404)
    */
   getDashboardByUserId(userId: number, defaultOnly: boolean = true): Observable<DashboardConfiguration | null> {
     let params = new HttpParams();
     if (defaultOnly) {
       params = params.set('defaultOnly', 'true');
     }
-    return this.http.get<DashboardConfiguration | null>(`${this.apiUrl}/user/${userId}`, { params });
+    return this.http.get<DashboardConfiguration | null>(`${this.apiUrl}/user/${userId}`, { params })
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          // If 404, dashboard doesn't exist yet - return null instead of error
+          if (error.status === 404) {
+            console.log('No dashboard found for user, will use defaults');
+            return of(null);
+          }
+          // For other errors, rethrow
+          throw error;
+        })
+      );
   }
 
   /**

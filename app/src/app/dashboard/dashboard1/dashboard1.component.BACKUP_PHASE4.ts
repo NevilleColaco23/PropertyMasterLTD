@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,7 +11,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { Router } from '@angular/router';
-import { Gridster, GridsterItem, GridsterConfig } from 'angular-gridster2';
+import { GridsterModule, GridsterConfig, GridsterItem } from 'angular-gridster2';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { DashboardService } from '../../services/dashboard.service';
@@ -34,16 +34,11 @@ export interface DashboardType {
   route: string;
 }
 
-export interface DashboardGridsterItem {
-  x: number;
-  y: number;
-  cols: number;
-  rows: number;
+export interface DashboardGridsterItem extends GridsterItem {
   widgetId: string;
   widgetType: string;
   settings?: any;
   data?: any;
-  [key: string]: any; // Allow additional gridster properties
 }
 
 @Component({
@@ -61,8 +56,7 @@ export interface DashboardGridsterItem {
     MatDialogModule,
     MatTooltipModule,
     MatBadgeModule,
-    Gridster,
-    GridsterItem,
+    GridsterModule,
     KpiCardWidgetComponent,
     ListWidgetComponent,
     ChartWidgetComponent,
@@ -98,7 +92,7 @@ export class Dashboard1Component implements OnInit {
   ];
 
   // ===== State Management =====
-  loading = true;  // Start with loading=true, set to false after data loads
+  loading = false;
   dashboardConfig: DashboardConfiguration | null = null;
   widgetLibrary: WidgetLibraryItem[] = [];
 
@@ -114,8 +108,7 @@ export class Dashboard1Component implements OnInit {
     private router: Router,
     private dashboardService: DashboardService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog,
-    private cdr: ChangeDetectorRef
+    private dialog: MatDialog
   ) {
     // Initialize gridster configuration
     this.options = GridsterConfigService.getDefaultConfig(false);
@@ -267,9 +260,7 @@ export class Dashboard1Component implements OnInit {
    * Refresh data for all widgets on dashboard
    */
   refreshAllWidgetData(): void {
-    console.log('🔄 Refreshing data for all widgets. Total widgets:', this.dashboardItems.length);
-    this.dashboardItems.forEach((item, index) => {
-      console.log(`📊 Loading data for widget ${index + 1}/${this.dashboardItems.length}:`, item.widgetType, item.widgetId);
+    this.dashboardItems.forEach(item => {
       this.loadWidgetRealData(item);
     });
   }
@@ -302,7 +293,6 @@ export class Dashboard1Component implements OnInit {
    * Load KPI widget real data from API
    */
   loadKpiWidgetData(item: DashboardGridsterItem, userId: number): void {
-    console.log(`🔢 Loading KPI data for widget: ${item.widgetId}, userId: ${userId}`);
     this.dashboardService.getKpiValue(item.widgetId, userId).pipe(
       catchError(error => {
         console.error(`Error loading KPI ${item.widgetId}:`, error);
@@ -316,7 +306,6 @@ export class Dashboard1Component implements OnInit {
         });
       })
     ).subscribe(response => {
-      console.log(`✅ KPI data loaded for ${item.widgetId}:`, response);
       item.data = {
         title: this.getKpiTitle(item.widgetId),
         value: response.value,
@@ -326,10 +315,6 @@ export class Dashboard1Component implements OnInit {
         trendValue: response.trendValue,
         trendDirection: response.trendDirection
       } as KpiCardData;
-      console.log(`📦 Assigned data to item.data:`, item.data);
-      console.log(`📦 Full item object:`, item);
-      this.cdr.detectChanges();  // Trigger change detection
-      console.log(`🔄 Change detection triggered for ${item.widgetId}`);
     });
   }
 
@@ -359,7 +344,6 @@ export class Dashboard1Component implements OnInit {
       } else {
         item.data = this.getDefaultListWidget();
       }
-      this.cdr.detectChanges();  // Trigger change detection
     });
   }
 
@@ -369,7 +353,6 @@ export class Dashboard1Component implements OnInit {
   loadChartWidgetData(item: DashboardGridsterItem, userId: number): void {
     // TODO: Implement real chart data API
     item.data = this.getDefaultChartWidget();
-    this.cdr.detectChanges();  // Trigger change detection
   }
 
   /**
@@ -402,7 +385,6 @@ export class Dashboard1Component implements OnInit {
       } else {
         item.data = this.getDefaultCalendarWidget();
       }
-      this.cdr.detectChanges();  // Trigger change detection
     });
   }
 
@@ -422,8 +404,8 @@ export class Dashboard1Component implements OnInit {
     this.editMode = !this.editMode;
     this.options = GridsterConfigService.getDefaultConfig(this.editMode);
 
-    if (this.options['api'] && this.options['api'].optionsChanged) {
-      this.options['api'].optionsChanged();
+    if (this.options.api && this.options.api.optionsChanged) {
+      this.options.api.optionsChanged();
     }
 
     if (!this.editMode) {
@@ -560,7 +542,7 @@ export class Dashboard1Component implements OnInit {
   /**
    * Item changed (drag/resize)
    */
-  itemChange(item: any, itemComponent: any): void {
+  itemChange(item: GridsterItem, itemComponent: any): void {
     if (this.editMode) {
       this.hasUnsavedChanges = true;
       console.log('Item changed:', item);

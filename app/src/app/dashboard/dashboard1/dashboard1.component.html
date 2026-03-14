@@ -9,6 +9,47 @@
     </div>
 
     <div class="header-right">
+      <!-- Edit Mode Buttons -->
+      @if (editMode) {
+        <button mat-raised-button 
+                color="primary"
+                (click)="saveDashboard()"
+                [disabled]="!hasUnsavedChanges || loading"
+                matTooltip="Save Dashboard">
+          <mat-icon>save</mat-icon>
+          Save
+          @if (hasUnsavedChanges) {
+            <mat-icon class="unsaved-badge">fiber_manual_record</mat-icon>
+          }
+        </button>
+
+        <button mat-raised-button 
+                (click)="cancelEdit()"
+                [disabled]="loading"
+                matTooltip="Cancel Changes">
+          <mat-icon>cancel</mat-icon>
+          Cancel
+        </button>
+
+        <button mat-raised-button 
+                color="accent"
+                (click)="openWidgetPicker()"
+                matTooltip="Add Widget">
+          <mat-icon>add</mat-icon>
+          Add Widget
+        </button>
+      }
+
+      <!-- Edit Mode Toggle -->
+      <button mat-raised-button 
+              [color]="editMode ? 'warn' : 'primary'"
+              (click)="toggleEditMode()"
+              matTooltip="{{ editMode ? 'Exit Edit Mode' : 'Customize Dashboard' }}">
+        <mat-icon>{{ editMode ? 'close' : 'edit' }}</mat-icon>
+        {{ editMode ? 'Exit Edit' : 'Customize' }}
+      </button>
+
+      <!-- Dashboard Selector -->
       <mat-form-field appearance="outline" class="dashboard-selector">
         <mat-label>Dashboard Type</mat-label>
         <mat-select [(value)]="selectedDashboard" (selectionChange)="onDashboardChange($event)">
@@ -31,67 +72,74 @@
     </div>
   }
 
-  <!-- Dashboard Widgets -->
+  <!-- Gridster Dashboard -->
   @if (!loading) {
-    <!-- KPI Cards Grid -->
-    @if (kpiCards.length > 0) {
-      <div class="widget-section">
-        <h2 class="section-title">Key Metrics</h2>
-        <div class="dashboard-grid">
-          @for (card of kpiCards; track card.title) {
-            <app-kpi-card-widget [data]="card"></app-kpi-card-widget>
-          }
-        </div>
-      </div>
-    }
+    <gridster [options]="options">
+      @for (item of dashboardItems; track item.widgetId) {
+        <gridster-item [item]="item" (itemChange)="itemChange($event, item)">
+          <mat-card class="widget-card">
+            <mat-card-header>
+              <!-- Remove Button (shown in edit mode) -->
+              @if (editMode) {
+                <button mat-icon-button 
+                        class="widget-remove-btn"
+                        (click)="removeWidget(item)"
+                        matTooltip="Remove Widget">
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
 
-    <!-- Charts Section -->
-    @if (chartWidgets.length > 0) {
-      <div class="widget-section">
-        <h2 class="section-title">Analytics</h2>
-        <div class="dashboard-grid chart-grid">
-          @for (chart of chartWidgets; track chart.title) {
-            <app-chart-widget [data]="chart"></app-chart-widget>
-          }
-        </div>
-      </div>
-    }
+              <!-- Drag Handle (shown in edit mode) -->
+              @if (editMode) {
+                <mat-icon class="widget-drag-handle" gridsterItemDrag>drag_indicator</mat-icon>
+              }
+            </mat-card-header>
 
-    <!-- Two Column Layout: List + Calendar -->
-    <div class="two-column-layout">
-      <!-- List Widgets -->
-      @if (listWidgets.length > 0) {
-        <div class="widget-section">
-          <h2 class="section-title">Activity Feed</h2>
-          @for (list of listWidgets; track list.title) {
-            <app-list-widget [data]="list"></app-list-widget>
-          }
-        </div>
+            <mat-card-content>
+              <!-- KPI Card Widget -->
+              @if (item.widgetType === 'kpi-card' && item.data) {
+                <app-kpi-card-widget [data]="item.data"></app-kpi-card-widget>
+              }
+
+              <!-- List Widget -->
+              @if (item.widgetType === 'list' && item.data) {
+                <app-list-widget [data]="item.data"></app-list-widget>
+              }
+
+              <!-- Chart Widget -->
+              @if (item.widgetType === 'chart' && item.data) {
+                <app-chart-widget [data]="item.data"></app-chart-widget>
+              }
+
+              <!-- Calendar Widget -->
+              @if (item.widgetType === 'calendar' && item.data) {
+                <app-calendar-widget [data]="item.data"></app-calendar-widget>
+              }
+
+              <!-- Loading State -->
+              @if (!item.data) {
+                <div class="widget-loading">
+                  <mat-spinner diameter="40"></mat-spinner>
+                  <p>Loading data...</p>
+                </div>
+              }
+            </mat-card-content>
+          </mat-card>
+        </gridster-item>
       }
-
-      <!-- Calendar Widgets -->
-      @if (calendarWidgets.length > 0) {
-        <div class="widget-section">
-          <h2 class="section-title">Calendar</h2>
-          @for (calendar of calendarWidgets; track calendar.title) {
-            <app-calendar-widget [data]="calendar"></app-calendar-widget>
-          }
-        </div>
-      }
-    </div>
+    </gridster>
 
     <!-- Empty State -->
-    @if (kpiCards.length === 0 && listWidgets.length === 0 && chartWidgets.length === 0 && calendarWidgets.length === 0) {
-      <div class="empty-state">
-        <mat-icon>dashboard_customize</mat-icon>
-        <h2>No Dashboard Configured</h2>
-        <p>Start customizing your dashboard by adding widgets</p>
-        <button mat-raised-button color="primary">
-          <mat-icon>add</mat-icon>
-          Add Widgets
+    @if (dashboardItems.length === 0) {
+      <div class="empty-dashboard">
+        <mat-icon class="empty-icon">widgets</mat-icon>
+        <h2>No Widgets Added</h2>
+        <p>Click "Customize" and then "Add Widget" to start building your dashboard.</p>
+        <button mat-raised-button color="primary" (click)="toggleEditMode()">
+          <mat-icon>edit</mat-icon>
+          Customize Dashboard
         </button>
       </div>
     }
   }
 </div>
-

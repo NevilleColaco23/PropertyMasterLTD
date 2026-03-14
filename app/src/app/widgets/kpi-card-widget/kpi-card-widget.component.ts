@@ -106,6 +106,7 @@ export class KpiCardWidgetComponent implements OnInit {
   @Input() settings: any = {};
 
   ngOnInit(): void {
+    console.log('🎯 KPI Widget initialized with data:', this.data);
     // Merge settings with data
     if (this.settings) {
       this.data = {
@@ -117,6 +118,7 @@ export class KpiCardWidgetComponent implements OnInit {
         trendValue: this.data?.trendValue,
         trendDirection: this.data?.trendDirection
       };
+      console.log('🎯 KPI Widget after settings merge:', this.data);
     }
   }
 }

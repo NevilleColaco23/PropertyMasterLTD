@@ -6,7 +6,7 @@ export class GridsterConfigService {
    */
   static getDefaultConfig(editMode: boolean = false): GridsterConfig {
     return {
-      gridType: 'fit',
+      gridType: 'fixed',  // Use 'fixed' to respect fixedRowHeight
       compactType: 'none',
       margin: 10,
       outerMargin: true,
@@ -29,7 +29,7 @@ export class GridsterConfigService {
       defaultItemCols: 3,
       defaultItemRows: 2,
       fixedColWidth: 105,
-      fixedRowHeight: 105,
+      fixedRowHeight: 150,  // Increased from 105 to 150 for better visibility
       keepFixedHeightInMobile: false,
       keepFixedWidthInMobile: false,
       scrollSensitivity: 10,
@@ -92,7 +92,7 @@ export class GridsterConfigService {
   /**
    * Convert gridster item to widget configuration
    */
-  static toWidgetConfig(gridsterItem: GridsterItem): any {
+  static toWidgetConfig(gridsterItem: any): any {
     return {
       widgetId: gridsterItem.widgetId,
       widgetType: gridsterItem.widgetType,
