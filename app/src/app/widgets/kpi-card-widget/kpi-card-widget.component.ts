@@ -46,16 +46,20 @@ export interface KpiCardData {
     .kpi-card {
       height: 100%;
       border-left: 4px solid;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: all 0.2s ease;
+      box-shadow: none !important;
     }
 
     .kpi-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      border-left-width: 6px;
     }
 
     mat-card-content {
-      padding: 16px !important;
+      padding: 16px 20px !important;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
     }
 
     .kpi-header {
@@ -66,23 +70,25 @@ export interface KpiCardData {
     }
 
     .kpi-header mat-icon {
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
     }
 
     .kpi-title {
-      font-size: 14px;
-      font-weight: 500;
+      font-size: 13px;
+      font-weight: 600;
       color: #666;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .kpi-value {
-      font-size: 32px;
-      font-weight: 600;
-      color: #333;
+      font-size: 36px;
+      font-weight: 700;
+      color: #1a1a1a;
       margin-bottom: 8px;
+      line-height: 1;
     }
 
     .kpi-trend {

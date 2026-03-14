@@ -78,24 +78,20 @@
       @for (item of dashboardItems; track item.widgetId) {
         <gridster-item [item]="item" (itemChange)="itemChange($event, item)">
           <mat-card class="widget-card">
-            <mat-card-header>
-              <!-- Remove Button (shown in edit mode) -->
-              @if (editMode) {
+            <!-- Edit Mode Controls (only shown when editing) -->
+            @if (editMode) {
+              <mat-card-header class="widget-edit-header">
                 <button mat-icon-button 
                         class="widget-remove-btn"
                         (click)="removeWidget(item)"
                         matTooltip="Remove Widget">
                   <mat-icon>close</mat-icon>
                 </button>
-              }
-
-              <!-- Drag Handle (shown in edit mode) -->
-              @if (editMode) {
                 <mat-icon class="widget-drag-handle" gridsterItemDrag>drag_indicator</mat-icon>
-              }
-            </mat-card-header>
+              </mat-card-header>
+            }
 
-            <mat-card-content>
+            <mat-card-content [class.no-header]="!editMode">
               <!-- KPI Card Widget -->
               @if (item.widgetType === 'kpi-card' && item.data) {
                 <app-kpi-card-widget [data]="item.data" style="display: block; height: 100%; width: 100%;"></app-kpi-card-widget>

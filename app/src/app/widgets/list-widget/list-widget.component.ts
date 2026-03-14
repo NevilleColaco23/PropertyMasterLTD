@@ -83,30 +83,32 @@ export interface ListWidgetData {
       height: 100%;
       display: flex;
       flex-direction: column;
+      box-shadow: none !important;
     }
 
     mat-card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px;
-      background: #f5f5f5;
-      border-bottom: 1px solid #e0e0e0;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-bottom: none;
     }
 
     mat-card-title {
       font-size: 16px;
-      font-weight: 500;
+      font-weight: 600;
       margin: 0;
+      color: white;
     }
 
     .item-count {
       font-size: 12px;
-      color: #666;
-      background: white;
+      color: white;
+      background: rgba(255, 255, 255, 0.2);
       padding: 4px 12px;
       border-radius: 12px;
-      font-weight: 500;
+      font-weight: 600;
     }
 
     mat-card-content {

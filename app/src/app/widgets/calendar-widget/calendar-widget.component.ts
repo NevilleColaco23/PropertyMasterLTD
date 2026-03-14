@@ -117,21 +117,23 @@ export interface CalendarWidgetData {
       height: 100%;
       display: flex;
       flex-direction: column;
+      box-shadow: none !important;
     }
 
     mat-card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px;
-      background: #f5f5f5;
-      border-bottom: 1px solid #e0e0e0;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      border-bottom: none;
     }
 
     mat-card-title {
       font-size: 16px;
-      font-weight: 500;
+      font-weight: 600;
       margin: 0;
+      color: white;
     }
 
     .calendar-controls {
@@ -140,10 +142,14 @@ export interface CalendarWidgetData {
       gap: 8px;
     }
 
+    .calendar-controls button {
+      color: white;
+    }
+
     .current-month {
       font-size: 14px;
-      font-weight: 500;
-      color: #333;
+      font-weight: 600;
+      color: white;
       min-width: 120px;
       text-align: center;
     }

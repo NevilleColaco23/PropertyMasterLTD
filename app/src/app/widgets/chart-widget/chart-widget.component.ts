@@ -109,26 +109,29 @@ export interface ChartWidgetData {
       height: 100%;
       display: flex;
       flex-direction: column;
+      box-shadow: none !important;
     }
 
     mat-card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px;
-      background: #f5f5f5;
-      border-bottom: 1px solid #e0e0e0;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border-bottom: none;
     }
 
     mat-card-title {
       font-size: 16px;
-      font-weight: 500;
+      font-weight: 600;
       margin: 0;
       flex: 1;
+      color: white;
     }
 
     .chart-menu {
       margin-left: auto;
+      color: white;
     }
 
     mat-card-content {

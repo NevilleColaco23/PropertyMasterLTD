@@ -8,12 +8,12 @@ export class GridsterConfigService {
     return {
       gridType: 'fixed',  // Use 'fixed' to respect fixedRowHeight
       compactType: 'none',
-      margin: 10,
-      outerMargin: true,
-      outerMarginTop: null,
-      outerMarginRight: null,
-      outerMarginBottom: null,
-      outerMarginLeft: null,
+      margin: 8,  // Reduced to 8px for tighter spacing
+      outerMargin: false,  // Remove outer margins for cleaner look
+      outerMarginTop: 0,
+      outerMarginRight: 0,
+      outerMarginBottom: 0,
+      outerMarginLeft: 0,
       useTransformPositioning: true,
       mobileBreakpoint: 640,
       minCols: 12,
