@@ -99,6 +99,12 @@ export interface ChartWidgetData {
     </mat-card>
   `,
   styles: [`
+    :host {
+      display: block;
+      height: 100%;
+      width: 100%;
+    }
+
     .chart-widget {
       height: 100%;
       display: flex;

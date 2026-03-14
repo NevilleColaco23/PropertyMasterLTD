@@ -107,6 +107,12 @@ export interface CalendarWidgetData {
     </mat-card>
   `,
   styles: [`
+    :host {
+      display: block;
+      height: 100%;
+      width: 100%;
+    }
+
     .calendar-widget {
       height: 100%;
       display: flex;

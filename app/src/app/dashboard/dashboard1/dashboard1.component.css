@@ -90,6 +90,8 @@
 
 gridster {
   background: transparent;
+  overflow: visible !important;
+  min-height: 100%;
 }
 
 gridster-item {

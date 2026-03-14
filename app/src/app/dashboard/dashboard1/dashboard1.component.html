@@ -98,22 +98,22 @@
             <mat-card-content>
               <!-- KPI Card Widget -->
               @if (item.widgetType === 'kpi-card' && item.data) {
-                <app-kpi-card-widget [data]="item.data"></app-kpi-card-widget>
+                <app-kpi-card-widget [data]="item.data" style="display: block; height: 100%; width: 100%;"></app-kpi-card-widget>
               }
 
               <!-- List Widget -->
               @if (item.widgetType === 'list' && item.data) {
-                <app-list-widget [data]="item.data"></app-list-widget>
+                <app-list-widget [data]="item.data" style="display: block; height: 100%; width: 100%;"></app-list-widget>
               }
 
               <!-- Chart Widget -->
               @if (item.widgetType === 'chart' && item.data) {
-                <app-chart-widget [data]="item.data"></app-chart-widget>
+                <app-chart-widget [data]="item.data" style="display: block; height: 100%; width: 100%;"></app-chart-widget>
               }
 
               <!-- Calendar Widget -->
               @if (item.widgetType === 'calendar' && item.data) {
-                <app-calendar-widget [data]="item.data"></app-calendar-widget>
+                <app-calendar-widget [data]="item.data" style="display: block; height: 100%; width: 100%;"></app-calendar-widget>
               }
 
               <!-- Loading State -->

@@ -37,6 +37,12 @@ export interface KpiCardData {
     </mat-card>
   `,
   styles: [`
+    :host {
+      display: block;
+      height: 100%;
+      width: 100%;
+    }
+
     .kpi-card {
       height: 100%;
       border-left: 4px solid;
