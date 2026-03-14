@@ -458,8 +458,11 @@ export class Dashboard1Component implements OnInit {
    * Add widget to dashboard
    */
   addWidget(widget: WidgetLibraryItem): void {
-    // Find next available position
-    const position = this.findNextAvailablePosition();
+    // Find next available position based on widget size
+    const position = this.findNextAvailablePosition(
+      widget.defaultSize.width, 
+      widget.defaultSize.height
+    );
 
     const newItem: DashboardGridsterItem = {
       x: position.x,
@@ -479,7 +482,7 @@ export class Dashboard1Component implements OnInit {
     this.loadWidgetRealData(newItem);
 
     this.snackBar.open(`${widget.name} added to dashboard`, 'Close', { duration: 2000 });
-    console.log('Widget added:', widget.widgetId);
+    console.log('Widget added:', widget.widgetId, 'at position:', position);
   }
 
   /**
@@ -570,12 +573,57 @@ export class Dashboard1Component implements OnInit {
   /**
    * Find next available position in grid
    */
-  private findNextAvailablePosition(): { x: number; y: number } {
+  private findNextAvailablePosition(cols: number = 3, rows: number = 2): { x: number; y: number } {
     if (this.dashboardItems.length === 0) {
       return { x: 0, y: 0 };
     }
 
-    // Find the lowest Y position with available space
+    // Try to find first available space starting from top-left
+    const maxCols = 12;
+    const maxRows = 100;
+
+    // Create a grid map to track occupied cells
+    const occupied: boolean[][] = [];
+    for (let y = 0; y < maxRows; y++) {
+      occupied[y] = new Array(maxCols).fill(false);
+    }
+
+    // Mark occupied cells
+    this.dashboardItems.forEach(item => {
+      const startX = item.x || 0;
+      const startY = item.y || 0;
+      const endX = startX + (item.cols || 1);
+      const endY = startY + (item.rows || 1);
+
+      for (let y = startY; y < endY && y < maxRows; y++) {
+        for (let x = startX; x < endX && x < maxCols; x++) {
+          occupied[y][x] = true;
+        }
+      }
+    });
+
+    // Find first available position that fits the widget
+    for (let y = 0; y < maxRows; y++) {
+      for (let x = 0; x <= maxCols - cols; x++) {
+        // Check if this position fits
+        let fits = true;
+        for (let dy = 0; dy < rows && y + dy < maxRows; dy++) {
+          for (let dx = 0; dx < cols && x + dx < maxCols; dx++) {
+            if (occupied[y + dy][x + dx]) {
+              fits = false;
+              break;
+            }
+          }
+          if (!fits) break;
+        }
+
+        if (fits) {
+          return { x, y };
+        }
+      }
+    }
+
+    // Fallback: add to bottom if no space found
     let maxY = 0;
     this.dashboardItems.forEach(item => {
       const bottom = (item.y || 0) + (item.rows || 2);
