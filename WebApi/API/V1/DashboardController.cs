@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MyWarehouse.Application.Dashboard.Commands;
 using MyWarehouse.Application.Dashboard.DTOs;
 using MyWarehouse.Application.Dashboard.Queries;
+using MyWarehouse.Application.UserActivity.Attributes;
 
 namespace MyWarehouse.WebApi.API.V1
 {
@@ -29,6 +30,7 @@ namespace MyWarehouse.WebApi.API.V1
         [HttpGet("user/{userId}")]
         [ProducesResponseType(typeof(DashboardConfigurationDTO), 200)]
         [ProducesResponseType(404)]
+        [LogView("Dashboard", Description = "User viewed their dashboard configuration")]
         public async Task<ActionResult<DashboardConfigurationDTO>> GetUserDashboard(int userId, [FromQuery] bool defaultOnly = true)
         {
             var result = await _mediator.Send(new GetDashboardByUserIdQuery 
@@ -50,6 +52,7 @@ namespace MyWarehouse.WebApi.API.V1
         /// <returns>List of dashboard configurations</returns>
         [HttpGet("user/{userId}/all")]
         [ProducesResponseType(typeof(List<DashboardConfigurationDTO>), 200)]
+        [LogList("Dashboards", Description = "User viewed all their dashboards")]
         public async Task<ActionResult<List<DashboardConfigurationDTO>>> GetAllUserDashboards(int userId)
         {
             var result = await _mediator.Send(new GetUserDashboardsQuery { UserId = userId });
@@ -64,6 +67,7 @@ namespace MyWarehouse.WebApi.API.V1
         [HttpPost]
         [ProducesResponseType(typeof(string), 201)]
         [ProducesResponseType(400)]
+        [LogCreate("Dashboard", EntityIdProperty = "Id")]
         public async Task<ActionResult<string>> SaveDashboard([FromBody] SaveDashboardConfigurationCommand command)
         {
             try
@@ -92,6 +96,7 @@ namespace MyWarehouse.WebApi.API.V1
         [HttpDelete("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
+        [LogDelete("Dashboard")]
         public async Task<ActionResult> DeleteDashboard(string id, [FromQuery] int userId)
         {
             var result = await _mediator.Send(new DeleteDashboardConfigurationCommand 
@@ -115,6 +120,7 @@ namespace MyWarehouse.WebApi.API.V1
         [HttpPost("{id}/set-default")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
+        [LogUpdate("Dashboard", Description = "Set dashboard as default")]
         public async Task<ActionResult> SetDefaultDashboard(string id, [FromQuery] int userId)
         {
             var result = await _mediator.Send(new SetDefaultDashboardCommand 
@@ -137,6 +143,7 @@ namespace MyWarehouse.WebApi.API.V1
         [HttpPost("reset-to-template")]
         [ProducesResponseType(typeof(string), 200)]
         [ProducesResponseType(404)]
+        [LogUpdate("Dashboard", Description = "Reset dashboard to template")]
         public async Task<ActionResult<string>> ResetToTemplate([FromBody] ResetDashboardToTemplateCommand command)
         {
             try
@@ -158,6 +165,7 @@ namespace MyWarehouse.WebApi.API.V1
         /// <returns>List of available widgets</returns>
         [HttpGet("widgets")]
         [ProducesResponseType(typeof(List<WidgetLibraryItemDTO>), 200)]
+        [LogList("Widgets", Description = "User browsed widget library")]
         public async Task<ActionResult<List<WidgetLibraryItemDTO>>> GetWidgetLibrary(
             [FromQuery] string? category = null,
             [FromQuery] bool activeOnly = true)
@@ -179,6 +187,7 @@ namespace MyWarehouse.WebApi.API.V1
         /// <returns>List of dashboard templates</returns>
         [HttpGet("templates")]
         [ProducesResponseType(typeof(List<DashboardTemplateDTO>), 200)]
+        [LogList("Dashboard Templates", Description = "User browsed dashboard templates")]
         public async Task<ActionResult<List<DashboardTemplateDTO>>> GetDashboardTemplates(
             [FromQuery] int? roleId = null,
             [FromQuery] bool publicOnly = true)

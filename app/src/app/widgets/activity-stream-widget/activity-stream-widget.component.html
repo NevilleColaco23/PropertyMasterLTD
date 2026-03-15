@@ -1,0 +1,146 @@
+<mat-card class="activity-widget">
+  <mat-card-header>
+    <mat-card-title>
+      <div class="header-content">
+        <mat-icon class="widget-icon">timeline</mat-icon>
+        <span>{{ title }}</span>
+      </div>
+      <div class="header-actions">
+        <button mat-icon-button (click)="refresh()" matTooltip="Refresh" [disabled]="loading">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <button mat-icon-button [matMenuTriggerFor]="menu" matTooltip="Options">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="refresh()">
+            <mat-icon>refresh</mat-icon>
+            <span>Refresh</span>
+          </button>
+        </mat-menu>
+      </div>
+    </mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading activities...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="error-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ error }}</p>
+      <button mat-raised-button color="primary" (click)="refresh()">
+        <mat-icon>refresh</mat-icon>
+        Retry
+      </button>
+    </div>
+
+    <!-- Activity Summary Stats -->
+    <div *ngIf="!loading && !error && summary && showStats" class="stats-container">
+      <div class="stat-card">
+        <mat-icon class="stat-icon today">today</mat-icon>
+        <div class="stat-content">
+          <div class="stat-value">{{ summary.totalToday }}</div>
+          <div class="stat-label">Today</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <mat-icon class="stat-icon week">date_range</mat-icon>
+        <div class="stat-content">
+          <div class="stat-value">{{ summary.totalThisWeek }}</div>
+          <div class="stat-label">This Week</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <mat-icon class="stat-icon month">calendar_month</mat-icon>
+        <div class="stat-content">
+          <div class="stat-value">{{ summary.totalThisMonth }}</div>
+          <div class="stat-label">This Month</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Activity Types -->
+    <div *ngIf="!loading && !error && summary && showStats" class="activity-types-container">
+      <h4>Top Activity Types</h4>
+      <div class="activity-types">
+        <mat-chip-set>
+          <mat-chip *ngFor="let entry of getActivityTypeEntries()" 
+                    [style.background-color]="getColor(entry.type)"
+                    class="activity-type-chip">
+            <mat-icon [style.color]="'white'">{{ getIcon(entry.type) }}</mat-icon>
+            <span class="chip-text">{{ entry.type }} ({{ entry.count }})</span>
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+    </div>
+
+    <!-- Recent Activities Timeline -->
+    <div *ngIf="!loading && !error && summary" class="timeline-container">
+      <h4 class="timeline-title">Recent Activities</h4>
+      
+      <div *ngIf="summary.recentActivities.length === 0" class="empty-state">
+        <mat-icon>inbox</mat-icon>
+        <p>No recent activities</p>
+      </div>
+
+      <div class="timeline">
+        <div *ngFor="let activity of summary.recentActivities" class="timeline-item">
+          <div class="timeline-marker" [style.background-color]="getColor(activity.activityType)">
+            <mat-icon class="timeline-icon">{{ getIcon(activity.activityType) }}</mat-icon>
+          </div>
+          
+          <div class="timeline-content">
+            <div class="activity-header">
+              <div class="activity-user">
+                <mat-icon class="user-icon">person</mat-icon>
+                <span class="username">{{ activity.username }}</span>
+              </div>
+              <div class="activity-meta">
+                <mat-icon class="success-icon" 
+                          [style.color]="getSuccessColor(activity)"
+                          [matTooltip]="activity.isSuccess ? 'Success' : 'Failed'">
+                  {{ getSuccessIcon(activity) }}
+                </mat-icon>
+                <span class="time-ago">{{ activity.timeAgo || activity.timestamp }}</span>
+              </div>
+            </div>
+            
+            <div class="activity-description">
+              <strong>{{ activity.action }}</strong>
+              <span *ngIf="activity.entityType"> on {{ activity.entityType }}</span>
+              <span *ngIf="activity.entityId"> #{{ activity.entityId }}</span>
+            </div>
+            
+            <div *ngIf="activity.description" class="activity-detail">
+              {{ activity.description }}
+            </div>
+
+            <div class="activity-tags">
+              <mat-chip class="activity-type-tag" [style.background-color]="getColor(activity.activityType)">
+                {{ activity.activityType }}
+              </mat-chip>
+              <mat-chip *ngIf="activity.module" class="module-tag">
+                <mat-icon>folder</mat-icon>
+                {{ activity.module }}
+              </mat-chip>
+              <mat-chip *ngIf="activity.durationMs" class="duration-tag">
+                <mat-icon>timer</mat-icon>
+                {{ formatDuration(activity.durationMs) }}
+              </mat-chip>
+            </div>
+
+            <div *ngIf="!activity.isSuccess && activity.errorMessage" class="error-message">
+              <mat-icon color="warn">warning</mat-icon>
+              {{ activity.errorMessage }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

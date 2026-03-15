@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories.Common;
 using MyWarehouse.Application.Common.MenuPermissions;
+using MyWarehouse.Application.UserActivity.Attributes;
 
 namespace MyWarehouse.WebApi.API.V1
 {
@@ -15,10 +16,12 @@ namespace MyWarehouse.WebApi.API.V1
         public MenuPermissionsController(IMediator mediator) => _mediator = mediator;
 
         [HttpGet]
+        [LogList("Menu Permissions")]
         public async Task<ActionResult<IListResponseModel<GetMenuPermissionDTO>>> GetMenuPermissions([FromQuery] GetMenuPermissionsQuery query)
             => Ok(await _mediator.Send(query));
 
         [HttpGet("{id}")]
+        [LogView("Menu Permission")]
         public async Task<ActionResult<GetMenuPermissionDTO>> GetMenuPermissionById(int id)
         {
             var result = await _mediator.Send(new GetMenuPermissionByIdQuery { Id = id });
@@ -28,6 +31,7 @@ namespace MyWarehouse.WebApi.API.V1
         }
 
         [HttpPost]
+        [LogCreate("Menu Permission")]
         public async Task<ActionResult<int>> CreateMenuPermission([FromBody] CreateMenuPermissionCommand command)
         {
             var id = await _mediator.Send(command);
@@ -35,6 +39,7 @@ namespace MyWarehouse.WebApi.API.V1
         }
 
         [HttpPut("{id}")]
+        [LogUpdate("Menu Permission")]
         public async Task<ActionResult> UpdateMenuPermission(int id, [FromBody] UpdateMenuPermissionCommand command)
         {
             if (id != command.Id)
@@ -45,6 +50,7 @@ namespace MyWarehouse.WebApi.API.V1
         }
 
         [HttpDelete("{id}")]
+        [LogDelete("Menu Permission")]
         public async Task<ActionResult> DeleteMenuPermission(int id)
         {
             await _mediator.Send(new DeleteMenuPermissionCommand { Id = id });

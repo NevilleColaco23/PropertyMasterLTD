@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using MyWarehouse.Infrastructure.Filters;
 
 namespace MyWarehouse.Infrastructure.Authentication;
 
@@ -9,7 +10,15 @@ internal static class ApiStartup
     public static void AddMyApi(this IServiceCollection services)
     {
         services.AddHealthChecks();
-        services.AddControllers()
+
+        // Register Activity Logging Filter as Scoped (important for DI)
+        services.AddScoped<ActivityLoggingActionFilter>();
+
+        services.AddControllers(options =>
+        {
+            // Add activity logging filter globally using ServiceFilter
+            options.Filters.Add<ActivityLoggingActionFilter>();
+        })
             .AddControllersAsServices()
             .AddJsonOptions(c =>
                 c.JsonSerializerOptions.PropertyNamingPolicy

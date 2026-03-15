@@ -7,6 +7,7 @@ using MyWarehouse.Application.Products.GetProductsSummary;
 using MyWarehouse.Application.Products.ProductStockMass;
 using MyWarehouse.Application.Products.ProductStockValue;
 using MyWarehouse.Application.Products.UpdateProduct;
+using MyWarehouse.Application.UserActivity.Attributes;
 
 namespace MyWarehouse.Infrastructure.API.V1;
 
@@ -21,18 +22,22 @@ public class ProductController : ControllerBase
     public ProductController(IMediator mediator) => _mediator = mediator;
 
     [HttpPost]
+    [LogCreate("Product")]
     public async Task<ActionResult<int>> Create(CreateProductCommand command)
         => Ok(await _mediator.Send(command));
 
     [HttpGet]
+    [LogList("Products")]
     public async Task<ActionResult<IListResponseModel<ProductDto>>> GetList([FromQuery] GetProductsListQuery query)
         => Ok(await _mediator.Send(query));
 
     [HttpGet("{id}")]
+    [LogView("Product")]
     public async Task<ActionResult<ProductDetailsDto>> Get(int id)
         => Ok(await _mediator.Send(new GetProductDetailsQuery() { Id = id }));
 
     [HttpDelete("{id}")]
+    [LogDelete("Product")]
     public async Task<ActionResult> Delete(int id)
     {
         await _mediator.Send(new DeleteProductCommand() { Id = id });
@@ -41,6 +46,7 @@ public class ProductController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [LogUpdate("Product")]
     public async Task<ActionResult> Update(int id, UpdateProductCommand command)
     {
         if (id != command.Id) return BadRequest();
@@ -51,14 +57,17 @@ public class ProductController : ControllerBase
     }
 
     [HttpGet("totalMass")]
+    [LogView("Product Stock Analytics", Description = "Viewed product stock mass")]
     public async Task<ActionResult<StockMassDto>> ProductStockMass()
         => Ok(await _mediator.Send(new ProductStockMassQuery()));
 
     [HttpGet("totalValue")]
+    [LogView("Product Stock Analytics", Description = "Viewed product stock value")]
     public async Task<ActionResult<StockValueDto>> ProductStockValue()
         => Ok(await _mediator.Send(new ProductStockValueQuery()));
 
     [HttpGet("stockCount")]
+    [LogView("Product Stock Analytics", Description = "Viewed product stock count")]
     public async Task<ActionResult<ProductStockCountDto>> ProductStockCount()
         => Ok(await _mediator.Send(new ProductStockCountQuery()));
 }

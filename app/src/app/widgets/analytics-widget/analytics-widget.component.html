@@ -1,0 +1,478 @@
+<div class="analytics-widget">
+  <!-- Header -->
+  <div class="widget-header">
+    <div class="header-left">
+      <mat-icon class="widget-icon">analytics</mat-icon>
+      <h2 class="widget-title">{{ title }}</h2>
+      <mat-chip class="time-range-chip">{{ getTimeRangeLabel() }}</mat-chip>
+    </div>
+    <div class="header-actions">
+      <mat-form-field appearance="outline" class="time-range-selector">
+        <mat-label>Time Range</mat-label>
+        <mat-select [(value)]="timeRange" (selectionChange)="onTimeRangeChange($event.value)">
+          <mat-option value="today">Today</mat-option>
+          <mat-option value="week">Last 7 Days</mat-option>
+          <mat-option value="month">Last 30 Days</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-icon-button (click)="exportData()" matTooltip="Export Data">
+        <mat-icon>download</mat-icon>
+      </button>
+      <button mat-icon-button (click)="refresh()" matTooltip="Refresh">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading analytics...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="refresh()">
+      <mat-icon>refresh</mat-icon>
+      Retry
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && !error" class="widget-content">
+    
+    <!-- Summary Cards -->
+    <div *ngIf="showSummary && summary" class="summary-section">
+      <div class="kpi-cards">
+        <mat-card class="kpi-card">
+          <div class="kpi-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <mat-icon>analytics</mat-icon>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{ formatNumber(summary.totalActivities) }}</div>
+            <div class="kpi-label">Total Activities</div>
+          </div>
+        </mat-card>
+
+        <mat-card class="kpi-card">
+          <div class="kpi-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <mat-icon>people</mat-icon>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{ summary.uniqueUsers }}</div>
+            <div class="kpi-label">Active Users</div>
+          </div>
+        </mat-card>
+
+        <mat-card class="kpi-card">
+          <div class="kpi-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{ formatPercentage(summary.successRate) }}</div>
+            <div class="kpi-label">Success Rate</div>
+          </div>
+        </mat-card>
+
+        <mat-card class="kpi-card">
+          <div class="kpi-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <mat-icon>speed</mat-icon>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-value">{{ formatDuration(summary.averageDuration) }}</div>
+            <div class="kpi-label">Avg Duration</div>
+          </div>
+        </mat-card>
+      </div>
+
+      <div class="summary-details">
+        <mat-card class="detail-card">
+          <mat-icon class="detail-icon">person</mat-icon>
+          <div class="detail-content">
+            <div class="detail-label">Most Active User</div>
+            <div class="detail-value">{{ summary.mostActiveUser || 'N/A' }}</div>
+          </div>
+        </mat-card>
+
+        <mat-card class="detail-card">
+          <mat-icon class="detail-icon">trending_up</mat-icon>
+          <div class="detail-content">
+            <div class="detail-label">Top Activity Type</div>
+            <div class="detail-value">{{ summary.mostCommonActivityType || 'N/A' }}</div>
+          </div>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- Tabs for different views -->
+    <mat-tab-group [(selectedIndex)]="selectedTab" class="analytics-tabs">
+      
+      <!-- Overview Tab -->
+      <mat-tab label="Overview">
+        <div class="tab-content">
+          
+          <!-- Top Users Table -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>leaderboard</mat-icon>
+              <mat-card-title>Top Active Users</mat-card-title>
+              <mat-card-subtitle>Most engaged users in the system</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <table mat-table [dataSource]="topUsers" class="users-table">
+                
+                <ng-container matColumnDef="rank">
+                  <th mat-header-cell *matHeaderCellDef>#</th>
+                  <td mat-cell *matCellDef="let user; let i = index">
+                    <span class="rank-badge" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
+                      {{ i + 1 }}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="username">
+                  <th mat-header-cell *matHeaderCellDef>User</th>
+                  <td mat-cell *matCellDef="let user">
+                    <div class="user-cell">
+                      <mat-icon class="user-avatar">account_circle</mat-icon>
+                      <span>{{ user.username }}</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="activities">
+                  <th mat-header-cell *matHeaderCellDef>Activities</th>
+                  <td mat-cell *matCellDef="let user">
+                    <span class="activity-count">{{ formatNumber(user.totalActivities) }}</span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="successRate">
+                  <th mat-header-cell *matHeaderCellDef>Success Rate</th>
+                  <td mat-cell *matCellDef="let user">
+                    <mat-chip [class]="'chip-' + getSuccessRateColor(user.successRate)">
+                      {{ formatPercentage(user.successRate) }}
+                    </mat-chip>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="lastActivity">
+                  <th mat-header-cell *matHeaderCellDef>Last Activity</th>
+                  <td mat-cell *matCellDef="let user">
+                    <span class="last-activity">{{ formatDate(user.lastActivityTime) }}</span>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="userColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: userColumns;"></tr>
+              </table>
+
+              <div *ngIf="topUsers.length === 0" class="no-data">
+                <mat-icon>info</mat-icon>
+                <p>No user activity data available</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Activity Distribution -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>pie_chart</mat-icon>
+              <mat-card-title>Activity Distribution</mat-card-title>
+              <mat-card-subtitle>Breakdown by activity type</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="distribution-grid">
+                <div *ngFor="let item of distribution" class="distribution-item">
+                  <div class="distribution-icon" [style.background]="getActivityColor(item.activityType)">
+                    <mat-icon>{{ getActivityIcon(item.activityType) }}</mat-icon>
+                  </div>
+                  <div class="distribution-details">
+                    <div class="distribution-type">{{ item.activityType }}</div>
+                    <div class="distribution-stats">
+                      <span class="count">{{ formatNumber(item.count) }}</span>
+                      <span class="percentage">({{ formatPercentage(item.percentage) }})</span>
+                    </div>
+                    <div class="distribution-meta">
+                      <span class="success-rate">✓ {{ item.successCount }}</span>
+                      <span class="failure-rate">✗ {{ item.failureCount }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="distribution.length === 0" class="no-data">
+                <mat-icon>info</mat-icon>
+                <p>No distribution data available</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+      </mat-tab>
+
+      <!-- Usage Patterns Tab -->
+      <mat-tab label="Usage Patterns">
+        <div class="tab-content">
+          
+          <!-- Peak Usage Times -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>schedule</mat-icon>
+              <mat-card-title>Peak Usage Times</mat-card-title>
+              <mat-card-subtitle>Activity distribution by hour</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="peak-times-chart">
+                <div *ngFor="let peak of peakTimes" class="peak-time-bar">
+                  <div class="peak-label">{{ peak.hourLabel }}</div>
+                  <div class="peak-bar-container">
+                    <div class="peak-bar" 
+                         [style.width.%]="(peak.activityCount / getMaxPeakCount()) * 100"
+                         [matTooltip]="peak.activityCount + ' activities'">
+                    </div>
+                  </div>
+                  <div class="peak-count">{{ peak.activityCount }}</div>
+                </div>
+              </div>
+
+              <div *ngIf="peakTimes.length === 0" class="no-data">
+                <mat-icon>info</mat-icon>
+                <p>No peak time data available</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Daily Trends -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>show_chart</mat-icon>
+              <mat-card-title>Daily Activity Trends</mat-card-title>
+              <mat-card-subtitle>Last 30 days</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="trends-chart">
+                <div class="trends-legend">
+                  <span class="legend-item">
+                    <span class="legend-color" style="background: #1976d2;"></span>
+                    Total
+                  </span>
+                  <span class="legend-item">
+                    <span class="legend-color" style="background: #4caf50;"></span>
+                    Successful
+                  </span>
+                  <span class="legend-item">
+                    <span class="legend-color" style="background: #f44336;"></span>
+                    Failed
+                  </span>
+                </div>
+                <div class="trends-data">
+                  <div *ngFor="let trend of dailyTrends.slice(0, 30)" class="trend-item">
+                    <div class="trend-date">{{ trend.dateLabel }}</div>
+                    <div class="trend-bars">
+                      <div class="trend-bar total" 
+                           [style.width.%]="(trend.totalActivities / getMaxTrendCount()) * 100"
+                           [matTooltip]="'Total: ' + trend.totalActivities">
+                      </div>
+                      <div class="trend-bar success" 
+                           [style.width.%]="(trend.successfulActivities / getMaxTrendCount()) * 100"
+                           [matTooltip]="'Success: ' + trend.successfulActivities">
+                      </div>
+                      <div class="trend-bar failed" 
+                           [style.width.%]="(trend.failedActivities / getMaxTrendCount()) * 100"
+                           [matTooltip]="'Failed: ' + trend.failedActivities">
+                      </div>
+                    </div>
+                    <div class="trend-count">{{ trend.totalActivities }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="dailyTrends.length === 0" class="no-data">
+                <mat-icon>info</mat-icon>
+                <p>No trend data available</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+      </mat-tab>
+
+      <!-- Security Tab -->
+      <mat-tab label="Security" *ngIf="showSecurity">
+        <div class="tab-content">
+          
+          <mat-card class="security-card" *ngIf="securityAlerts">
+            <mat-card-header>
+              <mat-icon mat-card-avatar [matBadge]="securityAlerts.failedLoginCount" matBadgeColor="warn">security</mat-icon>
+              <mat-card-title>Security Alerts (Last 24 Hours)</mat-card-title>
+              <mat-card-subtitle>Monitoring failed logins and suspicious activity</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              
+              <!-- Alert Summary -->
+              <div class="alert-summary">
+                <div class="alert-item">
+                  <mat-icon class="alert-icon warn">warning</mat-icon>
+                  <div class="alert-details">
+                    <div class="alert-label">Failed Logins</div>
+                    <div class="alert-value">{{ securityAlerts.failedLoginCount }}</div>
+                  </div>
+                </div>
+
+                <div class="alert-item">
+                  <mat-icon class="alert-icon error">report</mat-icon>
+                  <div class="alert-details">
+                    <div class="alert-label">Multiple Failures</div>
+                    <div class="alert-value">{{ securityAlerts.multipleFailedAttemptsCount }}</div>
+                  </div>
+                </div>
+
+                <div class="alert-item">
+                  <mat-icon class="alert-icon">location_on</mat-icon>
+                  <div class="alert-details">
+                    <div class="alert-label">Suspicious IPs</div>
+                    <div class="alert-value">{{ securityAlerts.suspiciousIPCount }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recent Failed Logins -->
+              <mat-expansion-panel class="failed-logins-panel">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    <mat-icon>list</mat-icon>
+                    Recent Failed Login Attempts
+                  </mat-panel-title>
+                  <mat-panel-description>
+                    {{ securityAlerts.recentFailedLogins.length }} attempts
+                  </mat-panel-description>
+                </mat-expansion-panel-header>
+                
+                <div class="failed-login-list">
+                  <div *ngFor="let attempt of securityAlerts.recentFailedLogins" class="failed-login-item">
+                    <div class="login-header">
+                      <mat-icon class="login-icon">person_off</mat-icon>
+                      <span class="login-username">{{ attempt.username }}</span>
+                      <mat-chip class="attempt-chip" color="warn">{{ attempt.attemptCount }} attempts</mat-chip>
+                    </div>
+                    <div class="login-details">
+                      <span class="login-meta">
+                        <mat-icon>location_on</mat-icon>
+                        {{ attempt.ipAddress }}
+                      </span>
+                      <span class="login-meta">
+                        <mat-icon>schedule</mat-icon>
+                        {{ formatDate(attempt.timestamp) }}
+                      </span>
+                    </div>
+                    <div class="login-error" *ngIf="attempt.errorMessage">
+                      <mat-icon>error_outline</mat-icon>
+                      {{ attempt.errorMessage }}
+                    </div>
+                  </div>
+
+                  <div *ngIf="securityAlerts.recentFailedLogins.length === 0" class="no-data">
+                    <mat-icon class="success-icon">check_circle</mat-icon>
+                    <p>No failed login attempts in the last 24 hours</p>
+                  </div>
+                </div>
+              </mat-expansion-panel>
+
+              <!-- Suspicious IPs -->
+              <div class="suspicious-ips" *ngIf="securityAlerts.suspiciousIPAddresses.length > 0">
+                <h3>Suspicious IP Addresses</h3>
+                <div class="ip-chips">
+                  <mat-chip *ngFor="let ip of securityAlerts.suspiciousIPAddresses" color="warn">
+                    <mat-icon>location_on</mat-icon>
+                    {{ ip }}
+                  </mat-chip>
+                </div>
+              </div>
+
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+      </mat-tab>
+
+      <!-- Performance Tab -->
+      <mat-tab label="Performance">
+        <div class="tab-content">
+          
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-icon mat-card-avatar>speed</mat-icon>
+              <mat-card-title>Performance Metrics</mat-card-title>
+              <mat-card-subtitle>Response time analysis by activity type</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+              <table mat-table [dataSource]="performanceMetrics" class="performance-table">
+                
+                <ng-container matColumnDef="activityType">
+                  <th mat-header-cell *matHeaderCellDef>Activity Type</th>
+                  <td mat-cell *matCellDef="let metric">
+                    <div class="activity-type-cell">
+                      <mat-icon [style.color]="getActivityColor(metric.activityType)">
+                        {{ getActivityIcon(metric.activityType) }}
+                      </mat-icon>
+                      {{ metric.activityType }}
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="avgDuration">
+                  <th mat-header-cell *matHeaderCellDef>Avg Duration</th>
+                  <td mat-cell *matCellDef="let metric">
+                    <mat-chip [class]="'chip-' + getPerformanceColor(metric.averageDuration)">
+                      {{ formatDuration(metric.averageDuration) }}
+                    </mat-chip>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="minDuration">
+                  <th mat-header-cell *matHeaderCellDef>Min</th>
+                  <td mat-cell *matCellDef="let metric">{{ formatDuration(metric.minDuration) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="maxDuration">
+                  <th mat-header-cell *matHeaderCellDef>Max</th>
+                  <td mat-cell *matCellDef="let metric">{{ formatDuration(metric.maxDuration) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="count">
+                  <th mat-header-cell *matHeaderCellDef>Count</th>
+                  <td mat-cell *matCellDef="let metric">{{ formatNumber(metric.totalCount) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="slowCount">
+                  <th mat-header-cell *matHeaderCellDef>Slow Requests</th>
+                  <td mat-cell *matCellDef="let metric">
+                    <span class="slow-count" *ngIf="metric.slowRequestCount > 0">
+                      <mat-icon>warning</mat-icon>
+                      {{ metric.slowRequestCount }}
+                    </span>
+                    <span *ngIf="metric.slowRequestCount === 0">-</span>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="performanceColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: performanceColumns;"></tr>
+              </table>
+
+              <div *ngIf="performanceMetrics.length === 0" class="no-data">
+                <mat-icon>info</mat-icon>
+                <p>No performance data available</p>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+
+  </div>
+</div>

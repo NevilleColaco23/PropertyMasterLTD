@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MyWarehouse.Application.Common.Users;
 using MyWarehouse.Application.Common.Users.DTO;
+using MyWarehouse.Application.UserActivity.Attributes;
 
 namespace MyWarehouse.WebApi.API.V1
 {
@@ -21,6 +22,7 @@ namespace MyWarehouse.WebApi.API.V1
         /// Get all users
         /// </summary>
         [HttpGet("getall")]
+        [LogList("Users")]
         public async Task<ActionResult<IEnumerable<GetUserDTO>>> GetAllUsers()
         {
             var query = new GetUsersQuery();

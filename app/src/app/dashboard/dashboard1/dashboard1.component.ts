@@ -25,6 +25,7 @@ import { KpiCardWidgetComponent, KpiCardData } from '../../widgets/kpi-card-widg
 import { ListWidgetComponent, ListWidgetData, ListItem } from '../../widgets/list-widget/list-widget.component';
 import { ChartWidgetComponent, ChartWidgetData } from '../../widgets/chart-widget/chart-widget.component';
 import { CalendarWidgetComponent, CalendarWidgetData, CalendarEvent } from '../../widgets/calendar-widget/calendar-widget.component';
+import { ActivityStreamWidgetComponent } from '../../widgets/activity-stream-widget/activity-stream-widget.component';
 import { WidgetPickerDialogComponent } from '../../widgets/widget-picker-dialog/widget-picker-dialog.component';
 import { SaveDashboardDialogComponent, SaveDashboardDialogData } from '../../dialogs/save-dashboard-dialog/save-dashboard-dialog.component';
 import { GridsterConfigService } from '../../services/gridster-config.service';
@@ -69,7 +70,8 @@ export interface DashboardGridsterItem {
     KpiCardWidgetComponent,
     ListWidgetComponent,
     ChartWidgetComponent,
-    CalendarWidgetComponent
+    CalendarWidgetComponent,
+    ActivityStreamWidgetComponent
   ],
   templateUrl: './dashboard1.component.html',
   styleUrls: ['./dashboard1.component.css'],
@@ -325,6 +327,10 @@ export class Dashboard1Component implements OnInit {
         break;
       case 'calendar':
         this.loadCalendarWidgetData(item, userId);
+        break;
+      case 'activity-stream':
+        // Activity stream widget loads its own data directly from ActivityService
+        item.data = true; // Mark as loaded so it doesn't show loading spinner
         break;
       default:
         console.warn('Unknown widget type:', item.widgetType);

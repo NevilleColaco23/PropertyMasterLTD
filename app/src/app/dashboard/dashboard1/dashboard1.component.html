@@ -162,6 +162,11 @@
                 <app-calendar-widget [data]="item.data" style="display: block; height: 100%; width: 100%;"></app-calendar-widget>
               }
 
+              <!-- Activity Stream Widget -->
+              @if (item.widgetType === 'activity-stream') {
+                <app-activity-stream-widget [settings]="item.settings" style="display: block; height: 100%; width: 100%;"></app-activity-stream-widget>
+              }
+
               <!-- Loading State -->
               @if (!item.data) {
                 <div class="widget-loading">

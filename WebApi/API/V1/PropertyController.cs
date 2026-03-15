@@ -4,6 +4,7 @@ using MyWarehouse.Application.Property.CreateProperty;
 using MyWarehouse.Application.Property.GetProperty;
 using MyWarehouse.Application.Property.UpdateProperty;
 using MyWarehouse.Application.Property.DeleteProperty;
+using MyWarehouse.Application.UserActivity.Attributes;
 
 namespace MyWarehouse.Infrastructure.API.V1;
 
@@ -23,6 +24,7 @@ public class PropertyController : ControllerBase
     /// </summary>
     [HttpGet]
     [AllowAnonymous]  // TEMPORARY: Remove this after testing!
+    [LogList("Properties")]
     public async Task<ActionResult<IListResponseModel<GetPropertyDto>>> GetList([FromQuery] GetPropertyListQuery query)
     {
         try
@@ -46,6 +48,7 @@ public class PropertyController : ControllerBase
     /// </summary>
     [HttpGet("accessible")]
     [AllowAnonymous]  // TEMPORARY: Remove this after testing!
+    [LogList("Properties", Description = "User accessed their property list")]
     public async Task<ActionResult<IListResponseModel<GetPropertyDto>>> GetAccessibleProperties([FromQuery] GetUserAccessiblePropertiesQuery query)
     {
         try
@@ -64,6 +67,7 @@ public class PropertyController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [LogView("Property")]
     public async Task<ActionResult<GetPropertyDto>> GetById(int id)
     {
         var result = await _mediator.Send(new GetPropertyListQuery());
@@ -76,6 +80,7 @@ public class PropertyController : ControllerBase
     }
 
     [HttpPost]
+    [LogCreate("Property")]
     public async Task<ActionResult<int>> Create(CreatePropertyCommand command)
     {
         var id = await _mediator.Send(command);
@@ -83,6 +88,7 @@ public class PropertyController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [LogUpdate("Property")]
     public async Task<ActionResult> Update(int id, [FromBody] UpdatePropertyCommand command)
     {
         if (id != command.Id)
@@ -93,6 +99,7 @@ public class PropertyController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [LogDelete("Property")]
     public async Task<ActionResult> Delete(int id)
     {
         await _mediator.Send(new DeletePropertyCommand { Id = id });

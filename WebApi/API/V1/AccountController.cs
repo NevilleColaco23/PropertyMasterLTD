@@ -6,6 +6,7 @@ using MyWarehouse.Infrastructure.Authentication.Dtos;
 using MyWarehouse.Infrastructure.Authentication.Models.Dtos;
 using MyWarehouse.WebApi.Authentication.Dtos;
 using Azure.Core;
+using MyWarehouse.Application.UserActivity.Attributes;
 
 namespace MyWarehouse.Infrastructure.API.V1;
 
@@ -25,9 +26,13 @@ public class AccountController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("login")]
+    [LogCreate("User Session", Description = "User logged in")]
     public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginDto login)
-        => ProduceLoginResponse(
-            await _userService.SignIn(login.Username, login.Password));
+    {
+        var result = await _userService.SignIn(login.Username, login.Password);
+
+        return ProduceLoginResponse(result);
+    }
 
     /// <summary>
     /// OAuth2.0 compliant login endpoint. Used for Swagger login.
@@ -54,9 +59,13 @@ public class AccountController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("loginExternal")]
+    [LogCreate("User Session", Description = "User logged in via external provider")]
     public async Task<ActionResult<LoginResponseDto>> ExternalLogin(ExternalLoginDto login)
-        => ProduceLoginResponse(
-            await _externalSignInService.SignInExternal(login.Provider, login.IdToken));
+    {
+        var result = await _externalSignInService.SignInExternal(login.Provider, login.IdToken);
+
+        return ProduceLoginResponse(result);
+    }
 
     private ActionResult<LoginResponseDto> ProduceLoginResponse((MySignInResult result, SignInData? data) loginResults)
     {
@@ -85,6 +94,7 @@ public class AccountController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("SignUp")]
+    [LogCreate("User Account", Description = "New user registered")]
     public async Task<ActionResult<SignUpResponseDto>> SignUp([FromBody] SignUpDto signUpDto)
     {
         if (signUpDto == null)
@@ -113,7 +123,6 @@ public class AccountController : ControllerBase
             signUpDto.Phone,
             signUpDto.PropertyCode); // Pass property code to determine demo vs real property assignment
 
-
         return result.result switch
         {
             SignUpResult.Failed => Unauthorized("Username or password incorrect."),
@@ -130,6 +139,7 @@ public class AccountController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("ConfirmEmail")]
+    [LogUpdate("User Account", Description = "User confirmed email")]
     public async Task<ActionResult> ConfirmEmail([FromQuery] int userId, [FromQuery] string token)
     {
         if (userId <= 0 || string.IsNullOrWhiteSpace(token))
@@ -145,6 +155,7 @@ public class AccountController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("ResendActivationEmail")]
+    [LogCreate("User Account", Description = "Resent activation email")]
     public async Task<ActionResult> ResendActivationEmail([FromBody] ResendActivationEmailDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto?.Email))

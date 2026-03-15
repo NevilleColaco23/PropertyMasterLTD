@@ -21,4 +21,7 @@ public static class MongoCollections
     public const string DashboardConfigurationsCollection = "DashboardConfigurations";
     public const string WidgetLibraryCollection = "WidgetLibrary";
     public const string DashboardTemplatesCollection = "DashboardTemplates";
+
+    // User Activity Tracking
+    public const string UserActivityLogsCollection = "UserActivityLogs";
 }
