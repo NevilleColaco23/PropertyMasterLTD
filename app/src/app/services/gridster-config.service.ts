@@ -7,7 +7,7 @@ export class GridsterConfigService {
   static getDefaultConfig(editMode: boolean = false): GridsterConfig {
     return {
       gridType: 'fixed',  // Use 'fixed' to respect fixedRowHeight
-      compactType: 'none',
+      compactType: 'compactUp',  // Automatically move widgets up to fill empty spaces
       margin: 8,  // Reduced to 8px for tighter spacing
       outerMargin: false,  // Remove outer margins for cleaner look
       outerMarginTop: 0,
