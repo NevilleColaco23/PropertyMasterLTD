@@ -81,7 +81,11 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
           console.warn('2. Menu data is not in database');
           console.warn('3. API endpoint returned empty results');
         } else {
-          console.log(`✅ Loaded ${this.navItems.length} menu items:`, this.navItems);
+          console.log(`✅ Loaded ${this.navItems.length} menu items:`);
+          // Debug each menu item's path
+          this.navItems.forEach((item, index) => {
+            console.log(`  ${index + 1}. "${item.label}" -> path: "${item.path}"`);
+          });
         }
 
         // Force the template to update immediately

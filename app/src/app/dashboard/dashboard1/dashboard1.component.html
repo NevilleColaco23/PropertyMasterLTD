@@ -32,6 +32,15 @@
         </button>
 
         <button mat-raised-button 
+                color="warn"
+                (click)="revertToLastSaved()"
+                [disabled]="!hasUnsavedChanges || loading"
+                matTooltip="Revert to Last Saved State">
+          <mat-icon>restore</mat-icon>
+          Revert
+        </button>
+
+        <button mat-raised-button 
                 color="accent"
                 (click)="openWidgetPicker()"
                 matTooltip="Add Widget">

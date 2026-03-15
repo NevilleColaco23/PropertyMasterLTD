@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string label { get; set; }
+        public string path { get; set; }
         public int order { get; set; }
         public string accessLevel { get; set; }
         public bool hasDropdown { get; set; }

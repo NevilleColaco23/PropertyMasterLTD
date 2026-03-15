@@ -2,6 +2,7 @@ using MongoDB.Driver;
 using MyWarehouse.Application.Common.Dependencies.DataAccess;
 using MyWarehouse.Application.Dashboard.DTOs;
 using MyWarehouse.Domain.Dashboard;
+using System.Text.Json;
 
 namespace MyWarehouse.Application.Dashboard.Commands
 {
@@ -15,6 +16,49 @@ namespace MyWarehouse.Application.Dashboard.Commands
         public SaveDashboardConfigurationCommandHandler(IMongoDatabase database)
         {
             _database = database;
+        }
+
+        /// <summary>
+        /// Convert JsonElement values to BSON-compatible values
+        /// </summary>
+        private static Dictionary<string, object> ConvertSettingsToBson(Dictionary<string, object> settings)
+        {
+            var result = new Dictionary<string, object>();
+
+            foreach (var kvp in settings)
+            {
+                result[kvp.Key] = ConvertValueToBson(kvp.Value);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Convert a single value to BSON-compatible format
+        /// </summary>
+        private static object ConvertValueToBson(object value)
+        {
+            if (value is JsonElement jsonElement)
+            {
+                return jsonElement.ValueKind switch
+                {
+                    JsonValueKind.String => jsonElement.GetString() ?? string.Empty,
+                    JsonValueKind.Number => jsonElement.TryGetInt32(out var intValue) 
+                        ? intValue 
+                        : (object)jsonElement.GetDouble(),
+                    JsonValueKind.True => true,
+                    JsonValueKind.False => false,
+                    JsonValueKind.Null => null!,
+                    JsonValueKind.Array => jsonElement.EnumerateArray()
+                        .Select(e => ConvertValueToBson(e))
+                        .ToList(),
+                    JsonValueKind.Object => jsonElement.EnumerateObject()
+                        .ToDictionary(p => p.Name, p => ConvertValueToBson(p.Value)),
+                    _ => value
+                };
+            }
+
+            return value;
         }
 
         public async Task<string> Handle(SaveDashboardConfigurationCommand request, CancellationToken cancellationToken)
@@ -71,7 +115,7 @@ namespace MyWarehouse.Application.Dashboard.Commands
                         Width = w.Position.Width,
                         Height = w.Position.Height
                     },
-                    Settings = w.Settings
+                    Settings = ConvertSettingsToBson(w.Settings)
                 }).ToList()
             };
 

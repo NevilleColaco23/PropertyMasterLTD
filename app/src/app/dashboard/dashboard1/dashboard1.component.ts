@@ -105,6 +105,7 @@ export class Dashboard1Component implements OnInit {
   // ===== Edit Mode =====
   editMode = false;
   hasUnsavedChanges = false;
+  savedDashboardState: DashboardGridsterItem[] = []; // Backup of last saved state
 
   // ===== Gridster Configuration =====
   options: GridsterConfig;
@@ -200,6 +201,9 @@ export class Dashboard1Component implements OnInit {
 
       this.dashboardItems.push(item);
     });
+
+    // Save the initial state for revert functionality
+    this.backupDashboardState();
 
     console.log('Rendered dashboard items:', this.dashboardItems.length);
   }
@@ -430,6 +434,11 @@ export class Dashboard1Component implements OnInit {
       this.hasUnsavedChanges = false;
     }
 
+    // Backup current state when entering edit mode
+    if (this.editMode) {
+      this.backupDashboardState();
+    }
+
     console.log('Edit mode:', this.editMode);
   }
 
@@ -490,16 +499,13 @@ export class Dashboard1Component implements OnInit {
    */
   removeWidget(item: DashboardGridsterItem): void {
     const widgetName = this.widgetLibrary.find(w => w.widgetId === item.widgetId)?.name || 'Widget';
-    const confirmRemove = confirm(`Remove ${widgetName} from dashboard?`);
 
-    if (confirmRemove) {
-      const index = this.dashboardItems.indexOf(item);
-      if (index > -1) {
-        this.dashboardItems.splice(index, 1);
-        this.hasUnsavedChanges = true;
-        this.snackBar.open(`${widgetName} removed`, 'Close', { duration: 2000 });
-        console.log('Widget removed:', item.widgetId);
-      }
+    const index = this.dashboardItems.indexOf(item);
+    if (index > -1) {
+      this.dashboardItems.splice(index, 1);
+      this.hasUnsavedChanges = true;
+      this.snackBar.open(`${widgetName} removed`, 'Close', { duration: 2000 });
+      console.log('Widget removed:', item.widgetId);
     }
   }
 
@@ -533,6 +539,9 @@ export class Dashboard1Component implements OnInit {
         this.editMode = false;
         this.loading = false;
 
+        // Backup the new saved state
+        this.backupDashboardState();
+
         // Reload dashboard
         this.loadDashboard();
       },
@@ -558,6 +567,32 @@ export class Dashboard1Component implements OnInit {
 
     // Reload dashboard to restore original state
     this.loadDashboard();
+  }
+
+  /**
+   * Revert dashboard to last saved state
+   */
+  revertToLastSaved(): void {
+    const confirmRevert = confirm('Revert all changes to the last saved state?');
+    if (!confirmRevert) return;
+
+    // Restore from backup
+    this.dashboardItems = JSON.parse(JSON.stringify(this.savedDashboardState));
+    this.hasUnsavedChanges = false;
+
+    // Refresh data for all widgets
+    this.refreshAllWidgetData();
+
+    this.snackBar.open('Dashboard reverted to last saved state', 'Close', { duration: 3000 });
+    console.log('Dashboard reverted to last saved state');
+  }
+
+  /**
+   * Backup current dashboard state for revert functionality
+   */
+  private backupDashboardState(): void {
+    this.savedDashboardState = JSON.parse(JSON.stringify(this.dashboardItems));
+    console.log('Dashboard state backed up:', this.savedDashboardState.length, 'items');
   }
 
   /**
