@@ -10,6 +10,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatDividerModule } from '@angular/material/divider';
 import { Router } from '@angular/router';
 import { Gridster, GridsterItem, GridsterConfig } from 'angular-gridster2';
 import { forkJoin, of } from 'rxjs';
@@ -25,6 +26,7 @@ import { ListWidgetComponent, ListWidgetData, ListItem } from '../../widgets/lis
 import { ChartWidgetComponent, ChartWidgetData } from '../../widgets/chart-widget/chart-widget.component';
 import { CalendarWidgetComponent, CalendarWidgetData, CalendarEvent } from '../../widgets/calendar-widget/calendar-widget.component';
 import { WidgetPickerDialogComponent } from '../../widgets/widget-picker-dialog/widget-picker-dialog.component';
+import { SaveDashboardDialogComponent, SaveDashboardDialogData } from '../../dialogs/save-dashboard-dialog/save-dashboard-dialog.component';
 import { GridsterConfigService } from '../../services/gridster-config.service';
 
 export interface DashboardType {
@@ -61,6 +63,7 @@ export interface DashboardGridsterItem {
     MatDialogModule,
     MatTooltipModule,
     MatBadgeModule,
+    MatDividerModule,
     Gridster,
     GridsterItem,
     KpiCardWidgetComponent,
@@ -75,27 +78,9 @@ export interface DashboardGridsterItem {
 export class Dashboard1Component implements OnInit {
 
   // ===== Dashboard Selection =====
-  selectedDashboard: string = 'dashboard1';
-  dashboardTypes: DashboardType[] = [
-    {
-      value: 'dashboard1',
-      label: 'Overview Dashboard',
-      icon: 'dashboard',
-      route: '/propertyLanding/dashboard1'
-    },
-    {
-      value: 'dashboard2',
-      label: 'Analytics Dashboard',
-      icon: 'analytics',
-      route: '/propertyLanding/dashboard2'
-    },
-    {
-      value: 'dashboard3',
-      label: 'Reports Dashboard',
-      icon: 'assessment',
-      route: '/propertyLanding/dashboard3'
-    }
-  ];
+  selectedDashboard: string | null = null;
+  userDashboards: DashboardConfiguration[] = [];
+  isLoadingDashboards = false;
 
   // ===== State Management =====
   loading = true;  // Start with loading=true, set to false after data loads
@@ -124,7 +109,7 @@ export class Dashboard1Component implements OnInit {
 
   ngOnInit(): void {
     console.log('Dashboard1 component initialized - Phase 5: Gridster + Real Data');
-    this.loadDashboard();
+    this.loadUserDashboards();
     this.loadWidgetLibrary();
   }
 
@@ -133,37 +118,81 @@ export class Dashboard1Component implements OnInit {
   // ========================================
 
   /**
-   * Load user's dashboard configuration from API
+   * Load all user's dashboards
    */
-  loadDashboard(): void {
+  loadUserDashboards(): void {
+    this.isLoadingDashboards = true;
+    const userId = this.getCurrentUserId();
+
+    this.dashboardService.getUserDashboards(userId).subscribe({
+      next: (dashboards) => {
+        console.log('User dashboards loaded:', dashboards);
+        this.userDashboards = dashboards;
+
+        if (dashboards.length > 0) {
+          // Find default dashboard or use first one
+          const defaultDashboard = dashboards.find(d => d.isDefault) || dashboards[0];
+          this.selectedDashboard = defaultDashboard.id!;
+          this.loadDashboard(defaultDashboard.id!);
+        } else {
+          // No saved dashboards, load default widgets
+          console.log('No saved dashboards found, loading default widgets');
+          this.selectedDashboard = null;
+          this.loadDefaultWidgets();
+          this.refreshAllWidgetData();
+        }
+
+        this.isLoadingDashboards = false;
+      },
+      error: (error) => {
+        console.error('Error loading user dashboards:', error);
+        this.snackBar.open('Failed to load dashboards', 'Close', { duration: 3000 });
+        this.loadDefaultWidgets();
+        this.refreshAllWidgetData();
+        this.isLoadingDashboards = false;
+      }
+    });
+  }
+
+  /**
+   * Load specific dashboard configuration from API
+   */
+  loadDashboard(dashboardId: string): void {
     this.loading = true;
     const userId = this.getCurrentUserId();
 
-    this.dashboardService.getDashboardByUserId(userId, true).subscribe({
-      next: (config) => {
-        console.log('Dashboard config loaded:', config);
-        this.dashboardConfig = config;
+    // Find dashboard in loaded list
+    const dashboard = this.userDashboards.find(d => d.id === dashboardId);
 
-        if (config) {
-          this.renderWidgets(config);
-        } else {
-          // No saved dashboard, load default widgets
+    if (dashboard) {
+      console.log('Loading dashboard:', dashboard.dashboardName);
+      this.dashboardConfig = dashboard;
+      this.renderWidgets(dashboard);
+      this.refreshAllWidgetData();
+      this.loading = false;
+    } else {
+      // Fallback: load from API
+      this.dashboardService.getDashboardByUserId(userId, false).subscribe({
+        next: (config) => {
+          if (config) {
+            this.dashboardConfig = config;
+            this.renderWidgets(config);
+            this.refreshAllWidgetData();
+          } else {
+            this.loadDefaultWidgets();
+            this.refreshAllWidgetData();
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error loading dashboard:', error);
+          this.snackBar.open('Failed to load dashboard', 'Close', { duration: 3000 });
           this.loadDefaultWidgets();
+          this.refreshAllWidgetData();
+          this.loading = false;
         }
-        
-        // Load real data for all widgets
-        this.refreshAllWidgetData();
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error loading dashboard:', error);
-        this.snackBar.open('Failed to load dashboard', 'Close', { duration: 3000 });
-        // Fallback to default widgets
-        this.loadDefaultWidgets();
-        this.refreshAllWidgetData();
-        this.loading = false;
-      }
-    });
+      });
+    }
   }
 
   /**
@@ -513,15 +542,60 @@ export class Dashboard1Component implements OnInit {
    * Save dashboard configuration
    */
   saveDashboard(): void {
+    // If this is a new dashboard (no ID), show Save As dialog
+    if (!this.dashboardConfig?.id) {
+      this.saveDashboardAs();
+      return;
+    }
+
+    // Update existing dashboard
+    this.performSave(
+      this.dashboardConfig.id,
+      this.dashboardConfig.dashboardName,
+      this.dashboardConfig.isDefault
+    );
+  }
+
+  /**
+   * Save dashboard with a new name
+   */
+  saveDashboardAs(): void {
+    const dialogData: SaveDashboardDialogData = {
+      dashboardName: this.dashboardConfig?.dashboardName || 'My Dashboard',
+      isDefault: this.userDashboards.length === 0 // First dashboard is default
+    };
+
+    const dialogRef = this.dialog.open(SaveDashboardDialogComponent, {
+      width: '500px',
+      data: dialogData,
+      disableClose: false
+    });
+
+    dialogRef.afterClosed().subscribe((result: SaveDashboardDialogData | undefined) => {
+      if (result) {
+        // Create new dashboard with the given name
+        this.performSave(
+          undefined, // No ID = create new
+          result.dashboardName,
+          result.isDefault
+        );
+      }
+    });
+  }
+
+  /**
+   * Perform the actual save operation
+   */
+  private performSave(dashboardId: string | undefined, dashboardName: string, isDefault: boolean): void {
     this.loading = true;
 
     const widgets = this.dashboardItems.map(item => GridsterConfigService.toWidgetConfig(item));
 
     const request: SaveDashboardRequest = {
-      id: this.dashboardConfig?.id,
+      id: dashboardId,
       userId: this.getCurrentUserId(),
-      dashboardName: this.dashboardConfig?.dashboardName || 'My Dashboard',
-      isDefault: true,
+      dashboardName: dashboardName,
+      isDefault: isDefault,
       layout: {
         columns: 12,
         rowHeight: 80,
@@ -534,7 +608,7 @@ export class Dashboard1Component implements OnInit {
     this.dashboardService.saveDashboard(request).subscribe({
       next: (id) => {
         console.log('Dashboard saved with ID:', id);
-        this.snackBar.open('Dashboard saved successfully!', 'Close', { duration: 3000 });
+        this.snackBar.open(`Dashboard "${dashboardName}" saved successfully!`, 'Close', { duration: 3000 });
         this.hasUnsavedChanges = false;
         this.editMode = false;
         this.loading = false;
@@ -542,8 +616,8 @@ export class Dashboard1Component implements OnInit {
         // Backup the new saved state
         this.backupDashboardState();
 
-        // Reload dashboard
-        this.loadDashboard();
+        // Reload all dashboards to update the list
+        this.loadUserDashboards();
       },
       error: (error) => {
         console.error('Error saving dashboard:', error);
@@ -565,8 +639,48 @@ export class Dashboard1Component implements OnInit {
     this.editMode = false;
     this.hasUnsavedChanges = false;
 
-    // Reload dashboard to restore original state
-    this.loadDashboard();
+    // Reload current dashboard
+    if (this.selectedDashboard) {
+      this.loadDashboard(this.selectedDashboard);
+    } else {
+      this.loadDefaultWidgets();
+      this.refreshAllWidgetData();
+    }
+  }
+
+  /**
+   * Delete current dashboard
+   */
+  deleteDashboard(): void {
+    if (!this.selectedDashboard || !this.dashboardConfig) {
+      this.snackBar.open('No dashboard selected to delete', 'Close', { duration: 3000 });
+      return;
+    }
+
+    const confirmDelete = confirm(`Delete dashboard "${this.dashboardConfig.dashboardName}"? This action cannot be undone.`);
+    if (!confirmDelete) return;
+
+    this.loading = true;
+    const userId = this.getCurrentUserId();
+
+    this.dashboardService.deleteDashboard(this.selectedDashboard, userId).subscribe({
+      next: (success) => {
+        if (success) {
+          this.snackBar.open('Dashboard deleted successfully', 'Close', { duration: 3000 });
+          this.selectedDashboard = null;
+          this.dashboardConfig = null;
+          this.loadUserDashboards(); // Reload dashboard list
+        } else {
+          this.snackBar.open('Failed to delete dashboard', 'Close', { duration: 3000 });
+        }
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error deleting dashboard:', error);
+        this.snackBar.open('Failed to delete dashboard', 'Close', { duration: 3000 });
+        this.loading = false;
+      }
+    });
   }
 
   /**
@@ -806,15 +920,28 @@ export class Dashboard1Component implements OnInit {
   }
 
   /**
-   * Dashboard type changed
+   * Dashboard selection changed
    */
   onDashboardChange(event: MatSelectChange): void {
-    const dashboard = this.dashboardTypes.find(d => d.value === event.value);
-    if (dashboard) {
-      console.log('Switching to dashboard:', dashboard.label);
-      this.snackBar.open(`Switching to ${dashboard.label}`, 'Close', { duration: 2000 });
-      // TODO: Navigate to different dashboard or load different configuration
-      // this.router.navigate([dashboard.route]);
+    if (this.hasUnsavedChanges) {
+      const confirmSwitch = confirm('You have unsaved changes. Do you want to discard them?');
+      if (!confirmSwitch) {
+        // Revert selection
+        event.source.value = this.selectedDashboard;
+        return;
+      }
+    }
+
+    const dashboardId = event.value;
+    this.selectedDashboard = dashboardId;
+
+    if (dashboardId) {
+      this.loadDashboard(dashboardId);
+    } else {
+      // "Create New" option
+      this.dashboardConfig = null;
+      this.loadDefaultWidgets();
+      this.refreshAllWidgetData();
     }
   }
 }

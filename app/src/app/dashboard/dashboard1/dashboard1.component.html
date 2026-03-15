@@ -24,6 +24,14 @@
         </button>
 
         <button mat-raised-button 
+                (click)="saveDashboardAs()"
+                [disabled]="loading"
+                matTooltip="Save As New Dashboard">
+          <mat-icon>save_as</mat-icon>
+          Save As
+        </button>
+
+        <button mat-raised-button 
                 (click)="cancelEdit()"
                 [disabled]="loading"
                 matTooltip="Cancel Changes">
@@ -49,6 +57,52 @@
         </button>
       }
 
+      <!-- Dashboard Selector -->
+      <mat-form-field appearance="outline" class="dashboard-selector">
+        <mat-label>Dashboard</mat-label>
+        <mat-select 
+          [(value)]="selectedDashboard" 
+          (selectionChange)="onDashboardChange($event)"
+          [disabled]="loading || isLoadingDashboards">
+          <mat-option [value]="null">
+            <mat-icon>add_circle</mat-icon>
+            Create New Dashboard
+          </mat-option>
+          <mat-divider></mat-divider>
+          @for (dashboard of userDashboards; track dashboard.id) {
+            <mat-option [value]="dashboard.id">
+              <mat-icon>{{ dashboard.isDefault ? 'star' : 'dashboard' }}</mat-icon>
+              {{ dashboard.dashboardName }}
+              @if (dashboard.isDefault) {
+                <span class="default-badge">Default</span>
+              }
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Save As Button (non-edit mode) -->
+      @if (!editMode && selectedDashboard) {
+        <button mat-raised-button 
+                (click)="saveDashboardAs()"
+                [disabled]="loading"
+                matTooltip="Save As New Dashboard">
+          <mat-icon>save_as</mat-icon>
+          Save As
+        </button>
+      }
+
+      <!-- Delete Dashboard Button -->
+      @if (selectedDashboard && !editMode && userDashboards.length > 1) {
+        <button mat-icon-button 
+                (click)="deleteDashboard()"
+                [disabled]="loading"
+                matTooltip="Delete Dashboard"
+                color="warn">
+          <mat-icon>delete</mat-icon>
+        </button>
+      }
+
       <!-- Edit Mode Toggle -->
       <button mat-raised-button 
               [color]="editMode ? 'warn' : 'primary'"
@@ -57,19 +111,6 @@
         <mat-icon>{{ editMode ? 'close' : 'edit' }}</mat-icon>
         {{ editMode ? 'Exit Edit' : 'Customize' }}
       </button>
-
-      <!-- Dashboard Selector -->
-      <mat-form-field appearance="outline" class="dashboard-selector">
-        <mat-label>Dashboard Type</mat-label>
-        <mat-select [(value)]="selectedDashboard" (selectionChange)="onDashboardChange($event)">
-          @for (dashboard of dashboardTypes; track dashboard.value) {
-            <mat-option [value]="dashboard.value">
-              <mat-icon>{{ dashboard.icon }}</mat-icon>
-              {{ dashboard.label }}
-            </mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
     </div>
   </div>
 

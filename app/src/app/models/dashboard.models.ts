@@ -30,6 +30,15 @@ export interface DashboardConfiguration {
   updatedAt?: Date;
 }
 
+export interface DashboardListItem {
+  id: string;
+  dashboardName: string;
+  isDefault: boolean;
+  widgetCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface WidgetSize {
   width: number;
   height: number;

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 import {
   DashboardConfiguration,
@@ -64,16 +64,34 @@ export class DashboardService {
    * Delete a dashboard
    */
   deleteDashboard(dashboardId: string, userId: number): Observable<boolean> {
-    return this.http.delete<boolean>(`${this.apiUrl}/${dashboardId}`, {
-      params: new HttpParams().set('userId', userId.toString())
-    });
+    return this.http.delete(`${this.apiUrl}/${dashboardId}`, {
+      params: new HttpParams().set('userId', userId.toString()),
+      observe: 'response'
+    }).pipe(
+      catchError((error: HttpErrorResponse) => {
+        console.error('Delete dashboard error:', error);
+        return of({ status: error.status } as any);
+      }),
+      // Map the response - 204 = success, anything else = failure
+      map((response: any) => response.status === 204)
+    );
   }
 
   /**
    * Set a dashboard as default
    */
   setDefaultDashboard(dashboardId: string, userId: number): Observable<boolean> {
-    return this.http.put<boolean>(`${this.apiUrl}/${dashboardId}/default`, { userId });
+    return this.http.post(`${this.apiUrl}/${dashboardId}/set-default`, null, {
+      params: new HttpParams().set('userId', userId.toString()),
+      observe: 'response'
+    }).pipe(
+      catchError((error: HttpErrorResponse) => {
+        console.error('Set default dashboard error:', error);
+        return of({ status: error.status } as any);
+      }),
+      // Map the response - 200 = success, anything else = failure
+      map((response: any) => response.status === 200)
+    );
   }
 
   /**
