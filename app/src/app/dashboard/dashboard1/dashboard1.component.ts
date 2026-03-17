@@ -46,6 +46,7 @@ export interface DashboardGridsterItem {
   widgetType: string;
   settings?: any;
   data?: any;
+  isRefreshing?: boolean; // Track refresh state for individual widgets
   [key: string]: any; // Allow additional gridster properties
 }
 
@@ -307,6 +308,28 @@ export class Dashboard1Component implements OnInit {
       console.log(`📊 Loading data for widget ${index + 1}/${this.dashboardItems.length}:`, item.widgetType, item.widgetId);
       this.loadWidgetRealData(item);
     });
+  }
+
+  /**
+   * Refresh data for a single widget
+   */
+  refreshWidget(item: DashboardGridsterItem): void {
+    console.log('🔄 Refreshing widget:', item.widgetType, item.widgetId);
+
+    // Set loading state
+    item.isRefreshing = true;
+    this.cdr.detectChanges();
+
+    // Load fresh data
+    this.loadWidgetRealData(item);
+
+    // Clear loading state after a short delay
+    setTimeout(() => {
+      item.isRefreshing = false;
+      this.cdr.detectChanges();
+    }, 500);
+
+    this.snackBar.open('Widget refreshed', '', { duration: 2000 });
   }
 
   /**

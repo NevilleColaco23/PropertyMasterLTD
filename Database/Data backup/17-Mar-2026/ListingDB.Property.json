@@ -1,0 +1,162 @@
+[{
+  "_id": -1,
+  "Name": "The Grand Hotel - Demo",
+  "Active": true,
+  "PropertyCode": "DEMO0001",
+  "CompanyLogoURL": "https://placehold.co/200x200/4CAF50/white?text=DEMO",
+  "Rooms": [
+    {
+      "Id": "room-demo-101",
+      "RoomCode": "101",
+      "RoomName": "Deluxe King Room",
+      "Active": true,
+      "CompanyLogoURL": "https://placehold.co/400x300/2196F3/white?text=Room+101"
+    },
+    {
+      "Id": "room-demo-102",
+      "RoomCode": "102",
+      "RoomName": "Deluxe Queen Room",
+      "Active": true,
+      "CompanyLogoURL": "https://placehold.co/400x300/2196F3/white?text=Room+102"
+    },
+    {
+      "Id": "room-demo-201",
+      "RoomCode": "201",
+      "RoomName": "Executive Suite",
+      "Active": true,
+      "CompanyLogoURL": "https://placehold.co/400x300/9C27B0/white?text=Suite+201"
+    },
+    {
+      "Id": "room-demo-202",
+      "RoomCode": "202",
+      "RoomName": "Presidential Suite",
+      "Active": true,
+      "CompanyLogoURL": "https://placehold.co/400x300/9C27B0/white?text=Suite+202"
+    },
+    {
+      "Id": "room-demo-301",
+      "RoomCode": "301",
+      "RoomName": "Family Room",
+      "Active": true,
+      "CompanyLogoURL": "https://placehold.co/400x300/FF9800/white?text=Family+301"
+    },
+    {
+      "Id": "room-demo-302",
+      "RoomCode": "302",
+      "RoomName": "Ocean View Room",
+      "Active": true,
+      "CompanyLogoURL": "https://placehold.co/400x300/00BCD4/white?text=Ocean+302"
+    }
+  ],
+  "AccessList": [],
+  "IsDemo": true,
+  "IsDeleted": false
+},
+{
+  "_id": 1,
+  "Name": "The Grand Meredian",
+  "Active": true,
+  "Rooms": [
+    {
+      "_id": 0,
+      "RoomCode": "xxxco10",
+      "RoomName": "R1",
+      "Active": true
+    }
+  ],
+  "CompanyLogoURL": "https://res.cloudinary.com/dsgimrtxr/image/upload/v1773426395/property-logos/o9r7ogka27lnjitfdaon.jpg",
+  "PropertyCode": null,
+  "CreatedAt": {
+    "$date": {
+      "$numberLong": "-62135596800000"
+    }
+  },
+  "CreatedBy": 0,
+  "UpdatedAt": {
+    "$date": "2026-03-13T18:26:45.166Z"
+  },
+  "UpdatedBy": 19,
+  "IsDeleted": false,
+  "DeletedAt": null,
+  "DeletedBy": null
+},
+{
+  "_id": 18,
+  "Name": "cxcx",
+  "Active": false,
+  "Rooms": [
+    {
+      "_id": 10,
+      "RoomCode": "q",
+      "RoomName": "dqeq",
+      "Active": true
+    }
+  ],
+  "CompanyLogoURL": "",
+  "PropertyCode": "UHR4W80E",
+  "CreatedAt": {
+    "$date": "2026-03-13T10:59:58.654Z"
+  },
+  "CreatedBy": 19,
+  "UpdatedAt": {
+    "$date": "2026-03-13T11:00:26.875Z"
+  },
+  "UpdatedBy": 19,
+  "IsDeleted": true,
+  "DeletedAt": {
+    "$date": "2026-03-13T11:00:26.875Z"
+  },
+  "DeletedBy": 19
+},
+{
+  "_id": 19,
+  "Name": "testvvvv",
+  "Active": false,
+  "Rooms": [
+    {
+      "_id": 11,
+      "RoomCode": "aaaaa",
+      "RoomName": "fdfdf",
+      "Active": true
+    }
+  ],
+  "CompanyLogoURL": "https://res.cloudinary.com/dsgimrtxr/image/upload/v1773402644/property-logos/j3cayduxi0c2f41jsalp.jpg",
+  "PropertyCode": "69CWHHJ5",
+  "CreatedAt": {
+    "$date": "2026-03-13T11:50:44.944Z"
+  },
+  "CreatedBy": 19,
+  "UpdatedAt": {
+    "$date": "2026-03-13T12:12:56.366Z"
+  },
+  "UpdatedBy": 19,
+  "IsDeleted": true,
+  "DeletedAt": {
+    "$date": "2026-03-13T12:12:56.366Z"
+  },
+  "DeletedBy": 19
+},
+{
+  "_id": 20,
+  "Name": "test prop",
+  "Active": true,
+  "Rooms": [
+    {
+      "_id": 13,
+      "RoomCode": "1200",
+      "RoomName": "BNQ",
+      "Active": true
+    }
+  ],
+  "CompanyLogoURL": "https://res.cloudinary.com/dsgimrtxr/image/upload/v1773426612/property-logos/beyw8lhpu3mecufxsqcu.jpg",
+  "PropertyCode": "M267LDZJ",
+  "CreatedAt": {
+    "$date": "2026-03-13T18:30:14.499Z"
+  },
+  "CreatedBy": 19,
+  "UpdatedAt": null,
+  "UpdatedBy": null,
+  "IsDeleted": false,
+  "DeletedAt": null,
+  "DeletedBy": null
+}]

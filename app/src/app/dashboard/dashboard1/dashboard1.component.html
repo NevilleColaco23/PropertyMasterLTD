@@ -141,6 +141,19 @@
               </mat-card-header>
             }
 
+            <!-- Refresh Button (only shown in non-edit mode) -->
+            @if (!editMode) {
+              <div class="widget-refresh-header">
+                <button mat-icon-button 
+                        class="widget-refresh-btn"
+                        (click)="refreshWidget(item)"
+                        [disabled]="item.isRefreshing"
+                        matTooltip="Refresh Widget">
+                  <mat-icon [class.spinning]="item.isRefreshing">refresh</mat-icon>
+                </button>
+              </div>
+            }
+
             <mat-card-content [class.no-header]="!editMode">
               <!-- KPI Card Widget -->
               @if (item.widgetType === 'kpi-card' && item.data) {
