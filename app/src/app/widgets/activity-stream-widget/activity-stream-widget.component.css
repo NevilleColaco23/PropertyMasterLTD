@@ -4,6 +4,7 @@
   flex-direction: column;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  overflow: hidden;
 }
 
 mat-card-header {
@@ -41,9 +42,12 @@ mat-card-title {
 }
 
 mat-card-content {
-  flex: 1;
+  flex: 1 1 0;
   overflow-y: auto;
-  padding: 16px !important;
+  overflow-x: hidden;
+  padding: 12px !important;
+  min-height: 0;
+  max-height: 100%;
 }
 
 /* Loading & Error States */
@@ -53,7 +57,7 @@ mat-card-content {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 30px 20px;
   text-align: center;
   color: white;
 }
@@ -69,24 +73,39 @@ mat-card-content {
 .stats-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .stat-card {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   backdrop-filter: blur(10px);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+  cursor: pointer;
+  border: 2px solid transparent;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.stat-card.selected {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.stat-card:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
 }
 
 .stat-icon {
@@ -117,20 +136,42 @@ mat-card-content {
 
 /* Activity Types */
 .activity-types-container {
-  margin-bottom: 20px;
+  margin: 0 !important;
+  padding: 0 !important;
+  max-height: 60px;
 }
 
 .activity-types-container h4 {
   color: white;
   font-size: 14px;
-  margin: 0 0 12px 0;
+  margin: 0 0 4px 0 !important;
   opacity: 0.9;
+  line-height: 1;
 }
 
 .activity-types {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+mat-chip-set {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  gap: 8px;
+}
+
+.activity-types mat-chip-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.activity-types-container mat-chip {
+  margin: 0 !important;
 }
 
 .activity-type-chip {
@@ -156,25 +197,78 @@ mat-card-content {
 .timeline-container {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px;
   backdrop-filter: blur(10px);
+  margin: 4px 0 0 0;
 }
 
 .timeline-title {
   color: white;
   font-size: 14px;
-  margin: 0 0 16px 0;
+  margin: 0;
   opacity: 0.9;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: white;
+  animation: fadeIn 0.3s ease;
+}
+
+.filter-badge mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.filter-badge .clear-filter {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  margin-left: 4px;
+  color: white;
+}
+
+.filter-badge .clear-filter mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 20px;
+  padding: 30px 20px;
   color: rgba(255, 255, 255, 0.7);
 }
 
@@ -205,7 +299,7 @@ mat-card-content {
 .timeline-item {
   position: relative;
   padding-left: 48px;
-  padding-bottom: 24px;
+  padding-bottom: 16px;
   display: flex;
   gap: 12px;
 }

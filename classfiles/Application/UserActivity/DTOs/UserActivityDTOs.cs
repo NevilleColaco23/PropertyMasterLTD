@@ -101,8 +101,10 @@ namespace MyWarehouse.Application.UserActivity.DTOs
     public class ActivitySummaryDTO
     {
         public int TotalToday { get; set; }
-        public int TotalThisWeek { get; set; }
+        public int TotalYesterday { get; set; }
         public int TotalThisMonth { get; set; }
+        public int TotalLastMonth { get; set; }
+        public int TotalPreviousMonth { get; set; }
         public List<UserActivityDTO> RecentActivities { get; set; } = new();
         public Dictionary<string, int> ActivityTypeCount { get; set; } = new();
     }

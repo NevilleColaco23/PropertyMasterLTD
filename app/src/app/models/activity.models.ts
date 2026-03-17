@@ -25,8 +25,10 @@ export interface UserActivityDTO {
 
 export interface ActivitySummaryDTO {
   totalToday: number;
-  totalThisWeek: number;
+  totalYesterday: number;
   totalThisMonth: number;
+  totalLastMonth: number;
+  totalPreviousMonth: number;
   recentActivities: UserActivityDTO[];
   activityTypeCount: { [key: string]: number };
 }

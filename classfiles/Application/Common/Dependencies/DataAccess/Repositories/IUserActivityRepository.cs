@@ -95,5 +95,10 @@ namespace MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories
         /// Finds activities matching the provided filter (for analytics queries)
         /// </summary>
         Task<IEnumerable<UserActivityLog>> FindAsync(FilterDefinition<UserActivityLog> filter);
+
+        /// <summary>
+        /// Counts activities matching the provided filter
+        /// </summary>
+        Task<long> CountAsync(FilterDefinition<UserActivityLog> filter);
     }
 }

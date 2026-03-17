@@ -279,5 +279,13 @@ namespace MyWarehouse.Infrastructure.ApplicationDependencies.DataAccess.Reposito
             var cursor = await _collection.FindAsync(filter);
             return await cursor.ToListAsync();
         }
+
+        /// <summary>
+        /// Counts activities matching the provided filter
+        /// </summary>
+        public async Task<long> CountAsync(FilterDefinition<UserActivityLog> filter)
+        {
+            return await _collection.CountDocumentsAsync(filter);
+        }
     }
 }

@@ -41,25 +41,64 @@
 
     <!-- Activity Summary Stats -->
     <div *ngIf="!loading && !error && summary && showStats" class="stats-container">
-      <div class="stat-card">
+      <div class="stat-card" 
+           [class.selected]="selectedPeriod === 'today'"
+           (click)="selectPeriod('today')"
+           role="button"
+           tabindex="0"
+           matTooltip="Click to filter activities">
         <mat-icon class="stat-icon today">today</mat-icon>
         <div class="stat-content">
           <div class="stat-value">{{ summary.totalToday }}</div>
           <div class="stat-label">Today</div>
         </div>
       </div>
-      <div class="stat-card">
-        <mat-icon class="stat-icon week">date_range</mat-icon>
+      <div class="stat-card" 
+           [class.selected]="selectedPeriod === 'yesterday'"
+           (click)="selectPeriod('yesterday')"
+           role="button"
+           tabindex="0"
+           matTooltip="Click to filter activities">
+        <mat-icon class="stat-icon yesterday">history</mat-icon>
         <div class="stat-content">
-          <div class="stat-value">{{ summary.totalThisWeek }}</div>
-          <div class="stat-label">This Week</div>
+          <div class="stat-value">{{ summary.totalYesterday }}</div>
+          <div class="stat-label">Yesterday</div>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" 
+           [class.selected]="selectedPeriod === 'thisMonth'"
+           (click)="selectPeriod('thisMonth')"
+           role="button"
+           tabindex="0"
+           matTooltip="Click to filter activities">
         <mat-icon class="stat-icon month">calendar_month</mat-icon>
         <div class="stat-content">
           <div class="stat-value">{{ summary.totalThisMonth }}</div>
           <div class="stat-label">This Month</div>
+        </div>
+      </div>
+      <div class="stat-card" 
+           [class.selected]="selectedPeriod === 'lastMonth'"
+           (click)="selectPeriod('lastMonth')"
+           role="button"
+           tabindex="0"
+           matTooltip="Click to filter activities">
+        <mat-icon class="stat-icon last-month">event</mat-icon>
+        <div class="stat-content">
+          <div class="stat-value">{{ summary.totalLastMonth }}</div>
+          <div class="stat-label">Last Month</div>
+        </div>
+      </div>
+      <div class="stat-card" 
+           [class.selected]="selectedPeriod === 'previousMonth'"
+           (click)="selectPeriod('previousMonth')"
+           role="button"
+           tabindex="0"
+           matTooltip="Click to filter activities">
+        <mat-icon class="stat-icon previous-month">calendar_view_month</mat-icon>
+        <div class="stat-content">
+          <div class="stat-value">{{ summary.totalPreviousMonth }}</div>
+          <div class="stat-label">{{ getPreviousMonthLabel() }}</div>
         </div>
       </div>
     </div>
@@ -81,15 +120,24 @@
 
     <!-- Recent Activities Timeline -->
     <div *ngIf="!loading && !error && summary" class="timeline-container">
-      <h4 class="timeline-title">Recent Activities</h4>
-      
-      <div *ngIf="summary.recentActivities.length === 0" class="empty-state">
+      <div class="timeline-header">
+        <h4 class="timeline-title">Recent Activities ({{ filteredActivities.length }})</h4>
+        <div *ngIf="selectedPeriod" class="filter-badge">
+          <mat-icon>filter_alt</mat-icon>
+          <span>{{ getSelectedPeriodLabel() }}</span>
+          <button mat-icon-button (click)="selectPeriod(selectedPeriod!)" class="clear-filter">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="filteredActivities.length === 0" class="empty-state">
         <mat-icon>inbox</mat-icon>
-        <p>No recent activities</p>
+        <p>No activities found{{ selectedPeriod ? ' for selected period' : '' }}</p>
       </div>
 
       <div class="timeline">
-        <div *ngFor="let activity of summary.recentActivities" class="timeline-item">
+        <div *ngFor="let activity of filteredActivities" class="timeline-item">
           <div class="timeline-marker" [style.background-color]="getColor(activity.activityType)">
             <mat-icon class="timeline-icon">{{ getIcon(activity.activityType) }}</mat-icon>
           </div>

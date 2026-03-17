@@ -1,4 +1,5 @@
 using MediatR;
+using MongoDB.Driver;
 using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories;
 using MyWarehouse.Application.UserActivity.DTOs;
 using MyWarehouse.Application.UserActivity.Queries;
@@ -303,47 +304,86 @@ namespace MyWarehouse.Application.UserActivity.Handlers
         {
             var now = DateTime.UtcNow;
             var startOfToday = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
-            var startOfWeek = startOfToday.AddDays(-(int)now.DayOfWeek);
-            var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var startOfYesterday = startOfToday.AddDays(-1);
+            var startOfThisMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var startOfLastMonth = startOfThisMonth.AddMonths(-1);
+            var startOfPreviousMonth = startOfThisMonth.AddMonths(-2);
+            var endOfLastMonth = startOfThisMonth.AddSeconds(-1);
+            var endOfPreviousMonth = startOfLastMonth.AddSeconds(-1);
 
-            // Get recent activities
-            var recentActivities = await _repository.GetRecentActivitiesAsync(request.RecentCount);
+            // Build base filter for username if provided
+            var usernameFilter = !string.IsNullOrEmpty(request.Username)
+                ? Builders<UserActivityLog>.Filter.Eq(a => a.Username, request.Username)
+                : Builders<UserActivityLog>.Filter.Empty;
 
-            // Get counts
-            var todayActivities = await _repository.GetActivitiesPagedAsync(
-                from: startOfToday,
-                to: now,
-                page: 1,
-                pageSize: 1
-            );
+            // Get recent activities (filtered by username if provided)
+            var recentActivities = await GetFilteredActivitiesAsync(usernameFilter, request.RecentCount);
 
-            var weekActivities = await _repository.GetActivitiesPagedAsync(
-                from: startOfWeek,
-                to: now,
-                page: 1,
-                pageSize: 1
-            );
+            // Get counts for each time period (filtered by username if provided)
+            var todayFilter = usernameFilter & 
+                Builders<UserActivityLog>.Filter.Gte(a => a.Timestamp, startOfToday) &
+                Builders<UserActivityLog>.Filter.Lte(a => a.Timestamp, now);
+            var todayCount = await _repository.CountAsync(todayFilter);
 
-            var monthActivities = await _repository.GetActivitiesPagedAsync(
-                from: startOfMonth,
-                to: now,
-                page: 1,
-                pageSize: 1
-            );
+            var yesterdayFilter = usernameFilter &
+                Builders<UserActivityLog>.Filter.Gte(a => a.Timestamp, startOfYesterday) &
+                Builders<UserActivityLog>.Filter.Lt(a => a.Timestamp, startOfToday);
+            var yesterdayCount = await _repository.CountAsync(yesterdayFilter);
 
-            var activityTypeCounts = await _repository.GetActivityCountByTypeAsync(startOfToday, now);
+            var thisMonthFilter = usernameFilter &
+                Builders<UserActivityLog>.Filter.Gte(a => a.Timestamp, startOfThisMonth) &
+                Builders<UserActivityLog>.Filter.Lte(a => a.Timestamp, now);
+            var thisMonthCount = await _repository.CountAsync(thisMonthFilter);
+
+            var lastMonthFilter = usernameFilter &
+                Builders<UserActivityLog>.Filter.Gte(a => a.Timestamp, startOfLastMonth) &
+                Builders<UserActivityLog>.Filter.Lte(a => a.Timestamp, endOfLastMonth);
+            var lastMonthCount = await _repository.CountAsync(lastMonthFilter);
+
+            var previousMonthFilter = usernameFilter &
+                Builders<UserActivityLog>.Filter.Gte(a => a.Timestamp, startOfPreviousMonth) &
+                Builders<UserActivityLog>.Filter.Lte(a => a.Timestamp, endOfPreviousMonth);
+            var previousMonthCount = await _repository.CountAsync(previousMonthFilter);
+
+            // Get activity type counts (filtered by username and today)
+            var activityTypeFilter = usernameFilter &
+                Builders<UserActivityLog>.Filter.Gte(a => a.Timestamp, startOfToday) &
+                Builders<UserActivityLog>.Filter.Lte(a => a.Timestamp, now);
+            var activityTypeCounts = await GetActivityTypeCountsAsync(activityTypeFilter);
 
             return new ActivitySummaryDTO
             {
-                TotalToday = (int)todayActivities.TotalCount,
-                TotalThisWeek = (int)weekActivities.TotalCount,
-                TotalThisMonth = (int)monthActivities.TotalCount,
+                TotalToday = (int)todayCount,
+                TotalYesterday = (int)yesterdayCount,
+                TotalThisMonth = (int)thisMonthCount,
+                TotalLastMonth = (int)lastMonthCount,
+                TotalPreviousMonth = (int)previousMonthCount,
                 RecentActivities = recentActivities.Select(MapToDTO).ToList(),
-                ActivityTypeCount = activityTypeCounts.ToDictionary(
-                    kvp => kvp.Key.ToString(),
-                    kvp => kvp.Value
-                )
+                ActivityTypeCount = activityTypeCounts
             };
+        }
+
+        private async Task<List<UserActivityLog>> GetFilteredActivitiesAsync(
+            FilterDefinition<UserActivityLog> filter, 
+            int count)
+        {
+            var activities = await _repository.FindAsync(filter);
+            return activities
+                .OrderByDescending(a => a.Timestamp)
+                .Take(count)
+                .ToList();
+        }
+
+        private async Task<Dictionary<string, int>> GetActivityTypeCountsAsync(
+            FilterDefinition<UserActivityLog> filter)
+        {
+            var activities = await _repository.FindAsync(filter);
+            return activities
+                .GroupBy(a => a.ActivityType)
+                .ToDictionary(
+                    g => g.Key.ToString(),
+                    g => g.Count()
+                );
         }
 
         private static UserActivityDTO MapToDTO(UserActivityLog activity)

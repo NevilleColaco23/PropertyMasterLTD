@@ -20,9 +20,16 @@ export class ActivityService {
   /**
    * Get activity summary for dashboard widget
    * Returns today/week/month counts and recent activities
+   * @param recentCount Number of recent activities to include
+   * @param username Optional username to filter activities
    */
-  getActivitySummary(recentCount: number = 10): Observable<ActivitySummaryDTO> {
-    const params = new HttpParams().set('recentCount', recentCount.toString());
+  getActivitySummary(recentCount: number = 10, username?: string): Observable<ActivitySummaryDTO> {
+    let params = new HttpParams().set('recentCount', recentCount.toString());
+
+    if (username) {
+      params = params.set('username', username);
+    }
+
     return this.http.get<ActivitySummaryDTO>(`${this.apiUrl}/summary`, { params });
   }
 

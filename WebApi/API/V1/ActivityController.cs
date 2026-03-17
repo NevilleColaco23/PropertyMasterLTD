@@ -153,10 +153,13 @@ namespace MyWarehouse.WebApi.API.V1
         /// Get activity summary for dashboard widget
         /// </summary>
         /// <param name="recentCount">Number of recent activities to include (default: 10)</param>
+        /// <param name="username">Filter by username (optional)</param>
         [HttpGet("summary")]
-        public async Task<ActionResult<ActivitySummaryDTO>> GetSummary([FromQuery] int recentCount = 10)
+        public async Task<ActionResult<ActivitySummaryDTO>> GetSummary(
+            [FromQuery] int recentCount = 10,
+            [FromQuery] string? username = null)
         {
-            var query = new GetActivitySummaryQuery(recentCount);
+            var query = new GetActivitySummaryQuery(recentCount, username);
             var result = await _mediator.Send(query);
             return Ok(result);
         }
