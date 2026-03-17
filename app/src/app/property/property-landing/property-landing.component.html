@@ -47,27 +47,28 @@
         }
 
         @for (item of navItems; track item.label) {
-          <div class="nav-item-wrapper">
+          <div class="nav-item-wrapper" [class.menu-open]="item.isOpen">
             <a
-              [routerLink]="item.path"
+              [routerLink]="item.hasDropdown && item.subItems?.length ? null : item.path"
               routerLinkActive="nav-link--active"
               [routerLinkActiveOptions]="{ exact: true }"
               class="nav-link"
+              (click)="toggleMobileMenu($event, item)"
             >
               {{ item.label }}
               @if (item.hasDropdown && item.subItems?.length) {
-                <span class="arrow-down" aria-hidden="true"></span>
+                <span class="arrow-down" [class.arrow-up]="item.isOpen" aria-hidden="true"></span>
               }
             </a>
 
             @if (item.hasDropdown && item.subItems?.length) {
-              <div class="mega-menu-panel">
+              <div class="mega-menu-panel" [class.mobile-open]="item.isOpen">
                 <div class="mega-menu-content">
                   <div class="mega-menu-column">
                     <ul>
                       @for (sub of item.subItems; track sub.subLabel) {
                         <li>
-                          <a [routerLink]="sub.subPath">{{ sub.subLabel }}</a>
+                          <a [routerLink]="sub.subPath" (click)="closeMobileMenu(item)">{{ sub.subLabel }}</a>
                         </li>
                       }
                     </ul>

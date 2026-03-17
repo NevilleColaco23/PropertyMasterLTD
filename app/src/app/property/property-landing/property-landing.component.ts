@@ -1,6 +1,6 @@
 import {
   Component, ViewChildren, QueryList, ViewChild, ElementRef,  AfterViewInit, OnDestroy, inject,OnInit
-,ChangeDetectorRef } from '@angular/core';
+,ChangeDetectorRef, HostListener } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { takeUntil, Subject, catchError, map, Observable } from 'rxjs';
@@ -73,6 +73,11 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
         console.log('📋 Menu results:', data.results);
 
         this.navItems = data.results || [];
+
+        // Initialize isOpen property for each menu item
+        this.navItems.forEach(item => {
+          item.isOpen = false;
+        });
 
         if (this.navItems.length === 0) {
           console.warn('⚠️ WARNING: No menu items received from API!');
@@ -174,5 +179,43 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
   changeProperties() {
     // Navigate back to property selection page
     this.router.navigate(['/propertySelector']);
+  }
+
+  toggleMobileMenu(event: Event, item: any) {
+    // If item has no dropdown, let the router handle navigation
+    if (!item.hasDropdown || !item.subItems?.length) {
+      return;
+    }
+
+    // Prevent default navigation for items with dropdowns
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Close all other menus
+    this.navItems.forEach(navItem => {
+      if (navItem !== item) {
+        navItem.isOpen = false;
+      }
+    });
+
+    // Toggle this menu
+    item.isOpen = !item.isOpen;
+  }
+
+  closeMobileMenu(item: any) {
+    item.isOpen = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    // Close all mobile menus when clicking outside
+    const target = event.target as HTMLElement;
+    const clickedInsideNav = target.closest('.nav-item-wrapper');
+
+    if (!clickedInsideNav) {
+      this.navItems.forEach(item => {
+        item.isOpen = false;
+      });
+    }
   }
 }
