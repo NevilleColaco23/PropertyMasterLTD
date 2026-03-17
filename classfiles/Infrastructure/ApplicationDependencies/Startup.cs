@@ -30,7 +30,6 @@ internal static class Startup
         services.AddScoped<IPropertyAuditRepository, PropertyAuditRepositoryMongo>();
         services.AddScoped<IRoomAuditRepository, RoomAuditRepositoryMongo>();
         services.AddScoped<IUsersRepository, UsersRepositoryMongo>();
-        services.AddScoped<IAccessLogRepository, AccessLogRepositoryMongo>();
         services.AddScoped<IMenuRepository, MenuRepositoryMongo>();
         services.AddScoped<IMenuPermissionRepository, MenuPermissionRepositoryMongo>();
         services.AddScoped<IBookingsRepository, BookingsRepositoryMongo>();

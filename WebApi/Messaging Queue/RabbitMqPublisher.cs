@@ -3,7 +3,7 @@ using Azure.Core;
 using Messaging.Shared;
 using Microsoft.Extensions.Options;
 using MyWarehouse.Application.Common.Dependencies.DataAccess;
-using MyWarehouse.Domain.AccessLog;
+// using MyWarehouse.Domain.AccessLog;  // ⚠️ TEMPORARILY COMMENTED OUT - Will be replaced with UserActivity RabbitMQ implementation
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
@@ -98,6 +98,11 @@ namespace MyWarehouse.WebApi.Messaging_Queue
             }
         }
 
+        // ⚠️ TEMPORARILY COMMENTED OUT - Old AccessLog implementation
+        // TODO: Implement new PublishUserActivityEvent() method for RabbitMQ architecture
+        // This will publish UserActivity events instead of AccessLog events
+
+        /*
         public void PublishAccessLogEvent(AccessLog accessLog)
         {
             if (_channel == null) throw new InvalidOperationException("RabbitMQ channel is not initialized.");
@@ -135,6 +140,7 @@ namespace MyWarehouse.WebApi.Messaging_Queue
                 throw;
             }
         }
+        */
 
         public void Dispose()
         {

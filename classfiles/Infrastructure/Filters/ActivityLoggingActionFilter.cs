@@ -71,31 +71,25 @@ namespace MyWarehouse.Infrastructure.Filters
                     var entityType = activityLogAttribute.EntityType ?? InferEntityType(context);
                     var entityId = await ExtractEntityId(executedContext, activityLogAttribute);
                     var module = activityLogAttribute.Module ?? InferModule(context);
-                    var description = BuildDescription(activityLogAttribute.Description, entityType, entityId, activityType);
                     var action = BuildAction(activityType, entityType);
                     var ipAddress = GetIpAddress(context);
                     var userAgent = GetUserAgent(context);
                     var sessionId = GetSessionId(context);
-                    var traceId = GetTraceId(context);
                     var isSuccess = IsSuccessResponse(executedContext);
                     var errorMessage = GetErrorMessage(executedContext);
+                    var stackTrace = GetStackTrace(executedContext);
 
                     // ⭐ CRITICAL: Extract selected property ID from header
                     var propertyId = GetSelectedPropertyId(context);
-                    if (propertyId.HasValue)
-                    {
-                        Console.WriteLine($"🏠 Selected Property ID: {propertyId.Value}");
-                    }
-                    else
-                    {
-                        Console.WriteLine("⚠️ No property context in request");
-                    }
 
                     // ⭐ NEW: Extract rich metadata from request/response
                     var metadata = ExtractMetadata(context, executedContext);
 
                     // ⭐ PRIORITY 1: Check if client provided a display message
                     var displayMessage = GetClientProvidedMessage(context);
+
+                    // ⭐ NEW: Determine origin (Client if message provided, otherwise Server)
+                    var origin = !string.IsNullOrEmpty(displayMessage) ? "Client" : "Server";
 
                     // ⭐ PRIORITY 2: If no client message, build one server-side
                     if (string.IsNullOrEmpty(displayMessage))
@@ -106,11 +100,6 @@ namespace MyWarehouse.Infrastructure.Filters
                             entityId,
                             username,
                             metadata);
-                        Console.WriteLine($"🤖 Auto-generated message: {displayMessage}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"📱 Client-provided message: {displayMessage}");
                     }
 
                     // Log the activity with metadata and display message
@@ -121,37 +110,28 @@ namespace MyWarehouse.Infrastructure.Filters
                         entityType: entityType,
                         entityId: entityId,
                         action: action,
-                        description: description,
                         module: module,
                         ipAddress: ipAddress,
                         userAgent: userAgent,
                         sessionId: sessionId,
-                        traceId: traceId,
                         isSuccess: isSuccess,
                         errorMessage: errorMessage,
+                        stackTrace: stackTrace,
                         durationMs: (int)stopwatch.ElapsedMilliseconds,
-                        metadata: metadata,  // ⭐ Technical metadata for querying
-                        displayMessage: displayMessage,  // ⭐ Human-readable message for reports
-                        propertyId: propertyId  // ⭐ CRITICAL: Pass property context!
+                        metadata: metadata,
+                        displayMessage: displayMessage,
+                        propertyId: propertyId,
+                        origin: origin
                     );
                 }
                 catch (Exception ex)
                 {
                     // Log the error but don't fail the request
-                    Console.WriteLine($"❌ Activity Logging Failed: {ex.Message}");
-                    Console.WriteLine($"   Stack: {ex.StackTrace}");
-                    if (ex.InnerException != null)
-                    {
-                        Console.WriteLine($"   Inner: {ex.InnerException.Message}");
-                    }
                 }
             }
             catch (Exception outerEx)
             {
                 // This catches errors in the filter itself (before action execution)
-                Console.WriteLine($"❌ CRITICAL: Activity Filter Error: {outerEx.Message}");
-                Console.WriteLine($"   Stack: {outerEx.StackTrace}");
-
                 // Still execute the action even if filter fails
                 await next();
             }
@@ -201,20 +181,12 @@ namespace MyWarehouse.Infrastructure.Filters
 
         private string GetUsername(ActionExecutingContext context)
         {
-            Console.WriteLine("🔍 GetUsername - Starting username resolution");
-
             // Try to get username from authenticated user first
             var identity = context.HttpContext.User?.Identity;
-            if (identity != null)
-            {
-                Console.WriteLine($"   Identity.IsAuthenticated: {identity.IsAuthenticated}");
-                Console.WriteLine($"   Identity.Name: {identity.Name}");
-            }
 
             // Try Identity.Name first
             if (!string.IsNullOrEmpty(identity?.Name))
             {
-                Console.WriteLine($"✅ Found username from Identity.Name: {identity.Name}");
                 return identity.Name;
             }
 
@@ -222,12 +194,6 @@ namespace MyWarehouse.Infrastructure.Filters
             var claims = context.HttpContext.User?.Claims?.ToList();
             if (claims != null && claims.Any())
             {
-                Console.WriteLine($"   Total claims found: {claims.Count}");
-                foreach (var claim in claims.Take(10))  // Log first 10 claims for debugging
-                {
-                    Console.WriteLine($"   Claim: {claim.Type} = {claim.Value}");
-                }
-
                 // Try different claim types
                 var usernameClaim = context.HttpContext.User?.FindFirst("unique_name")?.Value  // ⭐ JWT standard claim (YOUR TOKEN USES THIS!)
                     ?? context.HttpContext.User?.FindFirst("name")?.Value
@@ -239,13 +205,8 @@ namespace MyWarehouse.Infrastructure.Filters
 
                 if (!string.IsNullOrEmpty(usernameClaim))
                 {
-                    Console.WriteLine($"✅ Found username from claims: {usernameClaim}");
                     return usernameClaim;
                 }
-            }
-            else
-            {
-                Console.WriteLine("   ⚠️ No claims found");
             }
 
             // For unauthenticated endpoints (like login), try to extract from request body
@@ -257,14 +218,12 @@ namespace MyWarehouse.Infrastructure.Filters
                     var username = usernameProperty.GetValue(loginObj)?.ToString();
                     if (!string.IsNullOrEmpty(username))
                     {
-                        Console.WriteLine($"✅ Found username from login request: {username}");
                         return username;
                     }
                 }
             }
 
             // Fallback to Unknown
-            Console.WriteLine("❌ Username resolution failed - returning 'Unknown'");
             return "Unknown";
         }
 
@@ -367,18 +326,12 @@ namespace MyWarehouse.Infrastructure.Filters
 
             try
             {
-                Console.WriteLine($"🔍 ExtractMetadata START");
-                Console.WriteLine($"   Route values count: {executingContext.RouteData.Values.Count}");
-                Console.WriteLine($"   Query params count: {executingContext.HttpContext.Request.Query.Count}");
-                Console.WriteLine($"   Action arguments count: {executingContext.ActionArguments.Count}");
-
                 // Extract from route parameters
                 foreach (var routeParam in executingContext.RouteData.Values)
                 {
                     if (routeParam.Key != "controller" && routeParam.Key != "action")
                     {
                         metadata[$"route_{routeParam.Key}"] = routeParam.Value?.ToString() ?? "";
-                        Console.WriteLine($"   ✅ Route param: {routeParam.Key} = {routeParam.Value}");
                     }
                 }
 
@@ -386,14 +339,12 @@ namespace MyWarehouse.Infrastructure.Filters
                 foreach (var queryParam in executingContext.HttpContext.Request.Query)
                 {
                     metadata[$"query_{queryParam.Key}"] = queryParam.Value.ToString();
-                    Console.WriteLine($"   ✅ Query param: {queryParam.Key} = {queryParam.Value}");
                 }
 
                 // ⭐ Extract selected property from custom header (if present)
                 if (executingContext.HttpContext.Request.Headers.TryGetValue("X-Selected-Property", out var selectedPropertyHeader))
                 {
                     metadata["selected_PropertyId"] = selectedPropertyHeader.ToString();
-                    Console.WriteLine($"   🏠 Selected Property: {selectedPropertyHeader}");
                 }
 
                 // Extract key info from request body (for POST/PUT)
@@ -431,7 +382,6 @@ namespace MyWarehouse.Infrastructure.Filters
                 if (executedContext.Result is ObjectResult objectResult && objectResult.Value != null)
                 {
                     var responseType = objectResult.Value.GetType();
-                    Console.WriteLine($"   📦 Response type: {responseType.Name}");
 
                     // For single entities, capture Id and Name
                     var idProp = responseType.GetProperty("Id") ?? responseType.GetProperty("PropertyId");
@@ -439,7 +389,6 @@ namespace MyWarehouse.Infrastructure.Filters
                     {
                         var idValue = idProp.GetValue(objectResult.Value)?.ToString() ?? "";
                         metadata["response_Id"] = idValue;
-                        Console.WriteLine($"   ✅ Response Id: {idValue}");
                     }
 
                     var nameProp = responseType.GetProperty("Name") ?? responseType.GetProperty("PropertyName") ?? responseType.GetProperty("Title");
@@ -447,7 +396,6 @@ namespace MyWarehouse.Infrastructure.Filters
                     {
                         var nameValue = nameProp.GetValue(objectResult.Value)?.ToString() ?? "";
                         metadata["response_Name"] = nameValue;
-                        Console.WriteLine($"   ✅ Response Name: {nameValue}");
                     }
 
                     // For list results, capture count
@@ -463,7 +411,6 @@ namespace MyWarehouse.Infrastructure.Filters
                                 count++;
                             }
                             metadata["response_Count"] = count;
-                            Console.WriteLine($"   ✅ Response Count: {count}");
                         }
                     }
 
@@ -472,15 +419,8 @@ namespace MyWarehouse.Infrastructure.Filters
                     {
                         var totalValue = totalCountProperty.GetValue(objectResult.Value)?.ToString() ?? "";
                         metadata["response_TotalCount"] = totalValue;
-                        Console.WriteLine($"   ✅ Response TotalCount: {totalValue}");
                     }
                 }
-                else
-                {
-                    Console.WriteLine($"   ⚠️ No ObjectResult or Value is null");
-                }
-
-                Console.WriteLine($"🔍 ExtractMetadata END - Total metadata items: {metadata.Count}");
             }
             catch (Exception ex)
             {
@@ -541,23 +481,6 @@ namespace MyWarehouse.Infrastructure.Filters
             }
         }
 
-        private string BuildDescription(string? template, string entityType, int? entityId, ActivityType activityType)
-        {
-            if (string.IsNullOrEmpty(template))
-            {
-                // Default description
-                return entityId.HasValue
-                    ? $"{activityType} {entityType} #{entityId}"
-                    : $"{activityType} {entityType}";
-            }
-
-            // Replace placeholders
-            return template
-                .Replace("{entityType}", entityType)
-                .Replace("{entityId}", entityId?.ToString() ?? "N/A")
-                .Replace("{action}", activityType.ToString());
-        }
-
         private string BuildAction(ActivityType activityType, string entityType)
         {
             return $"{activityType} {entityType}";
@@ -586,11 +509,6 @@ namespace MyWarehouse.Infrastructure.Filters
             }
         }
 
-        private string? GetTraceId(ActionExecutingContext context)
-        {
-            return context.HttpContext.TraceIdentifier;
-        }
-
         private string? GetErrorMessage(ActionExecutedContext context)
         {
             if (context.Exception != null)
@@ -601,6 +519,63 @@ namespace MyWarehouse.Infrastructure.Filters
             if (context.Result is ObjectResult objectResult && objectResult.StatusCode >= 400)
             {
                 return objectResult.Value?.ToString();
+            }
+
+            return null;
+        }
+
+        private string? GetStackTrace(ActionExecutedContext context)
+        {
+            // PRIORITY 1: Capture exception stack trace if there's an error
+            if (context.Exception != null)
+            {
+                return context.Exception.StackTrace;
+            }
+
+            // PRIORITY 2: Capture code execution path (Controller → Service → Repository)
+            try
+            {
+                var stackTrace = new System.Diagnostics.StackTrace(true);
+                var frames = stackTrace.GetFrames();
+
+                if (frames != null && frames.Length > 0)
+                {
+                    // Build simplified execution path
+                    var pathBuilder = new System.Text.StringBuilder();
+                    var relevantFrames = new List<string>();
+
+                    foreach (var frame in frames)
+                    {
+                        var method = frame.GetMethod();
+                        if (method == null) continue;
+
+                        var declaringType = method.DeclaringType;
+                        if (declaringType == null) continue;
+
+                        var typeName = declaringType.Name;
+                        var methodName = method.Name;
+
+                        // Only include relevant application frames (skip framework code)
+                        if (typeName.EndsWith("Controller") || 
+                            typeName.EndsWith("Service") || 
+                            typeName.EndsWith("Repository") ||
+                            typeName.EndsWith("Handler") ||
+                            typeName.EndsWith("Filter"))
+                        {
+                            relevantFrames.Add($"{typeName}.{methodName}");
+                        }
+                    }
+
+                    // Build path string: Controller → Service → Repository
+                    if (relevantFrames.Any())
+                    {
+                        return string.Join(" → ", relevantFrames.Distinct().Reverse());
+                    }
+                }
+            }
+            catch
+            {
+                // If we can't capture path, don't fail the request
             }
 
             return null;

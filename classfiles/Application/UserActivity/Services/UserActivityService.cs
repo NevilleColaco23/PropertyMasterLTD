@@ -26,20 +26,20 @@ namespace MyWarehouse.Application.UserActivity.Services
             string username,
             ActivityType activityType,
             string action,
-            string description,
             string? entityType = null,
             int? entityId = null,
             Dictionary<string, object>? metadata = null,
             bool isSuccess = true,
             string? errorMessage = null,
+            string? stackTrace = null,
             long? durationMs = null,
             string? module = null,
             int? propertyId = null,
             string? ipAddress = null,
             string? userAgent = null,
             string? sessionId = null,
-            string? traceId = null,
-            string? displayMessage = null)
+            string? displayMessage = null,
+            string? origin = null)
         {
             var activity = new UserActivityLog
             {
@@ -49,19 +49,19 @@ namespace MyWarehouse.Application.UserActivity.Services
                 EntityType = entityType,
                 EntityId = entityId,
                 Action = action,
-                Description = description,
                 Metadata = metadata,
                 DisplayMessage = displayMessage,
                 Timestamp = DateTime.UtcNow,
                 IPAddress = ipAddress,
                 UserAgent = userAgent,
                 SessionId = sessionId,
-                TraceId = traceId,
                 IsSuccess = isSuccess,
                 ErrorMessage = errorMessage,
+                StackTrace = stackTrace,
                 DurationMs = durationMs,
                 Module = module,
-                PropertyId = propertyId
+                PropertyId = propertyId,
+                Origin = origin ?? "Server"
             };
 
             return await _repository.LogActivityAsync(activity);
@@ -88,14 +88,11 @@ namespace MyWarehouse.Application.UserActivity.Services
                 _ => $"{activityType} {entityType.ToLower()}"
             };
 
-            string description = $"{action}: {entityName} (ID: {entityId})";
-
             await LogActivityAsync(
                 userId,
                 username,
                 activityType,
                 action,
-                description,
                 entityType,
                 entityId,
                 metadata,
@@ -122,7 +119,6 @@ namespace MyWarehouse.Application.UserActivity.Services
                 username,
                 ActivityType.PageView,
                 $"Viewed {pageName}",
-                $"User accessed {pageName} page",
                 metadata: metadata
             );
         }
@@ -141,7 +137,6 @@ namespace MyWarehouse.Application.UserActivity.Services
                 username,
                 ActivityType.Login,
                 "User Login",
-                isSuccess ? $"{username} logged in successfully" : $"{username} failed to login",
                 isSuccess: isSuccess,
                 errorMessage: errorMessage
             );
@@ -156,8 +151,7 @@ namespace MyWarehouse.Application.UserActivity.Services
                 userId,
                 username,
                 ActivityType.Logout,
-                "User Logout",
-                $"{username} logged out"
+                "User Logout"
             );
         }
 
@@ -182,7 +176,6 @@ namespace MyWarehouse.Application.UserActivity.Services
                 username,
                 ActivityType.Export,
                 $"Exported {exportType}",
-                $"User exported {recordCount} {entityType ?? "records"} to {exportType}",
                 entityType: entityType,
                 metadata: metadata
             );
@@ -211,7 +204,6 @@ namespace MyWarehouse.Application.UserActivity.Services
                 username,
                 ActivityType.Search,
                 "Search",
-                $"User searched for: {searchTerm}" + (resultCount.HasValue ? $" ({resultCount} results)" : ""),
                 entityType: entityType,
                 metadata: metadata
             );
@@ -245,7 +237,6 @@ namespace MyWarehouse.Application.UserActivity.Services
                 username,
                 activityType,
                 action,
-                $"{action}: {dashboardName}",
                 entityType: "Dashboard",
                 entityId: dashboardId,
                 metadata: metadata

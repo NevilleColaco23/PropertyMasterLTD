@@ -1,3 +1,8 @@
+// ⚠️ TEMPORARILY DISABLED - Will be replaced with UserActivity RabbitMQ implementation
+// This file is part of the old AccessLog system that has been replaced by UserActivity
+// TODO: Create UserActivityMessageProcessor to consume UserActivity events from RabbitMQ
+
+/*
 using Messaging.Shared.Models;
 using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories;
 using MyWarehouse.Domain.AccessLog;
@@ -41,3 +46,4 @@ namespace AccessLogWorker.Services
         }
     }
 }
+*/

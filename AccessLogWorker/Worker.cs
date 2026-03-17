@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using AccessLogWorker.Services;
+// using AccessLogWorker.Services;  // ⚠️ TEMPORARILY COMMENTED OUT
 using Messaging.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -85,6 +85,10 @@ namespace AccessLogWorker
                         _logger.LogInformation("=== MESSAGE RECEIVED ===");
                         _logger.LogInformation("Raw JSON: {Json}", json);
 
+                        // ⚠️ TEMPORARILY DISABLED - Will be replaced with UserActivity processing
+                        // TODO: Deserialize UserActivityEvent and process with IUserActivityMessageProcessor
+
+                        /*
                         var logEvent = JsonSerializer.Deserialize<Messaging.Shared.Models.AccessLogEvent>(json);
                         _logger.LogInformation("Deserialized log event: {@LogEvent}", logEvent);
 
@@ -101,6 +105,9 @@ namespace AccessLogWorker
                         {
                             _logger.LogWarning("Deserialized log event is null!");
                         }
+                        */
+
+                        _logger.LogWarning("⚠️ AccessLogWorker is temporarily disabled. RabbitMQ messages will be acknowledged but not processed.");
 
                         await _channel.BasicAckAsync(ea.DeliveryTag, false);
                         _logger.LogInformation("✅ Message acknowledged successfully");

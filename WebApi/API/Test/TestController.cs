@@ -65,6 +65,10 @@ namespace MyWarehouse.WebApi.API.Test
                 {
                     await channel.ExchangeDeclareAsync(_options.Exchange, ExchangeType.Direct, durable: true, autoDelete: false);
 
+                    // ⚠️ TEMPORARILY COMMENTED OUT - Old AccessLogEvent test
+                    // TODO: Replace with UserActivity event test when RabbitMQ is re-implemented
+
+                    /*
                     var testEvent = new AccessLogEvent
                     {
                         TimestampUtc = DateTime.UtcNow,
@@ -86,8 +90,9 @@ namespace MyWarehouse.WebApi.API.Test
                         routingKey: _options.RoutingKey,
                         body: body
                     );
+                    */
 
-                    return Ok(new { message = "Test message published to RabbitMQ." });
+                    return Ok(new { message = "RabbitMQ test endpoint - AccessLog publishing temporarily disabled. Will be replaced with UserActivity." });
                 }
                 finally
                 {

@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ActivityMessageService } from '../../services/activity-message.service';
 import { APP_CONFIG, AppConfig } from '../../configuration/app.config.token';
+import { ActivityMessages } from '../../constants/activity-messages';
 
 
 @Component({
@@ -76,11 +77,11 @@ export class PropertySelectionComponent implements OnInit {
 
     localStorage.setItem('selectedPropertyIds', JSON.stringify(propertyIds));
 
-    // ⭐ NEW: Log property selection to backend
+    // Log property selection to backend using centralized message template
     const propertyNames = selected.map(p => p.name).join(', ');
     const message = selected.length === 1
-      ? `Selected property: ${propertyNames}`
-      : `Selected ${selected.length} properties: ${propertyNames}`;
+      ? ActivityMessages.PROPERTY_SELECTED(propertyNames)
+      : ActivityMessages.PROPERTIES_BULK_SELECTED(selected.length, propertyNames);
 
     console.log('🏠 About to log property selection:', message);
     const headers = this.activityMessage.createHeaders(message);

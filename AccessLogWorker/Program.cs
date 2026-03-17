@@ -2,7 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 using AccessLogWorker;
-using AccessLogWorker.Services;
+// using AccessLogWorker.Services;  // ⚠️ TEMPORARILY COMMENTED OUT
 using Messaging.Shared;
 using MyWarehouse.Application.Services;
 using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories;
@@ -65,11 +65,10 @@ builder.Services.AddSingleton<IMapper>(sp =>
 // Register CounterService (for auto-incrementing IDs)
 builder.Services.AddSingleton<ICounterService, CounterService>();
 
-// Register AccessLogRepository (handles Add with CounterService)
-builder.Services.AddScoped<IAccessLogRepository, AccessLogRepositoryMongo>();
-
-// Register message processor service (scoped - proper separation of concerns)
-builder.Services.AddScoped<IAccessLogMessageProcessor, AccessLogMessageProcessor>();
+// ⚠️ TEMPORARILY COMMENTED OUT - Old AccessLog dependencies
+// TODO: Replace with IUserActivityRepository when RabbitMQ is re-implemented
+// builder.Services.AddScoped<IAccessLogRepository, AccessLogRepositoryMongo>();
+// builder.Services.AddScoped<IAccessLogMessageProcessor, AccessLogMessageProcessor>();
 
 // Register the RabbitMQ consumer worker service.
 builder.Services.AddHostedService<Worker>();

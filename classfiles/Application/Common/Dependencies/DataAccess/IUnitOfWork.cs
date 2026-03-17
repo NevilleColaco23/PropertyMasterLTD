@@ -12,7 +12,6 @@ public interface IUnitOfWork : IDisposable
     public IPropertyAuditRepository? PropertyAudits { get; }
     public IRoomAuditRepository? RoomAudits { get; }
     public IUsersRepository? Users { get; }
-    public IAccessLogRepository? AccessLogs { get; }
     public IMenuRepository? Menus { get; }
     public IMenuPermissionRepository? MenuPermissions { get; }
     public IBookingsRepository? Bookings { get; }

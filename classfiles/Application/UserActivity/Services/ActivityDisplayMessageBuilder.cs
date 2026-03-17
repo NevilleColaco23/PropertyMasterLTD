@@ -1,4 +1,5 @@
 using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories;
+using MyWarehouse.Application.UserActivity.Constants;
 using MyWarehouse.Domain.UserActivity;
 using System;
 using System.Collections.Generic;
@@ -7,8 +8,9 @@ using System.Threading.Tasks;
 namespace MyWarehouse.Application.UserActivity.Services
 {
     /// <summary>
-    /// Centralized service for building human-readable activity display messages
-    /// All message formatting logic is centralized here for reusability and maintainability
+    /// Centralized service for building human-readable activity display messages.
+    /// Uses ActivityMessageTemplates for consistent message formatting.
+    /// All message formatting logic is centralized here for reusability and maintainability.
     /// </summary>
     public class ActivityDisplayMessageBuilder
     {
@@ -46,14 +48,14 @@ namespace MyWarehouse.Application.UserActivity.Services
                 // Get user display name (use username if no display name available)
                 var userDisplayName = GetUserDisplayName(username, metadata);
 
-                // Get activity verb based on type
+                // Get activity verb from centralized templates
                 var verb = GetActivityVerb(activityType);
 
                 // Get entity name from metadata or use entity type
                 var entityName = GetEntityName(entityType, entityId, metadata, isImportantOperation);
 
-                // Build base message
-                var message = $"{userDisplayName} {verb} {entityName}";
+                // Build message using templates
+                string message;
 
                 // Only add property context for important operations
                 if (isImportantOperation)
@@ -61,11 +63,38 @@ namespace MyWarehouse.Application.UserActivity.Services
                     var propertyContext = await GetPropertyContextAsync(metadata, shortFormat: true);
                     if (!string.IsNullOrEmpty(propertyContext))
                     {
-                        message += $" {propertyContext}";
+                        // Use template with property context
+                        message = string.Format(
+                            ActivityMessageTemplates.GenericActionWithProperty,
+                            userDisplayName,
+                            verb,
+                            entityName,
+                            propertyContext
+                        );
+                    }
+                    else
+                    {
+                        // Use basic template
+                        message = string.Format(
+                            ActivityMessageTemplates.GenericAction,
+                            userDisplayName,
+                            verb,
+                            entityName
+                        );
                     }
                 }
+                else
+                {
+                    // Use basic template for non-important operations
+                    message = string.Format(
+                        ActivityMessageTemplates.GenericAction,
+                        userDisplayName,
+                        verb,
+                        entityName
+                    );
+                }
 
-                // Only add search context for search operations
+                // Add search context for search operations
                 if (activityType == ActivityType.Search)
                 {
                     var searchContext = GetSearchContext(metadata);
@@ -79,9 +108,13 @@ namespace MyWarehouse.Application.UserActivity.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"⚠️ Failed to build display message: {ex.Message}");
                 // Fallback to basic message
-                return $"{username} {GetActivityVerb(activityType)} {entityType ?? "system"}";
+                return string.Format(
+                    ActivityMessageTemplates.GenericAction,
+                    username,
+                    GetActivityVerb(activityType),
+                    entityType ?? "system"
+                );
             }
         }
 
@@ -136,31 +169,30 @@ namespace MyWarehouse.Application.UserActivity.Services
         #region Activity Verbs
 
         /// <summary>
-        /// Gets appropriate verb for activity type
-        /// Centralized mapping of ActivityType to human-readable verbs
+        /// Gets appropriate verb for activity type using centralized templates
         /// </summary>
         public string GetActivityVerb(ActivityType activityType)
         {
             return activityType switch
             {
-                ActivityType.Create => "created",
-                ActivityType.Update => "updated",
-                ActivityType.Delete => "deleted",
-                ActivityType.View => "viewed",
-                ActivityType.PageView => "viewed",
-                ActivityType.Search => "searched",
-                ActivityType.Export => "exported",
-                ActivityType.Import => "imported",
-                ActivityType.Login => "logged into",
-                ActivityType.Logout => "logged out of",
-                ActivityType.Download => "downloaded",
-                ActivityType.Upload => "uploaded",
-                ActivityType.Approve => "approved",
-                ActivityType.Reject => "rejected",
-                ActivityType.StatusChange => "changed status of",
-                ActivityType.BulkCreate => "bulk created",
-                ActivityType.BulkUpdate => "bulk updated",
-                ActivityType.BulkDelete => "bulk deleted",
+                ActivityType.Create => ActivityMessageTemplates.Verbs.Created,
+                ActivityType.Update => ActivityMessageTemplates.Verbs.Updated,
+                ActivityType.Delete => ActivityMessageTemplates.Verbs.Deleted,
+                ActivityType.View => ActivityMessageTemplates.Verbs.Viewed,
+                ActivityType.PageView => ActivityMessageTemplates.Verbs.Viewed,
+                ActivityType.Search => ActivityMessageTemplates.Verbs.Searched,
+                ActivityType.Export => ActivityMessageTemplates.Verbs.Exported,
+                ActivityType.Import => ActivityMessageTemplates.Verbs.Imported,
+                ActivityType.Login => ActivityMessageTemplates.Verbs.LoggedIn,
+                ActivityType.Logout => ActivityMessageTemplates.Verbs.LoggedOut,
+                ActivityType.Download => ActivityMessageTemplates.Verbs.Downloaded,
+                ActivityType.Upload => ActivityMessageTemplates.Verbs.Uploaded,
+                ActivityType.Approve => ActivityMessageTemplates.Verbs.Approved,
+                ActivityType.Reject => ActivityMessageTemplates.Verbs.Rejected,
+                ActivityType.StatusChange => ActivityMessageTemplates.Verbs.ChangedStatus,
+                ActivityType.BulkCreate => ActivityMessageTemplates.Verbs.BulkCreated,
+                ActivityType.BulkUpdate => ActivityMessageTemplates.Verbs.BulkUpdated,
+                ActivityType.BulkDelete => ActivityMessageTemplates.Verbs.BulkDeleted,
                 _ => "interacted with"
             };
         }
@@ -301,7 +333,7 @@ namespace MyWarehouse.Application.UserActivity.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"⚠️ Failed to get property context: {ex.Message}");
+                // Silently handle error
             }
 
             return string.Empty;
@@ -317,13 +349,12 @@ namespace MyWarehouse.Application.UserActivity.Services
                 var property = await _propertyRepository.GetByIdAsync(propertyId);
                 if (property != null)
                 {
-                    Console.WriteLine($"✅ Resolved Property #{propertyId} → '{property.Name}'");
                     return property.Name;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"⚠️ Failed to resolve property name for ID {propertyId}: {ex.Message}");
+                // Silently handle error
             }
 
             return null;

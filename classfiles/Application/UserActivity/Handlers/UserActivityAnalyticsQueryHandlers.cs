@@ -515,7 +515,6 @@ public class ExportActivitiesQueryHandler : IRequestHandler<ExportActivitiesQuer
                 ActivityType = a.ActivityType.ToString(),
                 EntityType = a.EntityType ?? "",
                 EntityId = a.EntityId?.ToString() ?? "",
-                Description = a.Description ?? "",
                 IPAddress = a.IPAddress ?? "",
                 Timestamp = a.Timestamp,
                 Duration = a.DurationMs ?? 0,

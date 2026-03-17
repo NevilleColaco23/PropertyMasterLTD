@@ -19,7 +19,6 @@ internal class UnitOfWork : IUnitOfWork
     public IPropertyAuditRepository PropertyAudits { get; }
     public IRoomAuditRepository RoomAudits { get; }
     public IUsersRepository Users { get; }
-    public IAccessLogRepository AccessLogs { get; }
     public IMenuRepository Menus { get; }
     public IMenuPermissionRepository MenuPermissions { get; }
     public IBookingsRepository Bookings { get; }
@@ -27,8 +26,7 @@ internal class UnitOfWork : IUnitOfWork
     public IEmailOutboxRepository EmailOutbox { get; }
     public IAuditLogRepository AuditLogs { get; }
 
-    public UnitOfWork(ApplicationDbContext dbContext, IPartnerRepository partners, IProductRepository products, ITransactionRepository transactions, IPropertyRepository properties, IRoomRepository rooms, IPropertyAuditRepository propertyAudits, IRoomAuditRepository roomAudits
-        , IAccessLogRepository accessLogs, IUsersRepository users, IMenuRepository menus, IMenuPermissionRepository menusPermissions, IBookingsRepository bookings, ISystemMessagesRepository systemMessages, IEmailOutboxRepository emailOutbox, IAuditLogRepository auditLogs)
+    public UnitOfWork(ApplicationDbContext dbContext, IPartnerRepository partners, IProductRepository products, ITransactionRepository transactions, IPropertyRepository properties, IRoomRepository rooms, IPropertyAuditRepository propertyAudits, IRoomAuditRepository roomAudits, IUsersRepository users, IMenuRepository menus, IMenuPermissionRepository menusPermissions, IBookingsRepository bookings, ISystemMessagesRepository systemMessages, IEmailOutboxRepository emailOutbox, IAuditLogRepository auditLogs)
     {
         _dbContext = dbContext;
         Partners = partners;
@@ -38,7 +36,6 @@ internal class UnitOfWork : IUnitOfWork
         Rooms = rooms;
         PropertyAudits = propertyAudits;
         RoomAudits = roomAudits;
-        AccessLogs = accessLogs;
         Users = users;
         Menus = menus;
         MenuPermissions = menusPermissions;
