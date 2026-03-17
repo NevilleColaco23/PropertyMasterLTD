@@ -1,9 +1,12 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
+import { BaseChartDirective } from 'ng2-charts';
+import { ChartConfiguration, ChartType as ChartJsType } from 'chart.js';
 
 export type ChartType = 'line' | 'bar' | 'pie' | 'doughnut';
 
@@ -22,6 +25,11 @@ export interface ChartWidgetData {
   chartType?: ChartType;
 }
 
+export interface ChartFilterChange {
+  daysBack: number;
+  groupBy: 'day' | 'week' | 'month';
+}
+
 @Component({
   selector: 'app-chart-widget',
   standalone: true,
@@ -30,51 +38,87 @@ export interface ChartWidgetData {
     MatCardModule,
     MatIconModule,
     MatButtonModule,
-    MatMenuModule
+    MatMenuModule,
+    MatDividerModule,
+    BaseChartDirective
   ],
   template: `
     <mat-card class="chart-widget">
       <mat-card-header>
-        <mat-card-title>{{ data.title }}</mat-card-title>
+        <mat-card-title>
+          {{ data.title }}
+          <span class="subtitle">{{ currentPeriodLabel }}</span>
+        </mat-card-title>
         <button mat-icon-button [matMenuTriggerFor]="menu" class="chart-menu">
           <mat-icon>more_vert</mat-icon>
         </button>
         <mat-menu #menu="matMenu">
-          <button mat-menu-item (click)="changeChartType('line')">
-            <mat-icon>show_chart</mat-icon>
-            <span>Line Chart</span>
-          </button>
-          <button mat-menu-item (click)="changeChartType('bar')">
-            <mat-icon>bar_chart</mat-icon>
-            <span>Bar Chart</span>
-          </button>
-          <button mat-menu-item (click)="changeChartType('pie')">
-            <mat-icon>pie_chart</mat-icon>
-            <span>Pie Chart</span>
-          </button>
+          <!-- Chart Type Options -->
+          <div class="menu-section">
+            <div class="menu-section-label">Chart Type</div>
+            <button mat-menu-item (click)="changeChartType('line')" [class.active]="chartType === 'line'">
+              <mat-icon>show_chart</mat-icon>
+              <span>Line Chart</span>
+              @if (chartType === 'line') {
+                <mat-icon class="check-icon">check</mat-icon>
+              }
+            </button>
+            <button mat-menu-item (click)="changeChartType('bar')" [class.active]="chartType === 'bar'">
+              <mat-icon>bar_chart</mat-icon>
+              <span>Bar Chart</span>
+              @if (chartType === 'bar') {
+                <mat-icon class="check-icon">check</mat-icon>
+              }
+            </button>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Time Period Options -->
+          <div class="menu-section">
+            <div class="menu-section-label">Time Period</div>
+            <button mat-menu-item (click)="changePeriod(7, 'day')" [class.active]="daysBack === 7">
+              <mat-icon>date_range</mat-icon>
+              <span>Last 7 Days</span>
+              @if (daysBack === 7) {
+                <mat-icon class="check-icon">check</mat-icon>
+              }
+            </button>
+            <button mat-menu-item (click)="changePeriod(30, 'day')" [class.active]="daysBack === 30 && groupBy === 'day'">
+              <mat-icon>calendar_today</mat-icon>
+              <span>Last 30 Days</span>
+              @if (daysBack === 30 && groupBy === 'day') {
+                <mat-icon class="check-icon">check</mat-icon>
+              }
+            </button>
+            <button mat-menu-item (click)="changePeriod(90, 'week')" [class.active]="daysBack === 90">
+              <mat-icon>calendar_month</mat-icon>
+              <span>Last 90 Days (Weekly)</span>
+              @if (daysBack === 90) {
+                <mat-icon class="check-icon">check</mat-icon>
+              }
+            </button>
+            <button mat-menu-item (click)="changePeriod(180, 'month')" [class.active]="daysBack === 180">
+              <mat-icon>event</mat-icon>
+              <span>Last 6 Months</span>
+              @if (daysBack === 180) {
+                <mat-icon class="check-icon">check</mat-icon>
+              }
+            </button>
+          </div>
         </mat-menu>
       </mat-card-header>
       <mat-card-content>
         <div class="chart-container">
-          @if (chartType === 'line' || chartType === 'bar') {
-            <canvas #chartCanvas></canvas>
-          } @else if (chartType === 'pie' || chartType === 'doughnut') {
-            <div class="pie-chart-placeholder">
-              <mat-icon>pie_chart</mat-icon>
-              <p>{{ chartType | titlecase }} Chart</p>
-              <small>Install ng2-charts for chart rendering</small>
-            </div>
-          } @else {
-            <div class="chart-placeholder">
-              <mat-icon>analytics</mat-icon>
-              <p>Chart visualization</p>
-              <small>Install ng2-charts library:</small>
-              <code>npm install ng2-charts chart.js</code>
-            </div>
-          }
+          <canvas
+            baseChart
+            [type]="chartType"
+            [data]="chartData"
+            [options]="chartOptions">
+          </canvas>
         </div>
-        
-        <!-- Simple data visualization (no library required) -->
+
+        <!-- Data summary -->
         <div class="data-summary">
           @for (dataset of data.datasets; track dataset.label) {
             <div class="dataset-info">
@@ -137,13 +181,16 @@ export interface ChartWidgetData {
     mat-card-content {
       flex: 1;
       padding: 16px !important;
-      overflow-y: auto;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     .chart-container {
       position: relative;
       height: 250px;
       margin-bottom: 16px;
+      flex-shrink: 0;
     }
 
     canvas {
@@ -205,6 +252,7 @@ export interface ChartWidgetData {
       display: flex;
       flex-direction: column;
       gap: 12px;
+      flex-shrink: 0;
     }
 
     .dataset-info {
@@ -254,26 +302,208 @@ export interface ChartWidgetData {
       font-size: 16px;
       color: #1976d2;
     }
+
+    .subtitle {
+      display: block;
+      font-size: 11px;
+      font-weight: 400;
+      opacity: 0.9;
+      margin-top: 2px;
+    }
+
+    .menu-section {
+      padding: 8px 0;
+    }
+
+    .menu-section-label {
+      padding: 8px 16px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    ::ng-deep .mat-mdc-menu-content {
+      padding: 4px 0 !important;
+    }
+
+    ::ng-deep .mat-mdc-menu-item {
+      min-height: 40px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+    }
+
+    ::ng-deep .mat-mdc-menu-item.active {
+      background-color: rgba(25, 118, 210, 0.08);
+      color: #1976d2;
+    }
+
+    ::ng-deep .mat-mdc-menu-item.active .mat-icon {
+      color: #1976d2;
+    }
+
+    ::ng-deep .mat-mdc-menu-item .check-icon {
+      margin-left: auto;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    ::ng-deep .mat-divider {
+      margin: 4px 0 !important;
+    }
   `]
 })
-export class ChartWidgetComponent implements OnInit {
+export class ChartWidgetComponent implements OnInit, OnChanges {
   @Input() data!: ChartWidgetData;
   @Input() settings: any = {};
-  
-  chartType: ChartType = 'line';
+  @Output() filterChange = new EventEmitter<ChartFilterChange>();
+  @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
+
+  chartType: ChartJsType = 'line';
+  daysBack: number = 30;
+  groupBy: 'day' | 'week' | 'month' = 'day';
+  currentPeriodLabel: string = 'Last 30 Days';
+
+  chartData: ChartConfiguration['data'] = {
+    labels: [],
+    datasets: []
+  };
+  chartOptions: ChartConfiguration['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true,
+        position: 'bottom',
+        labels: {
+          usePointStyle: true,
+          padding: 15,
+          font: {
+            size: 12
+          }
+        }
+      },
+      tooltip: {
+        enabled: true,
+        mode: 'index',
+        intersect: false,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleFont: {
+          size: 14,
+          weight: 'bold'
+        },
+        bodyFont: {
+          size: 13
+        },
+        padding: 12,
+        cornerRadius: 6
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          precision: 0,
+          font: {
+            size: 11
+          }
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)'
+        }
+      },
+      x: {
+        ticks: {
+          font: {
+            size: 11
+          },
+          maxRotation: 45,
+          minRotation: 0
+        },
+        grid: {
+          display: false
+        }
+      }
+    },
+    interaction: {
+      mode: 'nearest',
+      axis: 'x',
+      intersect: false
+    }
+  };
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Detect when data input changes (e.g., from period filter change)
+    if (changes['data'] && !changes['data'].firstChange) {
+      console.log('📊 Chart data changed, updating chart...');
+      this.initializeChart();
+      // Trigger chart update after a brief delay to ensure DOM is ready
+      setTimeout(() => {
+        if (this.chart) {
+          this.chart.update();
+          console.log('✅ Chart updated with new data');
+        }
+      }, 100);
+    }
+  }
 
   ngOnInit(): void {
     // Apply settings
-    this.chartType = this.settings?.chartType || this.data?.chartType || 'line';
-    
-    // In a real implementation, you would initialize Chart.js here
-    // this.initializeChart();
+    this.chartType = (this.settings?.chartType || this.data?.chartType || 'line') as ChartJsType;
+    this.initializeChart();
   }
 
-  changeChartType(type: ChartType): void {
-    this.chartType = type;
-    // In a real implementation, you would re-render the chart
-    // this.updateChart();
+  private initializeChart(): void {
+    if (!this.data) return;
+
+    // Prepare chart data
+    this.chartData = {
+      labels: this.data.labels,
+      datasets: this.data.datasets.map(dataset => ({
+        label: dataset.label,
+        data: dataset.data,
+        backgroundColor: this.chartType === 'line' 
+          ? 'rgba(25, 118, 210, 0.1)' 
+          : dataset.backgroundColor || '#1976d2',
+        borderColor: dataset.borderColor || '#1976d2',
+        borderWidth: dataset.borderWidth || 2,
+        fill: this.chartType === 'line',
+        tension: 0.4, // Smooth curves for line charts
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        pointBackgroundColor: '#fff',
+        pointBorderColor: dataset.borderColor || '#1976d2',
+        pointBorderWidth: 2
+      }))
+    };
+  }
+
+  changeChartType(type: 'line' | 'bar'): void {
+    this.chartType = type as ChartJsType;
+    this.initializeChart();
+    this.chart?.update();
+  }
+
+  changePeriod(days: number, group: 'day' | 'week' | 'month'): void {
+    this.daysBack = days;
+    this.groupBy = group;
+    this.updatePeriodLabel();
+    this.filterChange.emit({ daysBack: days, groupBy: group });
+  }
+
+  private updatePeriodLabel(): void {
+    if (this.daysBack === 7) {
+      this.currentPeriodLabel = 'Last 7 Days';
+    } else if (this.daysBack === 30 && this.groupBy === 'day') {
+      this.currentPeriodLabel = 'Last 30 Days';
+    } else if (this.daysBack === 90) {
+      this.currentPeriodLabel = 'Last 90 Days (Weekly)';
+    } else if (this.daysBack === 180) {
+      this.currentPeriodLabel = 'Last 6 Months';
+    }
   }
 
   calculateTotal(data: number[]): number {
@@ -285,9 +515,4 @@ export class ChartWidgetComponent implements OnInit {
     const total = this.calculateTotal(data);
     return Math.round(total / data.length);
   }
-
-  // Private method to initialize Chart.js (when library is installed)
-  // private initializeChart(): void {
-  //   // Chart.js initialization code
-  // }
 }

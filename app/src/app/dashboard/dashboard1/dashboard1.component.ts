@@ -333,6 +333,27 @@ export class Dashboard1Component implements OnInit {
   }
 
   /**
+   * Handle chart filter changes (time period selection)
+   */
+  onChartFilterChange(filter: { daysBack: number; groupBy: 'day' | 'week' | 'month' }, item: DashboardGridsterItem): void {
+    console.log(`📊 Chart filter changed:`, filter);
+
+    // Update widget settings
+    item.settings = {
+      ...item.settings,
+      daysBack: filter.daysBack,
+      groupBy: filter.groupBy
+    };
+
+    // Mark as changed
+    this.hasUnsavedChanges = true;
+
+    // Reload chart data with new filters
+    const userId = this.getCurrentUserId();
+    this.loadChartWidgetData(item, userId);
+  }
+
+  /**
    * Load real data for a specific widget
    */
   loadWidgetRealData(item: DashboardGridsterItem): void {
@@ -724,6 +745,46 @@ export class Dashboard1Component implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  /**
+   * Set current dashboard as default
+   */
+  setAsDefaultDashboard(): void {
+    if (!this.selectedDashboard) {
+      this.snackBar.open('No dashboard selected', 'Close', { duration: 3000 });
+      return;
+    }
+
+    this.loading = true;
+    const userId = this.getCurrentUserId();
+
+    this.dashboardService.setDefaultDashboard(this.selectedDashboard, userId).subscribe({
+      next: (success) => {
+        if (success) {
+          this.snackBar.open('Default dashboard updated successfully', 'Close', { duration: 3000 });
+          // Reload dashboard list to update isDefault flags
+          this.loadUserDashboards();
+        } else {
+          this.snackBar.open('Failed to set default dashboard', 'Close', { duration: 3000 });
+          this.loading = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error setting default dashboard:', error);
+        this.snackBar.open('Failed to set default dashboard', 'Close', { duration: 3000 });
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Check if current dashboard is the default
+   */
+  isCurrentDashboardDefault(): boolean {
+    if (!this.selectedDashboard) return false;
+    const currentDashboard = this.userDashboards.find(d => d.id === this.selectedDashboard);
+    return currentDashboard?.isDefault || false;
   }
 
   /**

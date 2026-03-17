@@ -11,6 +11,9 @@ import { activityMessageInterceptor } from '../core/interceptors/activity-messag
 import { environment } from '../environments/environment';
 import { provideNativeDateAdapter } from '@angular/material/core';
 
+// Import Chart.js configuration
+import './chart.config';
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),

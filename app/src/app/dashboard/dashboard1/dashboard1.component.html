@@ -5,7 +5,6 @@
         <mat-icon>dashboard</mat-icon>
         Dashboard
       </h1>
-      <p class="dashboard-subtitle">Welcome to your property management dashboard</p>
     </div>
 
     <div class="header-right">
@@ -80,6 +79,17 @@
           }
         </mat-select>
       </mat-form-field>
+
+      <!-- Set as Default Button -->
+      @if (selectedDashboard && !isCurrentDashboardDefault() && !editMode) {
+        <button mat-icon-button 
+                (click)="setAsDefaultDashboard()"
+                [disabled]="loading"
+                matTooltip="Set as Default Dashboard"
+                color="accent">
+          <mat-icon>star_border</mat-icon>
+        </button>
+      }
 
       <!-- Save As Button (non-edit mode) -->
       @if (!editMode && selectedDashboard) {
@@ -167,7 +177,11 @@
 
               <!-- Chart Widget -->
               @if (item.widgetType === 'chart' && item.data) {
-                <app-chart-widget [data]="item.data" style="display: block; height: 100%; width: 100%;"></app-chart-widget>
+                <app-chart-widget 
+                  [data]="item.data" 
+                  [settings]="item.settings"
+                  (filterChange)="onChartFilterChange($event, item)"
+                  style="display: block; height: 100%; width: 100%;"></app-chart-widget>
               }
 
               <!-- Calendar Widget -->
