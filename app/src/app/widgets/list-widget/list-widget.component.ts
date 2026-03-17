@@ -1,9 +1,11 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 export interface ListItem {
   id: string | number;
@@ -21,6 +23,8 @@ export interface ListWidgetData {
   emptyMessage?: string;
 }
 
+export type ListViewType = 'bookings' | 'activity';
+
 @Component({
   selector: 'app-list-widget',
   standalone: true,
@@ -29,12 +33,28 @@ export interface ListWidgetData {
     MatCardModule,
     MatIconModule,
     MatListModule,
-    MatDividerModule
+    MatDividerModule,
+    MatButtonModule,
+    MatTooltipModule
   ],
   template: `
     <mat-card class="list-widget">
       <mat-card-header>
-        <mat-card-title>{{ data.title }}</mat-card-title>
+        <button 
+          mat-icon-button 
+          class="nav-arrow" 
+          (click)="toggleView('left')"
+          [matTooltip]="currentView === 'bookings' ? 'Recent Activity' : 'Recent Bookings'">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <mat-card-title>{{ getViewTitle() }}</mat-card-title>
+        <button 
+          mat-icon-button 
+          class="nav-arrow" 
+          (click)="toggleView('right')"
+          [matTooltip]="currentView === 'bookings' ? 'Recent Activity' : 'Recent Bookings'">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
         <div class="item-count">{{ data.items.length }} items</div>
       </mat-card-header>
       <mat-card-content>
@@ -90,9 +110,10 @@ export interface ListWidgetData {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 20px;
+      padding: 12px 16px;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border-bottom: none;
+      gap: 8px;
     }
 
     mat-card-title {
@@ -100,6 +121,18 @@ export interface ListWidgetData {
       font-weight: 600;
       margin: 0;
       color: white;
+      flex: 1;
+      text-align: center;
+    }
+
+    .nav-arrow {
+      color: white;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+
+    .nav-arrow:hover {
+      transform: scale(1.1);
+      opacity: 0.8;
     }
 
     .item-count {
@@ -199,19 +232,52 @@ export interface ListWidgetData {
     }
   `]
 })
-export class ListWidgetComponent implements OnInit {
+export class ListWidgetComponent implements OnInit, OnChanges {
   @Input() data!: ListWidgetData;
   @Input() settings: any = {};
-  
+  @Output() viewChange = new EventEmitter<ListViewType>();
+
   displayItems: ListItem[] = [];
   maxItems: number = 10;
+  currentView: ListViewType = 'bookings'; // Default to Recent Bookings
 
   ngOnInit(): void {
     // Apply settings
     this.maxItems = this.settings?.itemsToShow || 10;
-    
+
     // Limit displayed items
-    this.displayItems = this.data.items.slice(0, this.maxItems);
+    this.updateDisplayItems();
+
+    console.log('🎯 List Widget Init - currentView:', this.currentView, 'title:', this.getViewTitle());
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Detect when data input changes
+    if (changes['data'] && !changes['data'].firstChange) {
+      console.log('📊 List Widget data changed! Updating display items...');
+      this.updateDisplayItems();
+    }
+  }
+
+  private updateDisplayItems(): void {
+    if (this.data && this.data.items) {
+      this.displayItems = this.data.items.slice(0, this.maxItems);
+      console.log('✅ Display items updated:', this.displayItems.length, 'items');
+    }
+  }
+
+  toggleView(direction: 'left' | 'right'): void {
+    console.log('🔄 Toggle View clicked! Current view:', this.currentView, '→ Switching to:', this.currentView === 'bookings' ? 'activity' : 'bookings');
+
+    // Toggle between bookings and activity
+    this.currentView = this.currentView === 'bookings' ? 'activity' : 'bookings';
+
+    console.log('✅ View changed to:', this.currentView, 'Emitting event...');
+    this.viewChange.emit(this.currentView);
+  }
+
+  getViewTitle(): string {
+    return this.currentView === 'bookings' ? 'Recent Bookings' : 'Recent Activity';
   }
 
   /**

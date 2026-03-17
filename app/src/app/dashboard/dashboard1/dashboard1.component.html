@@ -172,7 +172,10 @@
 
               <!-- List Widget -->
               @if (item.widgetType === 'list' && item.data) {
-                <app-list-widget [data]="item.data" style="display: block; height: 100%; width: 100%;"></app-list-widget>
+                <app-list-widget 
+                  [data]="item.data" 
+                  (viewChange)="onListViewChange($event, item)"
+                  style="display: block; height: 100%; width: 100%;"></app-list-widget>
               }
 
               <!-- Chart Widget -->

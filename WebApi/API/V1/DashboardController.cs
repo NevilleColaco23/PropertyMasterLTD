@@ -282,6 +282,26 @@ namespace MyWarehouse.WebApi.API.V1
         }
 
         /// <summary>
+        /// Get recent bookings for dashboard
+        /// </summary>
+        /// <param name="userId">User ID</param>
+        /// <param name="limit">Number of items to return</param>
+        /// <returns>List of recent bookings</returns>
+        [HttpGet("activity/recent-bookings")]
+        [ProducesResponseType(typeof(List<RecentBookingResponse>), 200)]
+        public async Task<ActionResult<List<RecentBookingResponse>>> GetRecentBookings(
+            [FromQuery] int userId,
+            [FromQuery] int limit = 10)
+        {
+            var result = await _mediator.Send(new GetRecentBookingsQuery 
+            { 
+                UserId = userId,
+                Limit = limit 
+            });
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Get calendar events for dashboard
         /// </summary>
         /// <param name="userId">User ID</param>

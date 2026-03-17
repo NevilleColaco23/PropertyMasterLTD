@@ -155,6 +155,16 @@ export class DashboardService {
   }
 
   /**
+   * Get recent bookings for dashboard
+   */
+  getRecentBookings(userId: number, limit: number = 10): Observable<ActivityItemResponse[]> {
+    const params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('limit', limit.toString());
+    return this.http.get<ActivityItemResponse[]>(`${this.apiUrl}/activity/recent-bookings`, { params });
+  }
+
+  /**
    * Get calendar events for dashboard
    */
   getCalendarEvents(

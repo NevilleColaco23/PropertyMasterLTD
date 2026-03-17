@@ -47,6 +47,7 @@ export interface DashboardGridsterItem {
   settings?: any;
   data?: any;
   isRefreshing?: boolean; // Track refresh state for individual widgets
+  currentListView?: 'bookings' | 'activity'; // Track current view for list widget
   [key: string]: any; // Allow additional gridster properties
 }
 
@@ -418,14 +419,78 @@ export class Dashboard1Component implements OnInit {
 
   /**
    * Load list widget real data from API
+   * Defaults to Recent Bookings view
    */
   loadListWidgetData(item: DashboardGridsterItem, userId: number): void {
+    // Default to bookings view and track it
+    item.currentListView = 'bookings';
+    this.loadListWidgetBookings(item, userId);
+  }
+
+  /**
+   * Load Recent Bookings view for list widget
+   */
+  private loadListWidgetBookings(item: DashboardGridsterItem, userId: number): void {
+    console.log('📦 loadListWidgetBookings called for userId:', userId);
+    const requestedView = 'bookings'; // Track what we're requesting
+
+    this.dashboardService.getRecentBookings(userId, 10).pipe(
+      catchError(error => {
+        console.error('❌ Error loading bookings data:', error);
+        return of([]);
+      })
+    ).subscribe(bookings => {
+      console.log('✅ Bookings received:', bookings?.length || 0, 'bookings');
+
+      // Only update if still on bookings view (prevent race condition)
+      if (item.currentListView !== requestedView) {
+        console.log('⚠️ View changed during API call, ignoring bookings response');
+        return;
+      }
+
+      if (bookings && bookings.length > 0) {
+        item.data = {
+          title: 'Recent Bookings',
+          items: bookings.map(booking => ({
+            id: booking.id,
+            title: booking.title,
+            subtitle: booking.subtitle,
+            timestamp: new Date(booking.timestamp),
+            icon: booking.icon,
+            iconColor: booking.iconColor,
+            metadata: booking.metadata
+          }))
+        } as ListWidgetData;
+        console.log('✅ Set widget data to Recent Bookings with', bookings.length, 'items');
+      } else {
+        console.log('⚠️ No bookings found, using fallback data');
+        item.data = this.getDefaultListWidget();
+      }
+      this.cdr.detectChanges();
+    });
+  }
+
+  /**
+   * Load Recent Activity view for list widget
+   */
+  private loadListWidgetActivity(item: DashboardGridsterItem, userId: number): void {
+    console.log('📋 loadListWidgetActivity called for userId:', userId);
+    const requestedView = 'activity'; // Track what we're requesting
+
     this.dashboardService.getRecentActivity(userId, 10).pipe(
       catchError(error => {
-        console.error('Error loading activity data:', error);
+        console.error('❌ Error loading activity data:', error);
         return of([]);
       })
     ).subscribe(activities => {
+      console.log('✅ Activities received:', activities?.length || 0, 'activities');
+
+      // Only update if still on activity view (prevent race condition)
+      if (item.currentListView !== requestedView) {
+        console.log('⚠️ View changed during API call, ignoring activity response');
+        return;
+      }
+
       if (activities && activities.length > 0) {
         item.data = {
           title: 'Recent Activity',
@@ -439,11 +504,32 @@ export class Dashboard1Component implements OnInit {
             metadata: act.metadata
           }))
         } as ListWidgetData;
+        console.log('✅ Set widget data to Recent Activity with', activities.length, 'items');
       } else {
+        console.log('⚠️ No activities found, using fallback data');
         item.data = this.getDefaultListWidget();
       }
-      this.cdr.detectChanges();  // Trigger change detection
+      this.cdr.detectChanges();
     });
+  }
+
+  /**
+   * Handle list widget view toggle (bookings ↔ activity)
+   */
+  onListViewChange(view: 'bookings' | 'activity', item: DashboardGridsterItem): void {
+    console.log('📋 List View Change Event Received! View:', view, 'Widget:', item.widgetId);
+
+    // Update the current view immediately (before API call)
+    item.currentListView = view;
+
+    const userId = 1; // TODO: Get from auth service
+    if (view === 'bookings') {
+      console.log('→ Loading Recent Bookings...');
+      this.loadListWidgetBookings(item, userId);
+    } else {
+      console.log('→ Loading Recent Activity...');
+      this.loadListWidgetActivity(item, userId);
+    }
   }
 
   /**

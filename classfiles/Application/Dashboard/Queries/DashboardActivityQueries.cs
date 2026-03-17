@@ -12,6 +12,15 @@ namespace MyWarehouse.Application.Dashboard.Queries
     }
 
     /// <summary>
+    /// Query to get recent bookings
+    /// </summary>
+    public class GetRecentBookingsQuery : IRequest<List<RecentBookingResponse>>
+    {
+        public int UserId { get; set; }
+        public int Limit { get; set; } = 10;
+    }
+
+    /// <summary>
     /// Query to get calendar events
     /// </summary>
     public class GetCalendarEventsQuery : IRequest<List<CalendarEventResponse>>
@@ -44,6 +53,25 @@ namespace MyWarehouse.Application.Dashboard.Queries
         public DateTime Timestamp { get; set; }
         public string Metadata { get; set; } = string.Empty;
         public string ActivityType { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Recent booking response
+    /// </summary>
+    public class RecentBookingResponse
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Icon { get; set; } = "hotel";
+        public string IconColor { get; set; } = "#667eea";
+        public string Title { get; set; } = string.Empty;
+        public string Subtitle { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; }
+        public string RoomNumber { get; set; } = string.Empty;
+        public DateTime CheckInDate { get; set; }
+        public DateTime CheckOutDate { get; set; }
+        public int NumberOfGuests { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public double TotalPrice { get; set; }
     }
 
     /// <summary>

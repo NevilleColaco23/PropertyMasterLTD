@@ -417,4 +417,144 @@ namespace MyWarehouse.Application.Dashboard.Queries
             };
         }
     }
+
+    /// <summary>
+    /// Handler for GetRecentBookingsQuery
+    /// </summary>
+    public class GetRecentBookingsQueryHandler : IRequestHandler<GetRecentBookingsQuery, List<RecentBookingResponse>>
+    {
+        private readonly IMongoDatabase _database;
+
+        public GetRecentBookingsQueryHandler(IMongoDatabase database)
+        {
+            _database = database;
+        }
+
+        public async Task<List<RecentBookingResponse>> Handle(GetRecentBookingsQuery request, CancellationToken cancellationToken)
+        {
+            var bookings = new List<RecentBookingResponse>();
+
+            try
+            {
+                var bookingsCollection = _database.GetCollection<BsonDocument>("Bookings");
+
+                // Use MongoDB aggregation pipeline with $lookup for guest information
+                var mongoQuery = new GetRecentBookingsMongoQuery(request.UserId, request.Limit);
+                var pipelineStages = mongoQuery.BsonPipeline.Select(stage => (BsonDocument)stage).ToArray();
+
+                Console.WriteLine($"🔧 Executing aggregation with {pipelineStages.Length} stages");
+
+                var bookingDocs = await bookingsCollection
+                    .Aggregate<BsonDocument>(pipelineStages)
+                    .ToListAsync(cancellationToken);
+
+                Console.WriteLine($"✅ Aggregation returned {bookingDocs.Count} booking documents");
+
+                foreach (var doc in bookingDocs)
+                {
+                    // DEBUG: Log first document to see what fields are returned
+                    if (bookings.Count == 0)
+                    {
+                        Console.WriteLine($"🔍 First booking fields: {string.Join(", ", doc.Names)}");
+                        Console.WriteLine($"🔍 guestName value: '{doc.GetValue("guestName", "NOT_FOUND").AsString}'");
+                    }
+
+                    // Use correct camelCase field names from MongoDB
+                    var mongoBookingId = doc.GetValue("bookingId", "").AsString;
+                    var internalId = doc["_id"].ToString() ?? Guid.NewGuid().ToString();
+                    var roomNumber = doc.GetValue("roomNumber", "").AsString;
+                    var checkInDate = doc.GetValue("checkInDate", DateTime.UtcNow).ToUniversalTime();
+                    var checkOutDate = doc.GetValue("checkOutDate", DateTime.UtcNow.AddDays(1)).ToUniversalTime();
+                    var numberOfGuests = doc.GetValue("numberOfGuests", 1).AsInt32;
+                    var totalPrice = doc.GetValue("totalPrice", 0.0).AsDouble;
+                    var isConfirmed = doc.GetValue("isConfirmed", false).ToBoolean();
+                    var bookingDate = doc.GetValue("bookingDate", DateTime.UtcNow).ToUniversalTime();
+
+                    // Guest name is already joined via MongoDB $lookup aggregation
+                    var guestName = doc.GetValue("guestName", "").AsString?.Trim() ?? "";
+
+                    // DEBUG: Log guest name value
+                    Console.WriteLine($"🔍 Booking {mongoBookingId}: guestName='{guestName}' (length: {guestName.Length})");
+
+                    // Derive status from isConfirmed and dates
+                    var now = DateTime.UtcNow;
+                    string status;
+                    string iconColor;
+
+                    if (checkOutDate < now)
+                    {
+                        status = "Completed";
+                        iconColor = "#2196f3";
+                    }
+                    else if (checkInDate <= now && checkOutDate >= now)
+                    {
+                        status = "Active";
+                        iconColor = "#4caf50";
+                    }
+                    else if (isConfirmed)
+                    {
+                        status = "Confirmed";
+                        iconColor = "#4caf50";
+                    }
+                    else
+                    {
+                        status = "Pending";
+                        iconColor = "#ff9800";
+                    }
+
+                    // Build title with booking ID prominently displayed, along with room and guest info
+                    var displayBookingId = !string.IsNullOrEmpty(mongoBookingId) 
+                        ? mongoBookingId 
+                        : internalId.Substring(Math.Max(0, internalId.Length - 8));
+
+                    // Always show booking ID first, then room and guest name
+                    string title = $"Booking #{displayBookingId}";
+
+                    if (!string.IsNullOrEmpty(roomNumber))
+                    {
+                        title += $" - Room {roomNumber}";
+                    }
+
+                    // Use IsNullOrWhiteSpace to catch whitespace-only strings
+                    if (!string.IsNullOrWhiteSpace(guestName) && guestName != "Unavailable")
+                    {
+                        title += $" - {guestName}";
+                        Console.WriteLine($"✅ Added guest name to title: '{title}'");
+                    }
+                    else if (guestName == "Unavailable")
+                    {
+                        title += " - Guest: Unavailable";
+                        Console.WriteLine($"⚠️ Guest unavailable for booking {mongoBookingId}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"❌ Guest name was empty/whitespace for booking {mongoBookingId}");
+                    }
+
+                    bookings.Add(new RecentBookingResponse
+                    {
+                        Id = internalId,
+                        Icon = "hotel",
+                        IconColor = iconColor,
+                        Title = title,
+                        Subtitle = $"{numberOfGuests} guest{(numberOfGuests > 1 ? "s" : "")} • {status} • ${totalPrice:F2}",
+                        Timestamp = bookingDate,
+                        RoomNumber = roomNumber,
+                        CheckInDate = checkInDate,
+                        CheckOutDate = checkOutDate,
+                        NumberOfGuests = numberOfGuests,
+                        Status = status,
+                        TotalPrice = totalPrice
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error and return empty list
+                Console.WriteLine($"Error fetching recent bookings: {ex.Message}");
+            }
+
+            return bookings;
+        }
+    }
 }
