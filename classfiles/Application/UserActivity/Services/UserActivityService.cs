@@ -38,7 +38,8 @@ namespace MyWarehouse.Application.UserActivity.Services
             string? ipAddress = null,
             string? userAgent = null,
             string? sessionId = null,
-            string? traceId = null)
+            string? traceId = null,
+            string? displayMessage = null)
         {
             var activity = new UserActivityLog
             {
@@ -50,6 +51,7 @@ namespace MyWarehouse.Application.UserActivity.Services
                 Action = action,
                 Description = description,
                 Metadata = metadata,
+                DisplayMessage = displayMessage,
                 Timestamp = DateTime.UtcNow,
                 IPAddress = ipAddress,
                 UserAgent = userAgent,

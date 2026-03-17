@@ -105,4 +105,40 @@ public class PropertyController : ControllerBase
         await _mediator.Send(new DeletePropertyCommand { Id = id });
         return NoContent();
     }
+
+    /// <summary>
+    /// Log property selection - When user selects which property(ies) to work with
+    /// This creates an audit trail of property context switches
+    /// </summary>
+    [HttpPost("selection/log")]
+    [AllowAnonymous]  // TEMPORARY: Remove after testing
+    [LogCreate("Property Selection", Description = "User selected property context")]
+    public async Task<ActionResult> LogPropertySelection([FromBody] PropertySelectionLogRequest request)
+    {
+        try
+        {
+            Console.WriteLine($"=== PropertyController.LogPropertySelection ===");
+            Console.WriteLine($"Property IDs: {string.Join(", ", request.PropertyIds ?? new List<int>())}");
+            Console.WriteLine($"Property Names: {request.PropertyNames}");
+
+            // The ActivityLoggingActionFilter will handle the logging automatically
+            // We just need to return success
+            return Ok(new { success = true, message = "Property selection logged" });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"=== ERROR in PropertyController.LogPropertySelection ===");
+            Console.WriteLine($"Exception: {ex.Message}");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+}
+
+/// <summary>
+/// Request model for property selection logging
+/// </summary>
+public class PropertySelectionLogRequest
+{
+    public List<int>? PropertyIds { get; set; }
+    public string? PropertyNames { get; set; }
 }

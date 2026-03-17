@@ -44,5 +44,6 @@ internal static class Startup
         services.AddTransient<IStockStatisticsService, StockStatisticsService>();
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<UserActivityService>();
+        services.AddScoped<ActivityDisplayMessageBuilder>();  // ⭐ Centralized message builder
     }
 }

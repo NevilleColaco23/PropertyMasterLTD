@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ActivitySummaryDTO, PagedActivitiesDTO, UserActivityDTO } from '../models/activity.models';
-import { APP_CONFIG, IAppConfig } from '../configuration/app.config.token';
+import { APP_CONFIG, AppConfig } from '../configuration/app.config.token';
 
 @Injectable({
   providedIn: 'root'
@@ -12,9 +12,9 @@ export class ActivityService {
 
   constructor(
     private http: HttpClient,
-    @Inject(APP_CONFIG) private config: IAppConfig
+    @Inject(APP_CONFIG) private config: AppConfig
   ) {
-    this.apiUrl = `${this.config.apiEndpoint}/api/v1/activity`;
+    this.apiUrl = `${this.config.apiUrl}/api/v1/activity`;
   }
 
   /**

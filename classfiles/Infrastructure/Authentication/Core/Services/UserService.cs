@@ -45,27 +45,105 @@ public class UserService : IUserService
     {
         try
         {
+            _logger.LogInformation("Sign-in attempt for user: {Username}", username);
+
+            // ⭐ HYBRID: Try Identity first
             var user = await _userManager.FindByEmailAsync(username);
+
+            // ⭐ FALLBACK: If Identity can't find user, check MongoDB directly (for old users)
+            if (user == null)
+            {
+                _logger.LogWarning("User not found via Identity, checking MongoDB directly for legacy users...");
+                user = await FindLegacyUserAsync(username);
+
+                if (user != null)
+                {
+                    _logger.LogInformation("Legacy user found: UserId={UserId}. Consider migrating to Identity.", user.Id);
+
+                    // Verify password manually for legacy users
+                    var passwordHasher = new PasswordHasher<ApplicationUserIdentity>();
+                    var verificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+
+                    if (verificationResult == PasswordVerificationResult.Failed)
+                    {
+                        _logger.LogWarning("Sign-in failed: Invalid password for legacy user {UserId}", user.Id);
+                        return (MySignInResult.Failed, null);
+                    }
+
+                    // Check email confirmed for legacy users
+                    if (!user.EmailConfirmed)
+                    {
+                        _logger.LogWarning("Sign-in failed: Email not confirmed for legacy user {UserId}", user.Id);
+                        return (MySignInResult.NotAllowed, null);
+                    }
+
+                    _logger.LogInformation("Legacy user sign-in successful: UserId={UserId}", user.Id);
+
+                    // Generate JWT token
+                    var legacyToken = _tokenService.CreateAuthenticationToken(user.Id.ToString(), user.Email ?? user.UserName ?? "");
+
+                    // Extract property access
+                    var legacyPropertyAccessList = user.PropertyAccessList?
+                        .Where(p => p.IsActive)
+                        .Select(p => p.Id)
+                        .ToList();
+
+                    return (
+                        MySignInResult.Success,
+                        data: new SignInData()
+                        {
+                            Username = user.UserName,
+                            Email = user.Email,
+                            Token = legacyToken,
+                            PropertyAccessList = legacyPropertyAccessList,
+                        }
+                    );
+                }
+            }
 
             if (user == null)
             {
+                _logger.LogWarning("Sign-in failed: User not found for email {Username}", username);
                 return (MySignInResult.Failed, null);
             }
 
-            // Don't use SignInManager.PasswordSignInAsync(), because that sets useless cookies.
-            // But 'CheckPasswordSignInAsync' doesn't. Yep, it's confusing. Good thing we have access to the source code
-            var result = await _signInManager.CheckPasswordSignInAsync(user, password, true);
+            _logger.LogInformation("User found via Identity: UserId={UserId}, UserName={UserName}", user.Id, user.UserName);
+
+            // ⭐ HYBRID: Use Identity's SignInManager (handles lockouts, email confirmation, password verification automatically)
+            var result = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: true);
 
             if (!result.Succeeded)
             {
                 if (result.IsLockedOut)
+                {
+                    _logger.LogWarning("Sign-in failed: Account locked for user {UserId}", user.Id);
                     return (MySignInResult.LockedOut, null);
+                }
                 if (result.IsNotAllowed)
+                {
+                    _logger.LogWarning("Sign-in failed: Sign-in not allowed (email not confirmed?) for user {UserId}", user.Id);
                     return (MySignInResult.NotAllowed, null);
-                throw new System.Exception("Unhandled sign-in outcome.");
+                }
+
+                _logger.LogWarning("Sign-in failed: Invalid credentials for user {UserId}", user.Id);
+                return (MySignInResult.Failed, null);
             }
 
-            var token = _tokenService.CreateAuthenticationToken(user.Id.ToString(), username);
+            _logger.LogInformation("Sign-in successful for user {UserId}", user.Id);
+
+            // ⭐ Extract PropertyAccessList from your custom field
+            var propertyAccessList = user.PropertyAccessList?
+                .Where(p => p.IsActive)
+                .Select(p => p.Id)
+                .ToList();
+
+            if (propertyAccessList != null && propertyAccessList.Any())
+            {
+                _logger.LogInformation("User {UserId} has access to {PropertyCount} properties", user.Id, propertyAccessList.Count);
+            }
+
+            // ⭐ Still use YOUR custom JWT tokens (not Identity cookies)
+            var token = _tokenService.CreateAuthenticationToken(user.Id.ToString(), user.Email ?? user.UserName ?? "");
 
             return (
                 MySignInResult.Success,
@@ -74,7 +152,7 @@ public class UserService : IUserService
                     Username = user.UserName,
                     Email = user.Email,
                     Token = token,
-                    PropertyAccessList = user.PropertyAccessList?.Select(p => p.Id).ToList(),
+                    PropertyAccessList = propertyAccessList,
                 }
             );
         }
@@ -87,68 +165,55 @@ public class UserService : IUserService
 
     public async Task<(SignUpResult result, SignUpResultData? data)> SignUp(string username, string email, string password, string phoneNumber, string? propertyCode = null)
     {
-        var emailFound = await _userManager.FindByEmailAsync(email);
-
-        if (emailFound is not null)
-        {
-            return (SignUpResult.EmailAlreadyExists, null);
-        }
-
-        var userObj = new ApplicationUserIdentity
-        {
-            UserName = username,
-            Email = email
-        };
-        var passwordHasher = new PasswordHasher<ApplicationUserIdentity>();
-        var pass = passwordHasher.HashPassword(userObj, password);
-
-
-        CreateUserCommand createUserCommand = new()
-        {
-            UserName = username,
-            Email = email,
-            Password = pass,
-            PhoneNumber = phoneNumber
-        };
-
-        var userId = await _mediator.Send(createUserCommand);
-
-        if (userId == 0)
-            return (SignUpResult.Failed, null);
-
-        // Generate email confirmation token
         try
         {
-            // Generate secure token (URL-safe)
-            var token = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32))
+            _logger.LogInformation("Sign-up attempt for email: {Email}", email);
+
+            // ⭐ HYBRID: Use Identity's UserManager to check existing user
+            var existingUser = await _userManager.FindByEmailAsync(email);
+            if (existingUser != null)
+            {
+                _logger.LogWarning("Sign-up failed: Email {Email} already exists", email);
+                return (SignUpResult.EmailAlreadyExists, null);
+            }
+
+            // ⭐ HYBRID: Create user with Identity (it will hash password and store in MongoDB)
+            var user = new ApplicationUserIdentity
+            {
+                UserName = username,
+                Email = email,
+                PhoneNumber = phoneNumber,
+                EmailConfirmed = false,
+                PropertyAccessList = new List<PropertyAccess>()
+            };
+
+            var createResult = await _userManager.CreateAsync(user, password);
+
+            if (!createResult.Succeeded)
+            {
+                var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                _logger.LogError("Sign-up failed: {Errors}", errors);
+                return (SignUpResult.Failed, null);
+            }
+
+            _logger.LogInformation("User created successfully: UserId={UserId}, Email={Email}", user.Id, user.Email);
+
+            // ⭐ Generate email confirmation token using Identity
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            // Make token URL-safe
+            var urlSafeToken = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(token))
                 .Replace("+", "-")
                 .Replace("/", "_")
                 .Replace("=", "");
 
-            _logger.LogInformation("Generated activation token for user {UserId} with length {TokenLength}", userId, token.Length);
+            _logger.LogInformation("Generated activation token for user {UserId} with length {TokenLength}", user.Id, urlSafeToken.Length);
 
-            // Hash the token for storage (security best practice)
-            var tokenHash = Convert.ToBase64String(
-                System.Security.Cryptography.SHA256.HashData(
-                    System.Text.Encoding.UTF8.GetBytes(token)));
-
-            _logger.LogDebug("Token hash for user {UserId}: {TokenHashPrefix}... (length: {HashLength})", 
-                userId, tokenHash.Substring(0, 10), tokenHash.Length);
-
-            // Store token hash directly in MongoDB Users collection
-            var usersCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Users");
-            var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("_id", userId);
-            var update = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update
-                .Set("EmailConfirmationTokenHash", tokenHash)
-                .Set("EmailConfirmationTokenExpiresAtUtc", DateTime.UtcNow.AddHours(24))
-                .Set("EmailConfirmationTokenCreatedAtUtc", DateTime.UtcNow)
-                .Set("EmailConfirmed", false);
-
-            await usersCollection.UpdateOneAsync(filter, update);
-
-            // Queue activation email with real token
-            var activationLink = $"https://property-master-silk.vercel.app/activate?userId={userId}&token={token}";
-            var htmlBody = $@"<!DOCTYPE html>
+            // Queue activation email
+            try
+            {
+                var activationLink = $"https://property-master-silk.vercel.app/activate?userId={user.Id}&token={urlSafeToken}";
+                var htmlBody = $@"<!DOCTYPE html>
 <html>
 <head>
     <meta charset=""utf-8"">
@@ -206,139 +271,100 @@ public class UserService : IUserService
 </body>
 </html>";
 
-            await _emailQueueService.QueueEmailAsync(email, "Activate Your Account", htmlBody, "activation");
+                await _emailQueueService.QueueEmailAsync(email, "Activate Your Account", htmlBody, "activation");
+                _logger.LogInformation("Activation email queued for user {UserId}", user.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to queue activation email for user {UserId}", user.Id);
+                // Don't fail signup if email fails
+            }
 
-            _logger.LogInformation("Activation email queued for user {UserId} with token expiration in 24 hours", userId);
-
-            // ✅ NEW LOGIC: Check property code and assign property accordingly
+            // ✅ Assign property access (demo or real property)
             try
             {
                 var shouldAssignDemo = await _demoPropertyService.ShouldAssignDemoPropertyAsync(propertyCode);
 
                 if (shouldAssignDemo)
                 {
-                    // No property code or invalid code - assign demo property
-                    var demoAccessGranted = await _demoPropertyService.GrantUserAccessToDemoPropertyAsync(userId);
+                    var demoAccessGranted = await _demoPropertyService.GrantUserAccessToDemoPropertyAsync(user.Id);
                     if (demoAccessGranted)
                     {
-                        _logger.LogInformation("Demo property access granted to user {UserId} (propertyCode: {PropertyCode})", 
-                            userId, string.IsNullOrWhiteSpace(propertyCode) ? "empty" : propertyCode);
-                    }
-                    else
-                    {
-                        _logger.LogWarning("Failed to grant demo property access to user {UserId}", userId);
+                        _logger.LogInformation("Demo property access granted to user {UserId}", user.Id);
                     }
                 }
                 else
                 {
-                    // Valid property code provided - assign real property
                     var validPropertyId = await _demoPropertyService.ValidateAndGetPropertyIdAsync(propertyCode!);
                     if (validPropertyId.HasValue)
                     {
-                        var propertyAccessGranted = await _demoPropertyService.GrantUserAccessToPropertyAsync(userId, validPropertyId.Value);
+                        var propertyAccessGranted = await _demoPropertyService.GrantUserAccessToPropertyAsync(user.Id, validPropertyId.Value);
                         if (propertyAccessGranted)
                         {
-                            _logger.LogInformation("Property access granted to user {UserId} for property {PropertyId} (code: {PropertyCode})", 
-                                userId, validPropertyId.Value, propertyCode);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("Failed to grant property access to user {UserId} for property {PropertyId}", 
-                                userId, validPropertyId.Value);
+                            _logger.LogInformation("Property access granted to user {UserId} for property {PropertyId}", user.Id, validPropertyId.Value);
                         }
                     }
                 }
             }
             catch (Exception propertyEx)
             {
-                _logger.LogError(propertyEx, "Error granting property access to user {UserId}", userId);
+                _logger.LogError(propertyEx, "Error granting property access to user {UserId}", user.Id);
                 // Don't fail signup if property access fails
             }
+
+            return (
+                SignUpResult.Success,
+                data: new SignUpResultData()
+                {
+                    UserId = user.Id,
+                    Email = user.Email,
+                }
+            );
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to queue activation email for user {UserId}", userId);
-            // Don't fail the signup if email queueing fails
+            _logger.LogError(ex, "Error during sign-up for email: {Email}", email);
+            return (SignUpResult.Failed, null);
         }
-
-        return (
-            SignUpResult.Success,
-            data: new SignUpResultData()
-            {
-                UserId = Convert.ToInt32(userId),
-                Email = email,
-            }
-        );
     }
 
     public async Task<(bool success, string message)> ConfirmEmail(int userId, string token)
     {
         try
         {
-            _logger.LogInformation("Email confirmation attempt for user {UserId} with token length {TokenLength}", userId, token?.Length ?? 0);
+            _logger.LogInformation("Email confirmation attempt for user {UserId}", userId);
 
-            // Get user from MongoDB
-            var usersCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Users");
-            var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("_id", userId);
-            var userDoc = await usersCollection.Find(filter).FirstOrDefaultAsync();
+            // ⭐ HYBRID: Use Identity's UserManager
+            var user = await _userManager.FindByIdAsync(userId.ToString());
 
-            if (userDoc == null)
+            if (user == null)
             {
                 _logger.LogWarning("Email confirmation failed: User {UserId} not found", userId);
                 return (false, "User not found. Invalid activation link.");
             }
 
             // Check if already confirmed
-            if (userDoc.Contains("EmailConfirmed") && userDoc["EmailConfirmed"].AsBoolean)
+            if (user.EmailConfirmed)
             {
                 _logger.LogInformation("User {UserId} email already confirmed", userId);
                 return (true, "Email already confirmed. You can log in now.");
             }
 
-            // Get stored token hash
-            if (!userDoc.Contains("EmailConfirmationTokenHash") || string.IsNullOrEmpty(userDoc["EmailConfirmationTokenHash"].AsString))
+            // Decode URL-safe token back to Identity token
+            var decodedToken = System.Text.Encoding.UTF8.GetString(
+                Convert.FromBase64String(
+                    token.Replace("-", "+").Replace("_", "/")
+                ));
+
+            // ⭐ HYBRID: Use Identity's built-in token verification
+            var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+
+            if (!result.Succeeded)
             {
-                _logger.LogWarning("Email confirmation failed: No token found for user {UserId}", userId);
-                return (false, "No activation token found. Please request a new activation link.");
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                _logger.LogWarning("Email confirmation failed for user {UserId}: {Errors}", userId, errors);
+                return (false, "Invalid or expired token. Please request a new activation link.");
             }
-
-            var storedTokenHash = userDoc["EmailConfirmationTokenHash"].AsString;
-            _logger.LogDebug("Stored token hash length: {HashLength}", storedTokenHash.Length);
-
-            // Check token expiration
-            if (userDoc.Contains("EmailConfirmationTokenExpiresAtUtc"))
-            {
-                var expiresAt = userDoc["EmailConfirmationTokenExpiresAtUtc"].ToUniversalTime();
-                _logger.LogDebug("Token expires at {ExpiresAt}, current time {CurrentTime}", expiresAt, DateTime.UtcNow);
-                if (DateTime.UtcNow > expiresAt)
-                {
-                    _logger.LogWarning("Email confirmation failed: Token expired for user {UserId}", userId);
-                    return (false, "Activation link has expired. Please request a new one.");
-                }
-            }
-
-            // Hash the provided token and compare
-            var providedTokenHash = Convert.ToBase64String(
-                System.Security.Cryptography.SHA256.HashData(
-                    System.Text.Encoding.UTF8.GetBytes(token)));
-
-            _logger.LogDebug("Provided token hash length: {HashLength}", providedTokenHash.Length);
-            _logger.LogDebug("Token hashes match: {Match}", storedTokenHash == providedTokenHash);
-
-            if (storedTokenHash != providedTokenHash)
-            {
-                _logger.LogWarning("Email confirmation failed: Invalid token for user {UserId}. Stored hash: {StoredHash}, Provided hash: {ProvidedHash}", 
-                    userId, storedTokenHash.Substring(0, 10) + "...", providedTokenHash.Substring(0, 10) + "...");
-                return (false, "Invalid token. The activation link is incorrect.");
-            }
-
-            // Activate the account
-            var update = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update
-                .Set("EmailConfirmed", true)
-                .Set("EmailConfirmationTokenHash", "")  // Clear the token
-                .Set("LockoutEnabled", false);           // Ensure account is not locked
-
-            await usersCollection.UpdateOneAsync(filter, update);
 
             _logger.LogInformation("Email confirmed successfully for user {UserId}", userId);
             return (true, "Email confirmed successfully! You can now log in.");
@@ -356,47 +382,33 @@ public class UserService : IUserService
         {
             _logger.LogInformation("Resend activation email requested for {Email}", email);
 
-            // Find user by email
-            var usersCollection = _mongoDatabase.GetCollection<MongoDB.Bson.BsonDocument>("Users");
-            var filter = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Filter.Eq("Email", email);
-            var userDoc = await usersCollection.Find(filter).FirstOrDefaultAsync();
+            // ⭐ HYBRID: Use Identity's UserManager
+            var user = await _userManager.FindByEmailAsync(email);
 
-            if (userDoc == null)
+            if (user == null)
             {
                 _logger.LogWarning("Resend activation failed: User with email {Email} not found", email);
                 return (false, "No account found with this email address. Please sign up first.");
             }
 
-            var userId = userDoc["_id"].AsInt32;
-            var username = userDoc["UserName"].AsString;
-
             // Check if already confirmed
-            if (userDoc.Contains("EmailConfirmed") && userDoc["EmailConfirmed"].AsBoolean)
+            if (user.EmailConfirmed)
             {
                 _logger.LogInformation("Resend activation skipped: User {Email} already confirmed", email);
                 return (true, "Your email is already confirmed. You can log in now.");
             }
 
-            // Generate new token
-            var token = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32))
+            // ⭐ HYBRID: Generate new token using Identity
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            // Make token URL-safe
+            var urlSafeToken = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(token))
                 .Replace("+", "-")
                 .Replace("/", "_")
                 .Replace("=", "");
 
-            var tokenHash = Convert.ToBase64String(
-                System.Security.Cryptography.SHA256.HashData(
-                    System.Text.Encoding.UTF8.GetBytes(token)));
-
-            // Update token in database
-            var update = MongoDB.Driver.Builders<MongoDB.Bson.BsonDocument>.Update
-                .Set("EmailConfirmationTokenHash", tokenHash)
-                .Set("EmailConfirmationTokenExpiresAtUtc", DateTime.UtcNow.AddHours(24))
-                .Set("EmailConfirmationTokenCreatedAtUtc", DateTime.UtcNow);
-
-            await usersCollection.UpdateOneAsync(filter, update);
-
             // Queue activation email
-            var activationLink = $"https://property-master-silk.vercel.app/activate?userId={userId}&token={token}";
+            var activationLink = $"https://property-master-silk.vercel.app/activate?userId={user.Id}&token={urlSafeToken}";
             var htmlBody = $@"<!DOCTYPE html>
 <html>
 <head>
@@ -415,7 +427,7 @@ public class UserService : IUserService
                                 Activation Link Requested
                             </h1>
                             <p style=""color: #555555; font-size: 16px; line-height: 1.6; margin: 20px 0;"">
-                                Hi <strong>{username}</strong>,
+                                Hi <strong>{user.UserName}</strong>,
                             </p>
                             <p style=""color: #555555; font-size: 14px; line-height: 1.6; margin: 20px 0;"">
                                 You requested a new activation link for your Property Master account. Click the button below to activate your account:
@@ -464,6 +476,56 @@ public class UserService : IUserService
         {
             _logger.LogError(ex, "Error resending activation email for {Email}", email);
             return (false, "Failed to send activation email. Please try again later.");
+        }
+    }
+
+    /// <summary>
+    /// Find legacy users (created before hybrid approach) directly from MongoDB
+    /// These users lack Identity fields like NormalizedEmail, SecurityStamp, etc.
+    /// </summary>
+    private async Task<ApplicationUserIdentity?> FindLegacyUserAsync(string email)
+    {
+        try
+        {
+            _logger.LogInformation("Attempting to find legacy user directly from MongoDB for email: {Email}", email);
+
+            // Try both possible collection names that AspNetCore.Identity.MongoDbCore might use
+            string[] possibleCollectionNames = { "Users", "ApplicationUser", "AspNetUsers" };
+
+            foreach (var collectionName in possibleCollectionNames)
+            {
+                try
+                {
+                    _logger.LogInformation("Trying collection: {CollectionName}", collectionName);
+                    var usersCollection = _mongoDatabase.GetCollection<ApplicationUserIdentity>(collectionName);
+
+                    var filter = MongoDB.Driver.Builders<ApplicationUserIdentity>.Filter.Eq(u => u.Email, email);
+                    var user = await usersCollection.Find(filter).FirstOrDefaultAsync();
+
+                    if (user != null)
+                    {
+                        _logger.LogInformation("✅ Found legacy user in collection '{CollectionName}': UserId={UserId}, Email={Email}, EmailConfirmed={EmailConfirmed}", 
+                            collectionName, user.Id, user.Email, user.EmailConfirmed);
+                        return user;
+                    }
+                    else
+                    {
+                        _logger.LogInformation("No user found in collection '{CollectionName}'", collectionName);
+                    }
+                }
+                catch (Exception collEx)
+                {
+                    _logger.LogWarning(collEx, "Error querying collection '{CollectionName}'", collectionName);
+                }
+            }
+
+            _logger.LogWarning("Legacy user not found in any collection for email: {Email}", email);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error finding legacy user for email: {Email}", email);
+            return null;
         }
     }
 }

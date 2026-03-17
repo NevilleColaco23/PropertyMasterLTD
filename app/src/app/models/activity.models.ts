@@ -12,6 +12,7 @@ export interface UserActivityDTO {
   entityId?: number;
   action: string;
   description: string;
+  displayMessage?: string; // 🆕 Human-readable message for reports
   metadata?: { [key: string]: any };
   timestamp: Date;
   ipAddress?: string;

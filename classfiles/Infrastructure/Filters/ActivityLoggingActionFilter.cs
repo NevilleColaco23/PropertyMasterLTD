@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -17,10 +18,14 @@ namespace MyWarehouse.Infrastructure.Filters
     public class ActivityLoggingActionFilter : IAsyncActionFilter
     {
         private readonly UserActivityService _activityService;
+        private readonly ActivityDisplayMessageBuilder _messageBuilder;
 
-        public ActivityLoggingActionFilter(UserActivityService activityService)
+        public ActivityLoggingActionFilter(
+            UserActivityService activityService,
+            ActivityDisplayMessageBuilder messageBuilder)
         {
             _activityService = activityService;
+            _messageBuilder = messageBuilder;
         }
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -75,7 +80,40 @@ namespace MyWarehouse.Infrastructure.Filters
                     var isSuccess = IsSuccessResponse(executedContext);
                     var errorMessage = GetErrorMessage(executedContext);
 
-                    // Log the activity
+                    // ⭐ CRITICAL: Extract selected property ID from header
+                    var propertyId = GetSelectedPropertyId(context);
+                    if (propertyId.HasValue)
+                    {
+                        Console.WriteLine($"🏠 Selected Property ID: {propertyId.Value}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("⚠️ No property context in request");
+                    }
+
+                    // ⭐ NEW: Extract rich metadata from request/response
+                    var metadata = ExtractMetadata(context, executedContext);
+
+                    // ⭐ PRIORITY 1: Check if client provided a display message
+                    var displayMessage = GetClientProvidedMessage(context);
+
+                    // ⭐ PRIORITY 2: If no client message, build one server-side
+                    if (string.IsNullOrEmpty(displayMessage))
+                    {
+                        displayMessage = await _messageBuilder.BuildMessageAsync(
+                            activityType,
+                            entityType,
+                            entityId,
+                            username,
+                            metadata);
+                        Console.WriteLine($"🤖 Auto-generated message: {displayMessage}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"📱 Client-provided message: {displayMessage}");
+                    }
+
+                    // Log the activity with metadata and display message
                     await _activityService.LogActivityAsync(
                         userId: userId,
                         username: username,
@@ -91,7 +129,10 @@ namespace MyWarehouse.Infrastructure.Filters
                         traceId: traceId,
                         isSuccess: isSuccess,
                         errorMessage: errorMessage,
-                        durationMs: (int)stopwatch.ElapsedMilliseconds
+                        durationMs: (int)stopwatch.ElapsedMilliseconds,
+                        metadata: metadata,  // ⭐ Technical metadata for querying
+                        displayMessage: displayMessage,  // ⭐ Human-readable message for reports
+                        propertyId: propertyId  // ⭐ CRITICAL: Pass property context!
                     );
                 }
                 catch (Exception ex)
@@ -160,14 +201,51 @@ namespace MyWarehouse.Infrastructure.Filters
 
         private string GetUsername(ActionExecutingContext context)
         {
-            // Try to get username from authenticated user first
-            var authenticatedUsername = context.HttpContext.User?.Identity?.Name 
-                ?? context.HttpContext.User?.FindFirst("name")?.Value
-                ?? context.HttpContext.User?.FindFirst("username")?.Value;
+            Console.WriteLine("🔍 GetUsername - Starting username resolution");
 
-            if (!string.IsNullOrEmpty(authenticatedUsername))
+            // Try to get username from authenticated user first
+            var identity = context.HttpContext.User?.Identity;
+            if (identity != null)
             {
-                return authenticatedUsername;
+                Console.WriteLine($"   Identity.IsAuthenticated: {identity.IsAuthenticated}");
+                Console.WriteLine($"   Identity.Name: {identity.Name}");
+            }
+
+            // Try Identity.Name first
+            if (!string.IsNullOrEmpty(identity?.Name))
+            {
+                Console.WriteLine($"✅ Found username from Identity.Name: {identity.Name}");
+                return identity.Name;
+            }
+
+            // Try common JWT claims
+            var claims = context.HttpContext.User?.Claims?.ToList();
+            if (claims != null && claims.Any())
+            {
+                Console.WriteLine($"   Total claims found: {claims.Count}");
+                foreach (var claim in claims.Take(10))  // Log first 10 claims for debugging
+                {
+                    Console.WriteLine($"   Claim: {claim.Type} = {claim.Value}");
+                }
+
+                // Try different claim types
+                var usernameClaim = context.HttpContext.User?.FindFirst("unique_name")?.Value  // ⭐ JWT standard claim (YOUR TOKEN USES THIS!)
+                    ?? context.HttpContext.User?.FindFirst("name")?.Value
+                    ?? context.HttpContext.User?.FindFirst("username")?.Value
+                    ?? context.HttpContext.User?.FindFirst("email")?.Value
+                    ?? context.HttpContext.User?.FindFirst("preferred_username")?.Value
+                    ?? context.HttpContext.User?.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")?.Value
+                    ?? context.HttpContext.User?.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
+
+                if (!string.IsNullOrEmpty(usernameClaim))
+                {
+                    Console.WriteLine($"✅ Found username from claims: {usernameClaim}");
+                    return usernameClaim;
+                }
+            }
+            else
+            {
+                Console.WriteLine("   ⚠️ No claims found");
             }
 
             // For unauthenticated endpoints (like login), try to extract from request body
@@ -179,12 +257,14 @@ namespace MyWarehouse.Infrastructure.Filters
                     var username = usernameProperty.GetValue(loginObj)?.ToString();
                     if (!string.IsNullOrEmpty(username))
                     {
+                        Console.WriteLine($"✅ Found username from login request: {username}");
                         return username;
                     }
                 }
             }
 
             // Fallback to Unknown
+            Console.WriteLine("❌ Username resolution failed - returning 'Unknown'");
             return "Unknown";
         }
 
@@ -221,15 +301,23 @@ namespace MyWarehouse.Infrastructure.Filters
 
         private async Task<int?> ExtractEntityId(ActionExecutedContext context, ActivityLogAttribute attribute)
         {
+            // First, try to get from route parameters (most common for GetById)
+            var routeId = TryGetEntityIdFromRoute(context);
+            if (routeId.HasValue)
+            {
+                return routeId;
+            }
+
+            // Then try from response
             if (context.Result is not ObjectResult objectResult)
             {
-                return TryGetEntityIdFromRoute(context);
+                return null;
             }
 
             var result = objectResult.Value;
             if (result == null)
             {
-                return TryGetEntityIdFromRoute(context);
+                return null;
             }
 
             // Try to get ID from specified property
@@ -253,8 +341,7 @@ namespace MyWarehouse.Infrastructure.Filters
                 }
             }
 
-            // Try route parameters
-            return TryGetEntityIdFromRoute(context);
+            return null;
         }
 
         private int? TryGetEntityIdFromRoute(ActionExecutedContext context)
@@ -265,6 +352,176 @@ namespace MyWarehouse.Infrastructure.Filters
                 if (int.TryParse(routeId?.ToString(), out var id))
                 {
                     return id;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Extract metadata from request parameters and response data
+        /// </summary>
+        private Dictionary<string, object> ExtractMetadata(ActionExecutingContext executingContext, ActionExecutedContext executedContext)
+        {
+            var metadata = new Dictionary<string, object>();
+
+            try
+            {
+                Console.WriteLine($"🔍 ExtractMetadata START");
+                Console.WriteLine($"   Route values count: {executingContext.RouteData.Values.Count}");
+                Console.WriteLine($"   Query params count: {executingContext.HttpContext.Request.Query.Count}");
+                Console.WriteLine($"   Action arguments count: {executingContext.ActionArguments.Count}");
+
+                // Extract from route parameters
+                foreach (var routeParam in executingContext.RouteData.Values)
+                {
+                    if (routeParam.Key != "controller" && routeParam.Key != "action")
+                    {
+                        metadata[$"route_{routeParam.Key}"] = routeParam.Value?.ToString() ?? "";
+                        Console.WriteLine($"   ✅ Route param: {routeParam.Key} = {routeParam.Value}");
+                    }
+                }
+
+                // Extract from query string
+                foreach (var queryParam in executingContext.HttpContext.Request.Query)
+                {
+                    metadata[$"query_{queryParam.Key}"] = queryParam.Value.ToString();
+                    Console.WriteLine($"   ✅ Query param: {queryParam.Key} = {queryParam.Value}");
+                }
+
+                // ⭐ Extract selected property from custom header (if present)
+                if (executingContext.HttpContext.Request.Headers.TryGetValue("X-Selected-Property", out var selectedPropertyHeader))
+                {
+                    metadata["selected_PropertyId"] = selectedPropertyHeader.ToString();
+                    Console.WriteLine($"   🏠 Selected Property: {selectedPropertyHeader}");
+                }
+
+                // Extract key info from request body (for POST/PUT)
+                foreach (var arg in executingContext.ActionArguments)
+                {
+                    // Skip large objects, just capture key fields
+                    if (arg.Value != null)
+                    {
+                        var type = arg.Value.GetType();
+
+                        // Capture simple types
+                        if (type.IsPrimitive || type == typeof(string) || type == typeof(DateTime))
+                        {
+                            metadata[$"param_{arg.Key}"] = arg.Value.ToString();
+                        }
+                        else
+                        {
+                            // For complex objects, capture Id/Name fields if they exist
+                            var idProp = type.GetProperty("Id");
+                            if (idProp != null)
+                            {
+                                metadata[$"param_{arg.Key}_Id"] = idProp.GetValue(arg.Value)?.ToString() ?? "";
+                            }
+
+                            var nameProp = type.GetProperty("Name") ?? type.GetProperty("PropertyName") ?? type.GetProperty("Username");
+                            if (nameProp != null)
+                            {
+                                metadata[$"param_{arg.Key}_Name"] = nameProp.GetValue(arg.Value)?.ToString() ?? "";
+                            }
+                        }
+                    }
+                }
+
+                // Extract from response (for GET operations)
+                if (executedContext.Result is ObjectResult objectResult && objectResult.Value != null)
+                {
+                    var responseType = objectResult.Value.GetType();
+                    Console.WriteLine($"   📦 Response type: {responseType.Name}");
+
+                    // For single entities, capture Id and Name
+                    var idProp = responseType.GetProperty("Id") ?? responseType.GetProperty("PropertyId");
+                    if (idProp != null)
+                    {
+                        var idValue = idProp.GetValue(objectResult.Value)?.ToString() ?? "";
+                        metadata["response_Id"] = idValue;
+                        Console.WriteLine($"   ✅ Response Id: {idValue}");
+                    }
+
+                    var nameProp = responseType.GetProperty("Name") ?? responseType.GetProperty("PropertyName") ?? responseType.GetProperty("Title");
+                    if (nameProp != null)
+                    {
+                        var nameValue = nameProp.GetValue(objectResult.Value)?.ToString() ?? "";
+                        metadata["response_Name"] = nameValue;
+                        Console.WriteLine($"   ✅ Response Name: {nameValue}");
+                    }
+
+                    // For list results, capture count
+                    var resultsProperty = responseType.GetProperty("Results");
+                    if (resultsProperty != null)
+                    {
+                        var results = resultsProperty.GetValue(objectResult.Value) as System.Collections.IEnumerable;
+                        if (results != null)
+                        {
+                            var count = 0;
+                            foreach (var item in results)
+                            {
+                                count++;
+                            }
+                            metadata["response_Count"] = count;
+                            Console.WriteLine($"   ✅ Response Count: {count}");
+                        }
+                    }
+
+                    var totalCountProperty = responseType.GetProperty("TotalCount");
+                    if (totalCountProperty != null)
+                    {
+                        var totalValue = totalCountProperty.GetValue(objectResult.Value)?.ToString() ?? "";
+                        metadata["response_TotalCount"] = totalValue;
+                        Console.WriteLine($"   ✅ Response TotalCount: {totalValue}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"   ⚠️ No ObjectResult or Value is null");
+                }
+
+                Console.WriteLine($"🔍 ExtractMetadata END - Total metadata items: {metadata.Count}");
+            }
+            catch (Exception ex)
+            {
+                // Don't fail if metadata extraction fails
+                metadata["metadata_extraction_error"] = ex.Message;
+            }
+
+            return metadata;
+        }
+
+        /// <summary>
+        /// Extracts client-provided activity message from HTTP headers
+        /// Clients can send meaningful messages like "Added Ocean View Suite to 3rd floor"
+        /// </summary>
+        private string? GetClientProvidedMessage(ActionExecutingContext context)
+        {
+            // Check if client sent X-Activity-Message header
+            if (context.HttpContext.Request.Headers.TryGetValue("X-Activity-Message", out var messageHeader))
+            {
+                var message = messageHeader.ToString();
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    return message;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Extracts selected property ID from X-Selected-Property HTTP header
+        /// This header is added by the Angular property-context interceptor
+        /// </summary>
+        private int? GetSelectedPropertyId(ActionExecutingContext context)
+        {
+            if (context.HttpContext.Request.Headers.TryGetValue("X-Selected-Property", out var propertyHeader))
+            {
+                var propertyIdString = propertyHeader.ToString();
+                if (!string.IsNullOrWhiteSpace(propertyIdString) && int.TryParse(propertyIdString, out var propertyId))
+                {
+                    return propertyId;
                 }
             }
 

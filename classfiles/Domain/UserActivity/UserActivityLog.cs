@@ -66,6 +66,13 @@ namespace MyWarehouse.Domain.UserActivity
         public Dictionary<string, object>? Metadata { get; set; }
 
         /// <summary>
+        /// Human-readable activity message for reports and widgets
+        /// Example: "John Doe viewed All Dashboards while working on Sunset Villa property"
+        /// </summary>
+        [BsonElement("DisplayMessage")]
+        public string? DisplayMessage { get; set; }
+
+        /// <summary>
         /// Timestamp when the activity occurred (UTC)
         /// </summary>
         [BsonElement("Timestamp")]

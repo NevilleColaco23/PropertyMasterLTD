@@ -17,6 +17,13 @@ namespace MyWarehouse.Application.UserActivity.DTOs
         public int? EntityId { get; set; }
         public string Action { get; set; }
         public string Description { get; set; }
+
+        /// <summary>
+        /// Human-readable activity message for reports and widgets
+        /// Example: "John Doe viewed All Dashboards while working on Sunset Villa property"
+        /// </summary>
+        public string DisplayMessage { get; set; }
+
         public Dictionary<string, object>? Metadata { get; set; }
         public DateTime Timestamp { get; set; }
         public string IPAddress { get; set; }

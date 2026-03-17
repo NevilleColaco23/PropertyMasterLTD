@@ -6,6 +6,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ActivityMessageService } from '../../services/activity-message.service';
+import { APP_CONFIG, AppConfig } from '../../configuration/app.config.token';
 
 
 @Component({
@@ -20,6 +23,9 @@ export class PropertySelectionComponent implements OnInit {
   toppings = new FormControl<PropertyModel[] | null>([]);
   toppingList: PropertyModel[] = [];
   private loaderService = inject(UserPropertyAccessService);
+  private http = inject(HttpClient);
+  private activityMessage = inject(ActivityMessageService);
+  private config = inject(APP_CONFIG);
 
   constructor( private router: Router) {  }
 
@@ -59,20 +65,44 @@ export class PropertySelectionComponent implements OnInit {
    applySelection(): void {
     const selected = this.toppings.value ?? [];
 
-    console.log('Raw selected properties:', selected);  // Debug: See raw data
+    console.log('Raw selected properties:', selected);
 
     // Extract property IDs and save to localStorage
-    // Note: Filter keeps IDs that are not null/undefined, including 0 and negative numbers
     const propertyIds = selected
       .map(p => p.id)
       .filter(id => id !== null && id !== undefined);
 
-    console.log('Extracted property IDs:', propertyIds);  // Debug: See extracted IDs
+    console.log('Extracted property IDs:', propertyIds);
 
     localStorage.setItem('selectedPropertyIds', JSON.stringify(propertyIds));
-    console.log('Saved property IDs to localStorage:', propertyIds);
 
-    this.router.navigate(['/propertyLanding']).then(navigated => {});
+    // ⭐ NEW: Log property selection to backend
+    const propertyNames = selected.map(p => p.name).join(', ');
+    const message = selected.length === 1
+      ? `Selected property: ${propertyNames}`
+      : `Selected ${selected.length} properties: ${propertyNames}`;
+
+    console.log('🏠 About to log property selection:', message);
+    const headers = this.activityMessage.createHeaders(message);
+
+    // Make API call to log the selection
+    const url = `${this.config.apiUrl}/property/selection/log`;
+    console.log('🌐 Calling API:', url);
+
+    this.http.post(url, {
+      propertyIds: propertyIds,
+      propertyNames: propertyNames
+    }, { headers }).subscribe({
+      next: () => {
+        console.log('✅ Property selection logged successfully:', message);
+        this.router.navigate(['/propertyLanding']);
+      },
+      error: (err) => {
+        console.error('⚠️ Failed to log property selection, but continuing:', err);
+        // Still navigate even if logging fails
+        this.router.navigate(['/propertyLanding']);
+      }
+    });
   }
 
   clearSelection(): void {
@@ -82,6 +112,7 @@ export class PropertySelectionComponent implements OnInit {
   signOut(): void {
     // Clear localStorage
     localStorage.removeItem('selectedPropertyIds');
+    console.log('🧹 Cleared selected property context');
     // Navigate to login page
     this.router.navigate(['/']);
   }

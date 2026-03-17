@@ -6,13 +6,19 @@ import { routes } from '../app.routes';
 import { APP_CONFIG } from '../configuration/app.config.token';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from '../core/auth/services/auth.interceptor';
+import { propertyContextInterceptor } from '../core/interceptors/property-context.interceptor';
+import { activityMessageInterceptor } from '../core/interceptors/activity-message.interceptor';
 import { environment } from '../environments/environment';
 import { provideNativeDateAdapter } from '@angular/material/core';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([
+      authInterceptor,
+      propertyContextInterceptor,  // Add property context tracking
+      activityMessageInterceptor   // ⭐ Allow services to send activity messages
+    ])),
     provideNativeDateAdapter(),
     {
       provide: APP_CONFIG,
