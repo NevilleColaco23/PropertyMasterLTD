@@ -306,5 +306,28 @@ namespace MyWarehouse.WebApi.API.V1
             });
             return Ok(result);
         }
+
+        /// <summary>
+        /// Get booking trends for chart widget
+        /// </summary>
+        /// <param name="userId">User ID</param>
+        /// <param name="daysBack">Number of days to look back (default: 30)</param>
+        /// <param name="groupBy">Grouping: day, week, or month (default: day)</param>
+        /// <returns>Booking trends data</returns>
+        [HttpGet("activity/booking-trends")]
+        [ProducesResponseType(typeof(BookingTrendsResponse), 200)]
+        public async Task<ActionResult<BookingTrendsResponse>> GetBookingTrends(
+            [FromQuery] int userId,
+            [FromQuery] int daysBack = 30,
+            [FromQuery] string groupBy = "day")
+        {
+            var result = await _mediator.Send(new GetBookingTrendsQuery
+            {
+                UserId = userId,
+                DaysBack = daysBack,
+                GroupBy = groupBy
+            });
+            return Ok(result);
+        }
     }
 }

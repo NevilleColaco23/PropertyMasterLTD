@@ -429,9 +429,23 @@ export class Dashboard1Component implements OnInit {
    * Load chart widget data (placeholder for now)
    */
   loadChartWidgetData(item: DashboardGridsterItem, userId: number): void {
-    // TODO: Implement real chart data API
-    item.data = this.getDefaultChartWidget();
-    this.cdr.detectChanges();  // Trigger change detection
+    console.log(`📊 Loading chart data for widget: ${item.widgetId}, userId: ${userId}`);
+
+    // Determine days back based on widget settings or default to 30
+    const daysBack = item.settings?.daysBack || 30;
+    const groupBy = item.settings?.groupBy || 'day';
+
+    this.dashboardService.getBookingTrends(userId, daysBack, groupBy).pipe(
+      catchError(error => {
+        console.error('Error loading chart data:', error);
+        // Return default data on error
+        return of(this.getDefaultChartWidget());
+      })
+    ).subscribe(trendsData => {
+      console.log(`✅ Chart data loaded:`, trendsData);
+      item.data = trendsData;
+      this.cdr.detectChanges();  // Trigger change detection
+    });
   }
 
   /**

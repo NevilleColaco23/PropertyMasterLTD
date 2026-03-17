@@ -173,4 +173,20 @@ export class DashboardService {
 
     return this.http.get<CalendarEventResponse[]>(`${this.apiUrl}/activity/calendar-events`, { params });
   }
+
+  /**
+   * Get booking trends for chart widget
+   */
+  getBookingTrends(
+    userId: number,
+    daysBack: number = 30,
+    groupBy: 'day' | 'week' | 'month' = 'day'
+  ): Observable<any> {
+    const params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('daysBack', daysBack.toString())
+      .set('groupBy', groupBy);
+
+    return this.http.get<any>(`${this.apiUrl}/activity/booking-trends`, { params });
+  }
 }

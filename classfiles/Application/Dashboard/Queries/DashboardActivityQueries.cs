@@ -22,6 +22,16 @@ namespace MyWarehouse.Application.Dashboard.Queries
     }
 
     /// <summary>
+    /// Query to get booking trends for charts
+    /// </summary>
+    public class GetBookingTrendsQuery : IRequest<BookingTrendsResponse>
+    {
+        public int UserId { get; set; }
+        public int DaysBack { get; set; } = 30; // Default to last 30 days
+        public string GroupBy { get; set; } = "day"; // "day", "week", "month"
+    }
+
+    /// <summary>
     /// Activity item response
     /// </summary>
     public class ActivityItemResponse
@@ -48,5 +58,28 @@ namespace MyWarehouse.Application.Dashboard.Queries
         public string Color { get; set; } = "#1976d2";
         public string Type { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Booking trends response for chart widget
+    /// </summary>
+    public class BookingTrendsResponse
+    {
+        public string Title { get; set; } = "Booking Trends";
+        public List<string> Labels { get; set; } = new();
+        public List<ChartDataset> Datasets { get; set; } = new();
+        public string ChartType { get; set; } = "line";
+    }
+
+    /// <summary>
+    /// Chart dataset
+    /// </summary>
+    public class ChartDataset
+    {
+        public string Label { get; set; } = string.Empty;
+        public List<int> Data { get; set; } = new();
+        public string BackgroundColor { get; set; } = "#1976d2";
+        public string BorderColor { get; set; } = "#1976d2";
+        public int BorderWidth { get; set; } = 2;
     }
 }

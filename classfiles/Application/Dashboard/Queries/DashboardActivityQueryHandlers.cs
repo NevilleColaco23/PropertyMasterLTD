@@ -167,81 +167,252 @@ namespace MyWarehouse.Application.Dashboard.Queries
             {
                 // Get bookings within date range
                 var bookingsCollection = _database.GetCollection<BsonDocument>("Bookings");
-                
+
+                // Filter by check-in date within the requested range
                 var filter = Builders<BsonDocument>.Filter.And(
-                    Builders<BsonDocument>.Filter.Gte("CheckInDate", request.StartDate),
-                    Builders<BsonDocument>.Filter.Lte("CheckInDate", request.EndDate)
+                    Builders<BsonDocument>.Filter.Gte("checkInDate", request.StartDate),
+                    Builders<BsonDocument>.Filter.Lte("checkInDate", request.EndDate),
+                    Builders<BsonDocument>.Filter.Eq("Status", "Active") // Only active bookings
+                );
+
+                var bookings = await bookingsCollection
+                    .Find(filter)
+                    .SortBy(b => b["checkInDate"])
+                    .ToListAsync(cancellationToken);
+
+                foreach (var booking in bookings)
+                {
+                    var checkInDate = booking.GetValue("checkInDate", DateTime.UtcNow).ToUniversalTime();
+                    var checkOutDate = booking.GetValue("checkOutDate", DateTime.UtcNow).ToUniversalTime();
+                    var roomNumber = booking.GetValue("roomNumber", "N/A").AsString;
+                    var bookingId = booking.GetValue("bookingId", "N/A").AsString;
+                    var numberOfGuests = booking.GetValue("numberOfGuests", 1).ToInt32();
+                    var isConfirmed = booking.GetValue("isConfirmed", false).ToBoolean();
+                    var totalPrice = booking.GetValue("totalPrice", 0.0).ToDouble();
+
+                    // Create check-in event
+                    events.Add(new CalendarEventResponse
+                    {
+                        Id = $"{booking["_id"]}-checkin",
+                        Title = $"Check-in: Room {roomNumber}",
+                        Start = checkInDate,
+                        End = checkInDate.AddHours(1), // Check-in window
+                        Color = isConfirmed ? "#4caf50" : "#ff9800",
+                        Type = "check-in",
+                        Description = $"Booking {bookingId} - {numberOfGuests} guest(s) - ${totalPrice:F2}"
+                    });
+
+                    // Create check-out event
+                    events.Add(new CalendarEventResponse
+                    {
+                        Id = $"{booking["_id"]}-checkout",
+                        Title = $"Check-out: Room {roomNumber}",
+                        Start = checkOutDate,
+                        End = checkOutDate.AddHours(1), // Check-out window
+                        Color = "#2196f3",
+                        Type = "check-out",
+                        Description = $"Booking {bookingId} - Room {roomNumber}"
+                    });
+
+                    // Create booking span event (optional - shows entire booking period)
+                    events.Add(new CalendarEventResponse
+                    {
+                        Id = $"{booking["_id"]}-stay",
+                        Title = $"Occupied: Room {roomNumber}",
+                        Start = checkInDate,
+                        End = checkOutDate,
+                        Color = "#e0e0e0",
+                        Type = "booking",
+                        Description = $"Booking {bookingId} - {numberOfGuests} guest(s)"
+                    });
+                }
+
+                Console.WriteLine($"📅 Calendar widget: Found {bookings.Count} bookings, created {events.Count} events");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Calendar widget error: {ex.Message}");
+                // If Bookings collection doesn't exist or query fails, return empty list
+                events = new List<CalendarEventResponse>();
+            }
+
+            return events.OrderBy(e => e.Start).ToList();
+        }
+    }
+
+    /// <summary>
+    /// Handler for GetBookingTrendsQuery
+    /// </summary>
+    public class GetBookingTrendsQueryHandler : IRequestHandler<GetBookingTrendsQuery, BookingTrendsResponse>
+    {
+        private readonly IMongoDatabase _database;
+
+        public GetBookingTrendsQueryHandler(IMongoDatabase database)
+        {
+            _database = database;
+        }
+
+        public async Task<BookingTrendsResponse> Handle(GetBookingTrendsQuery request, CancellationToken cancellationToken)
+        {
+            var response = new BookingTrendsResponse
+            {
+                Title = "Booking Trends",
+                ChartType = "line"
+            };
+
+            try
+            {
+                var bookingsCollection = _database.GetCollection<BsonDocument>("Bookings");
+
+                // Calculate date range
+                var endDate = DateTime.UtcNow.Date.AddDays(1); // Include today
+                var startDate = endDate.AddDays(-request.DaysBack);
+
+                // Get bookings in date range
+                var filter = Builders<BsonDocument>.Filter.And(
+                    Builders<BsonDocument>.Filter.Gte("CreatedAt", startDate),
+                    Builders<BsonDocument>.Filter.Lt("CreatedAt", endDate),
+                    Builders<BsonDocument>.Filter.Eq("Status", "Active")
                 );
 
                 var bookings = await bookingsCollection
                     .Find(filter)
                     .ToListAsync(cancellationToken);
 
+                // Group bookings by date
+                var bookingsByDate = new Dictionary<DateTime, int>();
+
+                // Initialize all dates in range with 0
+                for (var date = startDate; date < endDate; date = date.AddDays(1))
+                {
+                    bookingsByDate[date] = 0;
+                }
+
+                // Count bookings per date
                 foreach (var booking in bookings)
                 {
-                    var checkInDate = booking.GetValue("CheckInDate", DateTime.UtcNow).ToUniversalTime();
-                    var checkOutDate = booking.GetValue("CheckOutDate", DateTime.UtcNow).ToUniversalTime();
-                    var guestName = booking.GetValue("GuestName", "Guest").AsString;
-                    var roomNumber = booking.GetValue("RoomNumber", "N/A").AsString;
-                    var status = booking.GetValue("Status", "pending").AsString.ToLower();
-
-                    // Check-in event
-                    events.Add(new CalendarEventResponse
+                    var createdAt = booking.GetValue("CreatedAt", DateTime.UtcNow).ToUniversalTime().Date;
+                    if (bookingsByDate.ContainsKey(createdAt))
                     {
-                        Id = $"{booking["_id"]}-checkin",
-                        Title = $"Check-in: {guestName}",
-                        Start = checkInDate,
-                        Color = status == "confirmed" ? "#4caf50" : "#ff9800",
-                        Type = "check-in",
-                        Description = $"Room {roomNumber}"
-                    });
-
-                    // Check-out event
-                    events.Add(new CalendarEventResponse
-                    {
-                        Id = $"{booking["_id"]}-checkout",
-                        Title = $"Check-out: {guestName}",
-                        Start = checkOutDate,
-                        Color = "#f44336",
-                        Type = "check-out",
-                        Description = $"Room {roomNumber}"
-                    });
+                        bookingsByDate[createdAt]++;
+                    }
                 }
+
+                // Format based on groupBy parameter
+                if (request.GroupBy == "week")
+                {
+                    response = GroupByWeek(bookingsByDate, startDate, endDate);
+                }
+                else if (request.GroupBy == "month")
+                {
+                    response = GroupByMonth(bookingsByDate, startDate, endDate);
+                }
+                else // default: day
+                {
+                    // Generate labels and data
+                    var sortedDates = bookingsByDate.Keys.OrderBy(d => d).ToList();
+
+                    response.Labels = sortedDates.Select(d => d.ToString("MMM dd")).ToList();
+
+                    response.Datasets = new List<ChartDataset>
+                    {
+                        new ChartDataset
+                        {
+                            Label = "Bookings",
+                            Data = sortedDates.Select(d => bookingsByDate[d]).ToList(),
+                            BackgroundColor = "#1976d2",
+                            BorderColor = "#1976d2",
+                            BorderWidth = 2
+                        }
+                    };
+                }
+
+                Console.WriteLine($"📊 Chart widget: Generated trends for {request.DaysBack} days, total bookings: {bookings.Count}");
             }
-            catch
+            catch (Exception ex)
             {
-                // If Bookings collection doesn't exist, return empty list
-                // Or create sample events
-                events = GetSampleCalendarEvents(request.StartDate, request.EndDate);
+                Console.WriteLine($"❌ Chart widget error: {ex.Message}");
+
+                // Return sample data if error
+                response.Labels = new List<string> { "No Data" };
+                response.Datasets = new List<ChartDataset>
+                {
+                    new ChartDataset
+                    {
+                        Label = "Bookings",
+                        Data = new List<int> { 0 },
+                        BackgroundColor = "#cccccc",
+                        BorderColor = "#cccccc"
+                    }
+                };
             }
 
-            return events.OrderBy(e => e.Start).ToList();
+            return response;
         }
 
-        private List<CalendarEventResponse> GetSampleCalendarEvents(DateTime startDate, DateTime endDate)
+        private BookingTrendsResponse GroupByWeek(Dictionary<DateTime, int> bookingsByDate, DateTime startDate, DateTime endDate)
         {
-            // Return some sample events if no real data exists
-            var today = DateTime.UtcNow.Date;
-            
-            return new List<CalendarEventResponse>
+            var weeklyData = new Dictionary<string, int>();
+
+            foreach (var kvp in bookingsByDate)
             {
-                new CalendarEventResponse
+                var weekStart = kvp.Key.AddDays(-(int)kvp.Key.DayOfWeek);
+                var weekLabel = $"Week of {weekStart:MMM dd}";
+
+                if (!weeklyData.ContainsKey(weekLabel))
+                    weeklyData[weekLabel] = 0;
+
+                weeklyData[weekLabel] += kvp.Value;
+            }
+
+            return new BookingTrendsResponse
+            {
+                Title = "Weekly Booking Trends",
+                ChartType = "bar",
+                Labels = weeklyData.Keys.ToList(),
+                Datasets = new List<ChartDataset>
                 {
-                    Id = "sample-1",
-                    Title = "Sample Check-in",
-                    Start = today,
-                    Color = "#4caf50",
-                    Type = "check-in",
-                    Description = "Sample booking"
-                },
-                new CalendarEventResponse
+                    new ChartDataset
+                    {
+                        Label = "Bookings per Week",
+                        Data = weeklyData.Values.ToList(),
+                        BackgroundColor = "#4caf50",
+                        BorderColor = "#4caf50",
+                        BorderWidth = 2
+                    }
+                }
+            };
+        }
+
+        private BookingTrendsResponse GroupByMonth(Dictionary<DateTime, int> bookingsByDate, DateTime startDate, DateTime endDate)
+        {
+            var monthlyData = new Dictionary<string, int>();
+
+            foreach (var kvp in bookingsByDate)
+            {
+                var monthLabel = kvp.Key.ToString("MMM yyyy");
+
+                if (!monthlyData.ContainsKey(monthLabel))
+                    monthlyData[monthLabel] = 0;
+
+                monthlyData[monthLabel] += kvp.Value;
+            }
+
+            return new BookingTrendsResponse
+            {
+                Title = "Monthly Booking Trends",
+                ChartType = "bar",
+                Labels = monthlyData.Keys.ToList(),
+                Datasets = new List<ChartDataset>
                 {
-                    Id = "sample-2",
-                    Title = "Sample Check-out",
-                    Start = today.AddDays(1),
-                    Color = "#f44336",
-                    Type = "check-out",
-                    Description = "Sample booking"
+                    new ChartDataset
+                    {
+                        Label = "Bookings per Month",
+                        Data = monthlyData.Values.ToList(),
+                        BackgroundColor = "#ff9800",
+                        BorderColor = "#ff9800",
+                        BorderWidth = 2
+                    }
                 }
             };
         }
