@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ActivitySummaryDTO, PagedActivitiesDTO, UserActivityDTO } from '../models/activity.models';
+import { ActivitySummaryDTO, PagedActivitiesDTO, UserActivityDTO, ActivityWidgetDTO } from '../models/activity.models';
 import { APP_CONFIG, AppConfig } from '../configuration/app.config.token';
 
 @Injectable({
@@ -14,7 +14,7 @@ export class ActivityService {
     private http: HttpClient,
     @Inject(APP_CONFIG) private config: AppConfig
   ) {
-    this.apiUrl = `${this.config.apiUrl}/api/v1/activity`;
+    this.apiUrl = `${this.config.apiUrl}/activity`;
   }
 
   /**
@@ -151,5 +151,14 @@ export class ActivityService {
     }
 
     return this.http.get<PagedActivitiesDTO>(`${this.apiUrl}/paged`, { params });
+  }
+
+  /**
+   * Get lightweight activity widget data
+   * Returns only DisplayMessage, Timestamp, and Action for dashboard widgets
+   */
+  getWidgetData(count: number = 15): Observable<ActivityWidgetDTO[]> {
+    const params = new HttpParams().set('count', count.toString());
+    return this.http.get<ActivityWidgetDTO[]>(`${this.apiUrl}/widget`, { params });
   }
 }

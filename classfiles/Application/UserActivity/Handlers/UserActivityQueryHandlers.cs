@@ -367,4 +367,30 @@ namespace MyWarehouse.Application.UserActivity.Handlers
             };
         }
     }
+
+    /// <summary>
+    /// Handler for GetActivityWidgetDataQuery (Lightweight Activity Widget)
+    /// Returns only essential fields for activity feed widgets
+    /// </summary>
+    public class GetActivityWidgetDataQueryHandler : IRequestHandler<GetActivityWidgetDataQuery, List<ActivityWidgetDTO>>
+    {
+        private readonly IUserActivityRepository _repository;
+
+        public GetActivityWidgetDataQueryHandler(IUserActivityRepository repository)
+        {
+            _repository = repository;
+        }
+
+        public async Task<List<ActivityWidgetDTO>> Handle(GetActivityWidgetDataQuery request, CancellationToken cancellationToken)
+        {
+            var activities = await _repository.GetRecentActivitiesAsync(request.Count);
+
+            return activities.Select(activity => new ActivityWidgetDTO
+            {
+                DisplayMessage = activity.DisplayMessage,
+                Timestamp = activity.Timestamp,
+                Action = activity.Action
+            }).ToList();
+        }
+    }
 }

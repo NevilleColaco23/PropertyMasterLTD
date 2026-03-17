@@ -58,6 +58,17 @@ export interface TopUserActivityDTO {
 }
 
 /**
+ * Lightweight DTO for activity feed widget
+ * Contains only essential fields for dashboard display
+ */
+export interface ActivityWidgetDTO {
+  displayMessage: string;
+  timestamp: Date;
+  action: string;
+  timeAgo?: string;
+}
+
+/**
  * Activity Type Icons Mapping
  */
 export const ACTIVITY_TYPE_ICONS: { [key: string]: string } = {

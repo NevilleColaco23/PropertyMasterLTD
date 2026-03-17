@@ -67,4 +67,9 @@ namespace MyWarehouse.Application.UserActivity.Queries
     /// Query to get activity summary (for dashboard widget)
     /// </summary>
     public record GetActivitySummaryQuery(int RecentCount = 10) : IRequest<ActivitySummaryDTO>;
+
+    /// <summary>
+    /// Query to get recent activities for widget display (lightweight, only essential fields)
+    /// </summary>
+    public record GetActivityWidgetDataQuery(int Count = 15) : IRequest<List<ActivityWidgetDTO>>;
 }

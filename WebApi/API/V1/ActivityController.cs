@@ -14,7 +14,8 @@ namespace MyWarehouse.WebApi.API.V1
     /// </summary>
     [ApiController]
     [Authorize]
-    [Route("api/v1/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{v:apiVersion}/[controller]")]
     public class ActivityController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -156,6 +157,19 @@ namespace MyWarehouse.WebApi.API.V1
         public async Task<ActionResult<ActivitySummaryDTO>> GetSummary([FromQuery] int recentCount = 10)
         {
             var query = new GetActivitySummaryQuery(recentCount);
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Get lightweight activity data for widget display
+        /// Returns only DisplayMessage, Timestamp, and Action fields
+        /// </summary>
+        /// <param name="count">Number of recent activities to retrieve (default: 15)</param>
+        [HttpGet("widget")]
+        public async Task<ActionResult<List<ActivityWidgetDTO>>> GetWidgetData([FromQuery] int count = 15)
+        {
+            var query = new GetActivityWidgetDataQuery(count);
             var result = await _mediator.Send(query);
             return Ok(result);
         }

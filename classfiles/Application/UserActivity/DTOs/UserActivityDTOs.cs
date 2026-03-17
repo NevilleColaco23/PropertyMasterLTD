@@ -106,4 +106,51 @@ namespace MyWarehouse.Application.UserActivity.DTOs
         public List<UserActivityDTO> RecentActivities { get; set; } = new();
         public Dictionary<string, int> ActivityTypeCount { get; set; } = new();
     }
+
+    /// <summary>
+    /// Lightweight DTO for activity widget (displays only essential fields)
+    /// Used for dashboard widgets showing recent activity feed
+    /// </summary>
+    public class ActivityWidgetDTO
+    {
+        /// <summary>
+        /// Human-readable activity message
+        /// Example: "John Doe viewed All Dashboards while working on Sunset Villa property"
+        /// </summary>
+        public string DisplayMessage { get; set; }
+
+        /// <summary>
+        /// When the activity occurred
+        /// </summary>
+        public DateTime Timestamp { get; set; }
+
+        /// <summary>
+        /// Action performed (e.g., "View Property", "Create Booking", "Update Room")
+        /// </summary>
+        public string Action { get; set; }
+
+        /// <summary>
+        /// Time ago formatted string (e.g., "5 minutes ago")
+        /// </summary>
+        public string TimeAgo
+        {
+            get
+            {
+                var timeSpan = DateTime.UtcNow - Timestamp;
+
+                if (timeSpan.TotalMinutes < 1)
+                    return "just now";
+                if (timeSpan.TotalMinutes < 60)
+                    return $"{(int)timeSpan.TotalMinutes} minute{((int)timeSpan.TotalMinutes != 1 ? "s" : "")} ago";
+                if (timeSpan.TotalHours < 24)
+                    return $"{(int)timeSpan.TotalHours} hour{((int)timeSpan.TotalHours != 1 ? "s" : "")} ago";
+                if (timeSpan.TotalDays < 30)
+                    return $"{(int)timeSpan.TotalDays} day{((int)timeSpan.TotalDays != 1 ? "s" : "")} ago";
+                if (timeSpan.TotalDays < 365)
+                    return $"{(int)(timeSpan.TotalDays / 30)} month{((int)(timeSpan.TotalDays / 30) != 1 ? "s" : "")} ago";
+
+                return $"{(int)(timeSpan.TotalDays / 365)} year{((int)(timeSpan.TotalDays / 365) != 1 ? "s" : "")} ago";
+            }
+        }
+    }
 }
