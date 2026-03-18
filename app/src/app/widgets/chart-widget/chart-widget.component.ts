@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartType as ChartJsType } from 'chart.js';
 
@@ -30,6 +31,10 @@ export interface ChartFilterChange {
   groupBy: 'day' | 'week' | 'month';
 }
 
+export interface ChartRefreshEvent {
+  timestamp: Date;
+}
+
 @Component({
   selector: 'app-chart-widget',
   standalone: true,
@@ -40,6 +45,7 @@ export interface ChartFilterChange {
     MatButtonModule,
     MatMenuModule,
     MatDividerModule,
+    MatTooltipModule,
     BaseChartDirective
   ],
   template: `
@@ -49,6 +55,12 @@ export interface ChartFilterChange {
           {{ data.title }}
           <span class="subtitle">{{ currentPeriodLabel }}</span>
         </mat-card-title>
+        <button mat-icon-button (click)="onRefresh()" class="refresh-button" matTooltip="Refresh Widget">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <button mat-icon-button (click)="onMoreDetails()" class="more-details-button" matTooltip="More Details">
+          <mat-icon>open_in_new</mat-icon>
+        </button>
         <button mat-icon-button [matMenuTriggerFor]="menu" class="chart-menu">
           <mat-icon>more_vert</mat-icon>
         </button>
@@ -176,6 +188,24 @@ export interface ChartFilterChange {
     .chart-menu {
       margin-left: auto;
       color: white;
+    }
+
+    .refresh-button {
+      color: white;
+      transition: transform 0.3s ease;
+    }
+
+    .refresh-button:hover {
+      transform: rotate(180deg);
+    }
+
+    .more-details-button {
+      color: white;
+      transition: all 0.2s ease;
+    }
+
+    .more-details-button:hover {
+      transform: scale(1.1);
     }
 
     mat-card-content {
@@ -360,6 +390,8 @@ export class ChartWidgetComponent implements OnInit, OnChanges {
   @Input() data!: ChartWidgetData;
   @Input() settings: any = {};
   @Output() filterChange = new EventEmitter<ChartFilterChange>();
+  @Output() refresh = new EventEmitter<ChartRefreshEvent>();
+  @Output() moreDetails = new EventEmitter<void>();
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 
   chartType: ChartJsType = 'line';
@@ -514,5 +546,15 @@ export class ChartWidgetComponent implements OnInit, OnChanges {
     if (data.length === 0) return 0;
     const total = this.calculateTotal(data);
     return Math.round(total / data.length);
+  }
+
+  onRefresh(): void {
+    console.log('🔄 Chart Widget Refresh clicked!');
+    this.refresh.emit({ timestamp: new Date() });
+  }
+
+  onMoreDetails(): void {
+    console.log('📋 Chart Widget More Details clicked!');
+    this.moreDetails.emit();
   }
 }

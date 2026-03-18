@@ -1,7 +1,9 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 export interface KpiCardData {
   title: string;
@@ -16,13 +18,19 @@ export interface KpiCardData {
 @Component({
   selector: 'app-kpi-card-widget',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule],
+  imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, MatTooltipModule],
   template: `
     <mat-card class="kpi-card" [style.border-left-color]="data.color || '#1976d2'">
       <mat-card-content>
         <div class="kpi-header">
           <mat-icon [style.color]="data.color || '#1976d2'">{{ data.icon }}</mat-icon>
           <span class="kpi-title">{{ data.title }}</span>
+          <button mat-icon-button (click)="onRefresh()" class="refresh-button" matTooltip="Refresh">
+            <mat-icon>refresh</mat-icon>
+          </button>
+          <button mat-icon-button (click)="onMoreDetails()" class="more-details-button" matTooltip="More Details">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
         </div>
         <div class="kpi-value">{{ data.value }}</div>
         <div class="kpi-trend" *ngIf="data.showTrend && data.trendValue !== undefined">
@@ -81,6 +89,45 @@ export interface KpiCardData {
       color: #666;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      flex: 1;
+    }
+
+    .refresh-button {
+      width: 32px;
+      height: 32px;
+      line-height: 32px;
+    }
+
+    .refresh-button mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #999;
+      transition: transform 0.3s ease;
+    }
+
+    .refresh-button:hover mat-icon {
+      transform: rotate(180deg);
+      color: #666;
+    }
+
+    .more-details-button {
+      width: 32px;
+      height: 32px;
+      line-height: 32px;
+    }
+
+    .more-details-button mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: #999;
+      transition: all 0.2s ease;
+    }
+
+    .more-details-button:hover mat-icon {
+      transform: scale(1.1);
+      color: #666;
     }
 
     .kpi-value {
@@ -116,6 +163,8 @@ export interface KpiCardData {
 export class KpiCardWidgetComponent implements OnInit {
   @Input() data!: KpiCardData;
   @Input() settings: any = {};
+  @Output() refresh = new EventEmitter<{ timestamp: Date }>();
+  @Output() moreDetails = new EventEmitter<void>();
 
   ngOnInit(): void {
     console.log('🎯 KPI Widget initialized with data:', this.data);
@@ -132,5 +181,15 @@ export class KpiCardWidgetComponent implements OnInit {
       };
       console.log('🎯 KPI Widget after settings merge:', this.data);
     }
+  }
+
+  onRefresh(): void {
+    console.log('🔄 KPI Widget Refresh clicked!');
+    this.refresh.emit({ timestamp: new Date() });
+  }
+
+  onMoreDetails(): void {
+    console.log('📋 KPI Widget More Details clicked!');
+    this.moreDetails.emit();
   }
 }

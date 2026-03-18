@@ -151,23 +151,13 @@
               </mat-card-header>
             }
 
-            <!-- Refresh Button (only shown in non-edit mode) -->
-            @if (!editMode) {
-              <div class="widget-refresh-header">
-                <button mat-icon-button 
-                        class="widget-refresh-btn"
-                        (click)="refreshWidget(item)"
-                        [disabled]="item.isRefreshing"
-                        matTooltip="Refresh Widget">
-                  <mat-icon [class.spinning]="item.isRefreshing">refresh</mat-icon>
-                </button>
-              </div>
-            }
-
             <mat-card-content [class.no-header]="!editMode">
               <!-- KPI Card Widget -->
               @if (item.widgetType === 'kpi-card' && item.data) {
-                <app-kpi-card-widget [data]="item.data" style="display: block; height: 100%; width: 100%;"></app-kpi-card-widget>
+                <app-kpi-card-widget 
+                  [data]="item.data" 
+                  (refresh)="refreshWidget(item)"
+                  style="display: block; height: 100%; width: 100%;"></app-kpi-card-widget>
               }
 
               <!-- List Widget -->
@@ -175,6 +165,7 @@
                 <app-list-widget 
                   [data]="item.data" 
                   (viewChange)="onListViewChange($event, item)"
+                  (refresh)="refreshWidget(item)"
                   style="display: block; height: 100%; width: 100%;"></app-list-widget>
               }
 
@@ -184,12 +175,16 @@
                   [data]="item.data" 
                   [settings]="item.settings"
                   (filterChange)="onChartFilterChange($event, item)"
+                  (refresh)="refreshWidget(item)"
                   style="display: block; height: 100%; width: 100%;"></app-chart-widget>
               }
 
               <!-- Calendar Widget -->
               @if (item.widgetType === 'calendar' && item.data) {
-                <app-calendar-widget [data]="item.data" style="display: block; height: 100%; width: 100%;"></app-calendar-widget>
+                <app-calendar-widget 
+                  [data]="item.data" 
+                  (refresh)="refreshWidget(item)"
+                  style="display: block; height: 100%; width: 100%;"></app-calendar-widget>
               }
 
               <!-- Activity Stream Widget -->

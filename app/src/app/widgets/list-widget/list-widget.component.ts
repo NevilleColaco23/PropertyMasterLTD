@@ -55,6 +55,12 @@ export type ListViewType = 'bookings' | 'activity';
           [matTooltip]="currentView === 'bookings' ? 'Recent Activity' : 'Recent Bookings'">
           <mat-icon>chevron_right</mat-icon>
         </button>
+        <button mat-icon-button (click)="onRefresh()" class="refresh-button" matTooltip="Refresh Widget">
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <button mat-icon-button (click)="onMoreDetails()" class="more-details-button" matTooltip="More Details">
+          <mat-icon>open_in_new</mat-icon>
+        </button>
         <div class="item-count">{{ data.items.length }} items</div>
       </mat-card-header>
       <mat-card-content>
@@ -133,6 +139,24 @@ export type ListViewType = 'bookings' | 'activity';
     .nav-arrow:hover {
       transform: scale(1.1);
       opacity: 0.8;
+    }
+
+    .refresh-button {
+      color: white;
+      transition: transform 0.3s ease;
+    }
+
+    .refresh-button:hover {
+      transform: rotate(180deg);
+    }
+
+    .more-details-button {
+      color: white;
+      transition: all 0.2s ease;
+    }
+
+    .more-details-button:hover {
+      transform: scale(1.1);
     }
 
     .item-count {
@@ -236,6 +260,8 @@ export class ListWidgetComponent implements OnInit, OnChanges {
   @Input() data!: ListWidgetData;
   @Input() settings: any = {};
   @Output() viewChange = new EventEmitter<ListViewType>();
+  @Output() refresh = new EventEmitter<{ timestamp: Date }>();
+  @Output() moreDetails = new EventEmitter<void>();
 
   displayItems: ListItem[] = [];
   maxItems: number = 10;
@@ -295,7 +321,17 @@ export class ListWidgetComponent implements OnInit, OnChanges {
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    
+
     return date.toLocaleDateString();
+  }
+
+  onRefresh(): void {
+    console.log('🔄 List Widget Refresh clicked! Current view:', this.currentView);
+    this.refresh.emit({ timestamp: new Date() });
+  }
+
+  onMoreDetails(): void {
+    console.log('📋 List Widget More Details clicked! Current view:', this.currentView);
+    this.moreDetails.emit();
   }
 }

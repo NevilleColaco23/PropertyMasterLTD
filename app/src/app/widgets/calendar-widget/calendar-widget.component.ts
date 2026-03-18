@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -45,6 +45,12 @@ export interface CalendarWidgetData {
           </button>
           <button mat-icon-button (click)="goToToday()" matTooltip="Today">
             <mat-icon>today</mat-icon>
+          </button>
+          <button mat-icon-button (click)="onRefresh()" matTooltip="Refresh Widget" class="refresh-button">
+            <mat-icon>refresh</mat-icon>
+          </button>
+          <button mat-icon-button (click)="onMoreDetails()" matTooltip="More Details" class="more-details-button">
+            <mat-icon>open_in_new</mat-icon>
           </button>
         </div>
       </mat-card-header>
@@ -144,6 +150,22 @@ export interface CalendarWidgetData {
 
     .calendar-controls button {
       color: white;
+    }
+
+    .refresh-button {
+      transition: transform 0.3s ease;
+    }
+
+    .refresh-button:hover {
+      transform: rotate(180deg);
+    }
+
+    .more-details-button {
+      transition: all 0.2s ease;
+    }
+
+    .more-details-button:hover {
+      transform: scale(1.1);
     }
 
     .current-month {
@@ -303,7 +325,9 @@ export interface CalendarWidgetData {
 export class CalendarWidgetComponent implements OnInit {
   @Input() data!: CalendarWidgetData;
   @Input() settings: any = {};
-  
+  @Output() refresh = new EventEmitter<{ timestamp: Date }>();
+  @Output() moreDetails = new EventEmitter<void>();
+
   currentDate: Date = new Date();
   weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   calendarWeeks: any[][] = [];
@@ -425,17 +449,27 @@ export class CalendarWidgetComponent implements OnInit {
     const year = this.currentDate.getFullYear();
     const month = this.currentDate.getMonth();
     const today = new Date();
-    
+
     // Count events in current month
     this.monthEventCount = this.data?.events?.filter(event => {
       const eventDate = new Date(event.start);
       return eventDate.getFullYear() === year && eventDate.getMonth() === month;
     }).length || 0;
-    
+
     // Count events today
     this.todayEventCount = this.data?.events?.filter(event => {
       const eventDate = new Date(event.start);
       return eventDate.toDateString() === today.toDateString();
     }).length || 0;
+  }
+
+  onRefresh(): void {
+    console.log('🔄 Calendar Widget Refresh clicked!');
+    this.refresh.emit({ timestamp: new Date() });
+  }
+
+  onMoreDetails(): void {
+    console.log('📋 Calendar Widget More Details clicked!');
+    this.moreDetails.emit();
   }
 }
