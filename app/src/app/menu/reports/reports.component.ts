@@ -14,7 +14,7 @@
   import { MatPaginatorModule } from '@angular/material/paginator';
   import { MatButtonModule } from '@angular/material/button';
   import { DatePipe, CurrencyPipe, CommonModule } from '@angular/common';
-  import { Router } from '@angular/router';
+  import { Router, ActivatedRoute } from '@angular/router';
 
   import { APP_CONFIG, AppConfig } from '../../configuration/app.config.token';
   import { ErrorHandlingService } from '../../core/system/service/error-handling-service.service';
@@ -44,7 +44,7 @@
   export class ReportsComponent implements OnInit, AfterViewInit {
 
     // Corrected: Updated column names to match the matColumnDef IDs in the HTML.
-    displayedColumns: string[] = ['bookingId', 'guestId', 'roomNumber', 'bookingDate', 'totalPrice', 'isConfirmed', 'actions'];
+    displayedColumns: string[] = ['srNo', 'bookingId', 'guestId', 'roomNumber', 'bookingDate', 'totalPrice', 'isConfirmed', 'actions'];
     dataSource = new MatTableDataSource<Booking>();
     panelOpenState = true;
     
@@ -66,15 +66,64 @@
     selectedPropertyIds: number[] = [];
     private appConfig = inject<AppConfig>(APP_CONFIG);
 
+    // Filter parameters from dashboard
+    filterMode: 'today' | 'recent' | 'trends' | 'calendar' | null = null;
+    startDate: string | null = null;
+    endDate: string | null = null;
+    daysBack: number | null = null;
+    groupBy: 'day' | 'week' | 'month' | null = null;
+
     constructor(
       private http: HttpClient,
-      private errorHandling: ErrorHandlingService,private loggingService: LoggingService, private router: Router) {
+      private errorHandling: ErrorHandlingService,
+      private loggingService: LoggingService,
+      private router: Router,
+      private route: ActivatedRoute) {
 
       this.pathAPI = this.appConfig.apiUrl;
     }
 
     ngOnInit(): void {
       this.loadSelectedProperty();
+
+      // Check for query parameters from dashboard navigation
+      this.route.queryParams.subscribe(params => {
+        console.log('📋 Bookings Report Query Params:', params);
+
+        if (params['filter']) {
+          this.filterMode = params['filter'];
+        }
+
+        if (params['daysBack']) {
+          this.daysBack = parseInt(params['daysBack']);
+        }
+
+        if (params['groupBy']) {
+          this.groupBy = params['groupBy'];
+        }
+
+        if (params['bookingDate']) {
+          // Single date filter (for "today" or specific calendar day)
+          this.startDate = params['bookingDate'];
+          this.endDate = params['bookingDate'];
+        } else {
+          if (params['startDate']) {
+            this.startDate = params['startDate'];
+          }
+          if (params['endDate']) {
+            this.endDate = params['endDate'];
+          }
+        }
+
+        console.log('📅 Date filters:', {
+          mode: this.filterMode,
+          startDate: this.startDate,
+          endDate: this.endDate,
+          daysBack: this.daysBack,
+          groupBy: this.groupBy
+        });
+      });
+
       this.getBookings();
     }
 
@@ -158,6 +207,16 @@
       params = params.set('SearchItem', this.filterString);
       params = params.set('ActiveSortDirection', this.sortOrder == 'asc' ? 1 : -1);
 
+      // Add date range filters if present
+      if (this.startDate) {
+        params = params.set('StartDate', this.startDate);
+        console.log('📅 Adding StartDate filter:', this.startDate);
+      }
+      if (this.endDate) {
+        params = params.set('EndDate', this.endDate);
+        console.log('📅 Adding EndDate filter:', this.endDate);
+      }
+
 
       this.http.get<any>(this.pathAPI + '/Bookings/GetBookings', { params: params })
         .pipe(
@@ -214,5 +273,66 @@
       if (confirm(`Are you sure you want to delete booking ID: ${booking.bookingId}?`)) {
         this.loggingService.logPageNavigation(`deleteBooking`, LOG_DELETE_BOOKING, `User deleted booking with ID: ${booking.bookingId}`);
       }
+    }
+
+    /**
+     * Navigate back to dashboard
+     */
+    goBackToDashboard(): void {
+      console.log('🔙 Navigating back to dashboard...');
+      this.router.navigate(['/propertyLanding/dashboard1']);
+    }
+
+    /**
+     * Get human-readable filter label
+     */
+    getFilterLabel(): string {
+      switch (this.filterMode) {
+        case 'today':
+          return 'Today\'s Bookings';
+        case 'recent':
+          return 'Recent Bookings (Last 7 Days)';
+        case 'trends':
+          if (this.daysBack) {
+            if (this.daysBack === 7) return 'Booking Trends (Last 7 Days)';
+            if (this.daysBack === 30) return 'Booking Trends (Last 30 Days)';
+            if (this.daysBack === 90) return 'Booking Trends (Last 90 Days)';
+            if (this.daysBack === 180) return 'Booking Trends (Last 6 Months)';
+            return `Booking Trends (Last ${this.daysBack} Days)`;
+          }
+          return 'Booking Trends (Last 30 Days)';
+        case 'calendar':
+          return 'Calendar View';
+        default:
+          if (this.startDate && this.startDate === this.endDate) {
+            return `Bookings on ${new Date(this.startDate).toLocaleDateString()}`;
+          }
+          if (this.startDate && this.endDate) {
+            return `Bookings from ${new Date(this.startDate).toLocaleDateString()} to ${new Date(this.endDate).toLocaleDateString()}`;
+          }
+          return 'Filtered Results';
+      }
+    }
+
+    /**
+     * Clear all filters and reload data
+     */
+    clearFilters(): void {
+      console.log('🧹 Clearing filters...');
+      this.filterMode = null;
+      this.startDate = null;
+      this.endDate = null;
+      this.daysBack = null;
+      this.groupBy = null;
+      this.filterString = '';
+
+      // Clear query params from URL
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {}
+      });
+
+      // Reload bookings without filters
+      this.getBookings();
     }
   }
