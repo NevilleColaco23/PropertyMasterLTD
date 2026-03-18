@@ -79,7 +79,7 @@ export interface DashboardGridsterItem {
     ActivityStreamWidgetComponent
   ],
   templateUrl: './dashboard1.component.html',
-  styleUrls: ['./dashboard1-layout-fix.css', './dashboard1.component.css', './room-planner-styles.css'],
+  styleUrls: ['./dashboard1.component.css'],
   encapsulation: ViewEncapsulation.None
 })
 export class Dashboard1Component implements OnInit {

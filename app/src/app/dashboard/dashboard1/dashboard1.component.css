@@ -1,107 +1,147 @@
-/* Dashboard Component Styles */
+/* ============================================
+   DASHBOARD COMPONENT - CONSOLIDATED STYLES
+   All-in-one CSS file for dashboard component
+   ============================================ */
+
+/* ============================================
+   0. LAYOUT & CONTAINER FIXES
+   - Height and overflow management
+   ============================================ */
+
+.dashboard-container {
+  height: calc(100vh - 200px);
+  overflow: hidden;
+  background-color: #f5f7fa;
+  padding: 0;
+}
+
+/* Tab body wrapper and content */
+.dashboard-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-tabs ::ng-deep .mat-mdc-tab-body-wrapper {
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-tabs ::ng-deep .mat-mdc-tab-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-tabs ::ng-deep .mat-mdc-tab-body-content {
+  height: 100%;
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tab styling */
+.dashboard-tabs ::ng-deep .mat-mdc-tab-labels {
+  background-color: white;
+  border-bottom: 2px solid #e0e0e0;
+  padding: 0 24px;
+}
+
+.dashboard-tabs ::ng-deep .mat-mdc-tab {
+  min-width: 160px;
+  padding: 0 24px;
+  height: 60px;
+}
+
+.dashboard-tabs ::ng-deep .mat-mdc-tab-label-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #5f6368;
+  text-transform: none;
+}
+
+.dashboard-tabs ::ng-deep .mat-mdc-tab.mdc-tab--active .mat-mdc-tab-label-content {
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.dashboard-tabs ::ng-deep .mat-mdc-tab-label-content mat-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.dashboard-tabs ::ng-deep .mdc-tab-indicator__content--underline {
+  border-color: #1976d2;
+  border-width: 3px;
+}
+
+.tab-icon {
+  margin-right: 8px;
+}
+
+.tab-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  max-width: 1800px;
+  margin: 0 auto;
+  overflow-y: auto;
+}
+
+/* ============================================
+   1. DASHBOARD HEADER SECTION
+   - Main header with title and action buttons
+   ============================================ */
 
 .dashboard-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-  gap: 24px;
-  background: white;
-  padding: 16px 20px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  align-items: center;
+  margin-bottom: 28px;
+  gap: 20px;
+  background: transparent;
+  padding: 0;
 }
 
 .header-left {
-  flex: 1;
+  flex: 0 0 auto;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
+  flex: 1;
+  justify-content: flex-end;
 }
 
-.header-right button {
-  font-weight: 500;
-  text-transform: uppercase;
-  font-size: 13px;
-  padding: 0 16px;
-  height: 40px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-}
-
-.header-right button mat-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-}
-
-.header-right button[color="warn"]:not(:disabled) {
-  background-color: #ff6b6b;
-  color: white;
-}
-
-.header-right button[color="warn"]:not(:disabled):hover {
-  background-color: #ee5253;
-  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
-}
-
-.dashboard-selector {
-  width: 250px;
-}
-
-.dashboard-selector ::ng-deep .mat-mdc-form-field-subscript-wrapper {
-  display: none;
-}
-
-.dashboard-selector ::ng-deep .mat-mdc-text-field-wrapper {
-  background-color: white;
-}
-
-.dashboard-selector ::ng-deep .mat-mdc-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dashboard-selector ::ng-deep .mat-mdc-option mat-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-  margin-right: 8px;
-}
-
-.default-badge {
-  margin-left: 8px;
-  padding: 2px 8px;
-  background-color: #ffc107;
-  color: #000;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
+/* Title styling with icon - prominent blue */
 .dashboard-header h1 {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 0 0 8px 0;
-  font-size: 32px;
+  gap: 14px;
+  margin: 0;
+  font-size: 36px;
   font-weight: 600;
   color: #1976d2;
+  white-space: nowrap;
 }
 
 .dashboard-header h1 mat-icon {
   font-size: 36px;
   width: 36px;
   height: 36px;
+  color: #1976d2;
 }
 
 .dashboard-subtitle {
@@ -110,19 +150,255 @@
   font-size: 14px;
 }
 
+/* ============================================
+   2. HEADER ACTION BUTTONS
+   - SAVE AS, Delete, CUSTOMIZE buttons
+   ============================================ */
+
+.header-right button {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.8px;
+  padding: 0 24px;
+  height: 42px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-right button mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* SAVE AS button - Blue filled */
+.header-right button[color="primary"]:not(:disabled) {
+  background-color: #1976d2;
+  color: white;
+}
+
+.header-right button[color="primary"]:not(:disabled):hover {
+  background-color: #1565c0;
+  box-shadow: 0 4px 8px rgba(25, 118, 210, 0.35);
+}
+
+/* Delete/Trash button - Pink/Red filled */
+.header-right button[color="warn"]:not(:disabled),
+.header-right button.delete-btn,
+.header-right button mat-icon-button[color="warn"] {
+  background-color: #ff5370;
+  color: white;
+  min-width: 42px;
+  padding: 0 16px;
+}
+
+.header-right button[color="warn"]:not(:disabled):hover,
+.header-right button.delete-btn:hover {
+  background-color: #ff1744;
+  box-shadow: 0 4px 8px rgba(255, 83, 112, 0.35);
+}
+
+/* CUSTOMIZE button - Blue outlined */
+.header-right button[color="accent"]:not(:disabled),
+.header-right button.customize-btn {
+  background-color: white;
+  color: #1976d2;
+  border: 2px solid #1976d2 !important;
+}
+
+.header-right button[color="accent"]:not(:disabled):hover,
+.header-right button.customize-btn:hover {
+  background-color: rgba(25, 118, 210, 0.05);
+  border-color: #1565c0 !important;
+  box-shadow: 0 4px 8px rgba(25, 118, 210, 0.25);
+}
+
+/* Icon-only buttons */
+.header-right button[mat-icon-button] {
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 6px;
+}
+
+/* ============================================
+   3. DASHBOARD SELECTOR DROPDOWN
+   - Dropdown to switch between dashboards
+   ============================================ */
+
+.dashboard-selector {
+  min-width: 300px;
+  background-color: white;
+}
+
+.dashboard-selector ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.dashboard-selector ::ng-deep .mat-mdc-text-field-wrapper {
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+}
+
+.dashboard-selector ::ng-deep .mdc-text-field {
+  border-radius: 6px;
+  padding: 10px 14px;
+  background-color: white;
+}
+
+.dashboard-selector ::ng-deep .mat-mdc-select-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.dashboard-selector ::ng-deep .mat-mdc-form-field-flex {
+  align-items: center;
+}
+
+.dashboard-selector ::ng-deep .mat-mdc-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  font-size: 14px;
+}
+
+.dashboard-selector ::ng-deep .mat-mdc-option mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+}
+
+.dashboard-selector ::ng-deep .mat-mdc-option:hover mat-icon {
+  color: #1976d2;
+}
+
+/* Default dashboard badge */
+.default-badge {
+  margin-left: auto;
+  padding: 4px 10px;
+  background-color: #ffc107;
+  color: #000;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* Unsaved changes indicator */
+.unsaved-badge {
+  font-size: 10px;
+  width: 10px;
+  height: 10px;
+  margin-left: 6px;
+  color: #ff9800;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+}
+
+/* ============================================
+   4. LOADING & EMPTY STATES
+   - Centered spinners and empty messages
+   ============================================ */
+
 .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex: 1;
+  min-height: 400px;
   padding: 80px 20px;
   text-align: center;
+  background-color: #fafbfc;
+  border-radius: 8px;
 }
 
 .loading-container p {
-  margin-top: 16px;
-  color: #666;
+  margin-top: 20px;
+  color: #6c757d;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.empty-dashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 400px;
+  padding: 80px 20px;
+  text-align: center;
+  background-color: #fafbfc;
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+  margin: 20px 0;
+}
+
+.empty-icon {
+  font-size: 80px;
+  width: 80px;
+  height: 80px;
+  color: #adb5bd;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+.empty-dashboard h2 {
+  margin: 0 0 12px 0;
+  color: #495057;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.empty-dashboard p {
+  margin: 0 0 28px 0;
+  color: #6c757d;
+  max-width: 420px;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+/* ============================================
+   5. GRIDSTER GRID LAYOUT
+   - Custom styling for Gridster library
+   ============================================ */
+
+.dashboard-content-wrapper {
+  flex: 1;
+  overflow: auto;
+  background-color: transparent;
+  padding: 0;
+  min-height: 500px;
+}
+
+gridster {
+  background: transparent !important;
+  min-height: 600px !important;
 }
 
 gridster .gridster-column,
@@ -134,35 +410,117 @@ gridster .gridster-row {
 gridster-item {
   background: transparent !important;
   overflow: visible !important;
+  padding: 10px;
 }
 
+/* Visual feedback during drag */
+gridster-item.gridster-item-moving .widget-card {
+  box-shadow: 0 16px 40px rgba(25, 118, 210, 0.35);
+  opacity: 0.95;
+  transform: scale(1.03);
+  cursor: grabbing !important;
+  z-index: 1000;
+}
+
+/* Visual feedback during resize */
+gridster-item.gridster-item-resizing .widget-card {
+  box-shadow: 0 16px 40px rgba(25, 118, 210, 0.35);
+  border: 3px solid #1976d2;
+}
+
+/* ============================================
+   6. WIDGET CARDS
+   - Card containers for all dashboard widgets
+   ============================================ */
+
 .widget-card {
-  height: 100%;
+  height: calc(100% - 16px);
   display: flex;
   flex-direction: column;
   position: relative;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
   overflow: hidden;
   background: white;
-  border: 1px solid rgba(0,0,0,0.06);
+  border: none;
 }
 
 .widget-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
 }
 
+/* ============================================
+   7. WIDGET EDIT MODE CONTROLS
+   - Drag handle and remove button
+   ============================================ */
+
 .widget-card .widget-edit-header {
-  padding: 8px 12px;
-  background-color: rgba(25, 118, 210, 0.05);
-  border-bottom: 1px solid rgba(25, 118, 210, 0.1);
-  min-height: 36px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(25, 118, 210, 0.04) 0%, rgba(25, 118, 210, 0.01) 100%);
+  border-bottom: 1px solid rgba(25, 118, 210, 0.08);
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
 }
+
+.widget-drag-handle {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  cursor: grab;
+  color: #9e9e9e;
+  z-index: 5;
+  transition: all 0.2s ease;
+  padding: 6px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.widget-drag-handle:hover {
+  color: #1976d2;
+  background-color: rgba(25, 118, 210, 0.1);
+  transform: scale(1.1);
+}
+
+.widget-drag-handle:active {
+  cursor: grabbing;
+}
+
+.widget-remove-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+  background-color: #ff5370;
+  color: white;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(255, 83, 112, 0.3);
+}
+
+.widget-remove-btn mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.widget-remove-btn:hover {
+  background-color: #ff1744;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(255, 83, 112, 0.4);
+}
+
+/* ============================================
+   8. WIDGET CONTENT LAYOUT
+   - Ensures widgets fill their containers
+   ============================================ */
 
 .widget-card mat-card-content {
   padding: 0;
@@ -218,31 +576,10 @@ app-calendar-widget > mat-card > mat-card-content {
   overflow: auto !important;
 }
 
-.widget-remove-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 10;
-  background-color: #f44336;
-  color: white;
-}
-
-.widget-remove-btn:hover {
-  background-color: #d32f2f;
-}
-
-.widget-drag-handle {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  cursor: move;
-  color: #666;
-  z-index: 5;
-}
-
-.widget-drag-handle:hover {
-  color: #1976d2;
-}
+/* ============================================
+   9. WIDGET LOADING STATE
+   - Spinner shown while widget data loads
+   ============================================ */
 
 .widget-loading {
   display: flex;
@@ -260,83 +597,528 @@ app-calendar-widget > mat-card > mat-card-content {
   font-size: 14px;
 }
 
-.empty-dashboard {
+/* ============================================
+   10. ROOM PLANNER STYLES
+   - Calendar view for room bookings
+   ============================================ */
+
+.room-planner-container {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.planner-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.planner-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.planner-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.current-month {
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 150px;
+  text-align: center;
+}
+
+.planner-legend {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.legend-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.legend-color.available {
+  background: #e8f5e9;
+}
+
+.legend-color.occupied {
+  background: #ffebee;
+}
+
+.legend-color.checkin {
+  background: #e3f2fd;
+}
+
+.legend-color.checkout {
+  background: #fff3e0;
+}
+
+.legend-color.maintenance {
+  background: #f3e5f5;
+}
+
+.room-planner-grid {
+  overflow-x: auto;
+  margin-bottom: 24px;
+}
+
+.calendar-header {
+  display: grid;
+  grid-template-columns: 120px repeat(auto-fill, 80px);
+  gap: 1px;
+  background: #e0e0e0;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 1px;
+}
+
+.room-label-cell {
+  background: #1976d2;
+  color: white;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-weight: 600;
+  min-height: 70px;
+}
+
+.room-label-cell .room-number {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.room-label-cell .room-type {
+  font-size: 11px;
+  opacity: 0.9;
+  margin-top: 4px;
+}
+
+.calendar-header .day-cell {
+  background: #2196f3;
+  color: white;
+  padding: 8px 4px;
+  text-align: center;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.calendar-header .day-number {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.calendar-header .day-name {
+  font-size: 11px;
+  opacity: 0.9;
+  margin-top: 2px;
+}
+
+.room-row {
+  display: grid;
+  grid-template-columns: 120px repeat(auto-fill, 80px);
+  gap: 1px;
+  background: #e0e0e0;
+  border-left: 1px solid #e0e0e0;
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.room-row .day-cell {
+  background: white;
+  padding: 8px 4px;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  min-width: 80px;
+}
+
+.room-row .day-cell:hover {
+  transform: scale(1.05);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.room-row .day-cell.available {
+  background: #e8f5e9;
+}
+
+.room-row .day-cell.occupied {
+  background: #ffebee;
+}
+
+.room-row .day-cell.checkin {
+  background: #e3f2fd;
+  border-left: 3px solid #2196f3;
+}
+
+.room-row .day-cell.checkout {
+  background: #fff3e0;
+  border-right: 3px solid #ff9800;
+}
+
+.room-row .day-cell.maintenance {
+  background: #f3e5f5;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(156, 39, 176, 0.1) 10px,
+    rgba(156, 39, 176, 0.1) 20px
+  );
+}
+
+.day-content {
+  font-size: 11px;
+  text-align: center;
+  word-break: break-word;
+}
+
+.booking-info {
+  display: block;
+  font-weight: 600;
+  color: #424242;
+}
+
+.empty-planner {
+  text-align: center;
+  padding: 60px 20px;
+  color: #757575;
+}
+
+.empty-planner mat-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  color: #bdbdbd;
+}
+
+.empty-planner p {
+  font-size: 16px;
+}
+
+.planner-loading {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 1;
-  padding: 80px 20px;
+  padding: 100px 20px;
+  gap: 20px;
+}
+
+.planner-loading p {
+  font-size: 16px;
+  color: #757575;
+}
+
+.planner-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.stat-card {
   text-align: center;
-  background-color: #f5f5f5;
-  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
-.empty-icon {
-  font-size: 80px;
-  width: 80px;
-  height: 80px;
-  color: #ccc;
-  margin-bottom: 16px;
+.stat-card mat-card-content {
+  padding: 20px;
 }
 
-.empty-dashboard h2 {
-  margin: 0 0 8px 0;
-  color: #666;
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 
-.empty-dashboard p {
-  margin: 0 0 24px 0;
-  color: #999;
-  max-width: 400px;
-}
-
-.unsaved-badge {
-  font-size: 12px;
-  width: 12px;
-  height: 12px;
-  margin-left: 4px;
-  color: #ff9800;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-gridster-item.gridster-item-moving .widget-card {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+.stat-label {
+  font-size: 14px;
   opacity: 0.9;
 }
 
-gridster-item.gridster-item-resizing .widget-card {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+.stat-card:nth-child(2) {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
-@media (max-width: 768px) {
+.stat-card:nth-child(3) {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-card:nth-child(4) {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+/* ============================================
+   11. RESPONSIVE DESIGN
+   - Comprehensive breakpoints for all devices
+   ============================================ */
+
+/* Large Desktop (1920px+) */
+@media (min-width: 1920px) {
+  .tab-content {
+    max-width: 2000px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 40px;
+  }
+}
+
+/* Desktop (1440px - 1919px) */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .tab-content {
+    max-width: 1600px;
+  }
+}
+
+/* Laptop (1200px - 1439px) */
+@media (min-width: 1200px) and (max-width: 1439px) {
+  .dashboard-header h1 {
+    font-size: 32px;
+  }
+
+  .header-right button {
+    font-size: 12px;
+    padding: 0 20px;
+  }
+
+  .dashboard-selector {
+    min-width: 260px;
+  }
+}
+
+/* Laptop/Small Desktop (992px - 1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .dashboard-header h1 {
+    font-size: 30px;
+  }
+
+  .header-right button {
+    height: 40px;
+    font-size: 11px;
+    padding: 0 18px;
+  }
+
+  .dashboard-selector {
+    min-width: 240px;
+  }
+
+  gridster-item {
+    padding: 8px;
+  }
+}
+
+/* Tablet Landscape (768px - 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+  .dashboard-header {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .header-left {
+    flex: 1 1 100%;
+  }
+
+  .header-right {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+
+  .dashboard-header h1 {
+    font-size: 28px;
+  }
+
+  .dashboard-selector {
+    min-width: 220px;
+  }
+
+  .header-right button {
+    height: 40px;
+    font-size: 11px;
+  }
+
+  gridster-item {
+    padding: 6px;
+  }
+
+  .room-planner-grid {
+    overflow-x: scroll;
+  }
+}
+
+/* Tablet Portrait (600px - 767px) */
+@media (min-width: 600px) and (max-width: 767px) {
+  .dashboard-tabs ::ng-deep .mat-mdc-tab-body-wrapper {
+    padding: 16px;
+  }
+
   .dashboard-header {
     flex-direction: column;
+    gap: 16px;
+  }
+
+  .header-left {
+    width: 100%;
   }
 
   .header-right {
     width: 100%;
     justify-content: flex-start;
+    gap: 10px;
   }
 
   .dashboard-selector {
     width: 100%;
+    min-width: auto;
+  }
+
+  .dashboard-header h1 {
+    font-size: 26px;
+  }
+
+  .header-right button {
+    flex: 1 1 auto;
+    min-width: 110px;
+  }
+
+  gridster-item {
+    padding: 6px;
+  }
+
+  .calendar-header,
+  .room-row {
+    grid-template-columns: 100px repeat(auto-fill, 70px);
   }
 }
 
-.widget-card app-kpi-card-widget,
-.widget-card app-list-widget,
-.widget-card app-chart-widget,
-.widget-card app-calendar-widget {
-  display: block;
-  height: 100%;
+/* Mobile (up to 599px) */
+@media (max-width: 599px) {
+  .dashboard-tabs ::ng-deep .mat-mdc-tab-body-wrapper {
+    padding: 12px;
+  }
+
+  .dashboard-tabs ::ng-deep .mat-mdc-tab {
+    min-width: 120px;
+    padding: 0 12px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    padding: 0;
+    gap: 14px;
+  }
+
+  .header-left,
+  .header-right {
+    width: 100%;
+  }
+
+  .header-right {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .dashboard-selector {
+    width: 100%;
+    order: -1;
+  }
+
+  .header-right button {
+    width: 100%;
+    height: 44px;
+    justify-content: center;
+  }
+
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+
+  .dashboard-header h1 mat-icon {
+    font-size: 26px;
+    width: 26px;
+    height: 26px;
+  }
+
+  gridster-item {
+    padding: 5px;
+  }
+
+  .widget-card {
+    border-radius: 10px;
+  }
+
+  .empty-dashboard,
+  .loading-container {
+    padding: 40px 16px;
+    min-height: 300px;
+  }
+
+  .planner-legend {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .calendar-header,
+  .room-row {
+    grid-template-columns: 80px repeat(auto-fill, 60px);
+  }
+
+  .room-planner-container {
+    padding: 16px;
+  }
+}
+
+/* Extra Small Mobile (up to 360px) */
+@media (max-width: 360px) {
+  .dashboard-header h1 {
+    font-size: 22px;
+  }
+
+  .header-right button {
+    height: 42px;
+    font-size: 11px;
+  }
+
+  gridster-item {
+    padding: 4px;
+  }
+
+  .calendar-header,
+  .room-row {
+    grid-template-columns: 70px repeat(auto-fill, 50px);
+  }
 }
