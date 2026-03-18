@@ -77,6 +77,15 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
         // Initialize isOpen property for each menu item
         this.navItems.forEach(item => {
           item.isOpen = false;
+
+          // Sort sub-items by subOrder/priority if they exist
+          if (item.subItems && item.subItems.length > 0) {
+            item.subItems.sort((a: any, b: any) => {
+              const orderA = a.subOrder ?? 999;
+              const orderB = b.subOrder ?? 999;
+              return orderA - orderB;
+            });
+          }
         });
 
         // Sort menu items by order/priority (ascending)
@@ -97,6 +106,11 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
           // Debug each menu item's path and order
           this.navItems.forEach((item, index) => {
             console.log(`  ${index + 1}. "${item.label}" -> path: "${item.path}", order: ${item.order}`);
+            if (item.subItems && item.subItems.length > 0) {
+              item.subItems.forEach((sub: any, subIndex: number) => {
+                console.log(`      ${index + 1}.${subIndex + 1}. "${sub.subLabel}" -> path: "${sub.subPath}", order: ${sub.subOrder ?? 'N/A'}`);
+              });
+            }
           });
         }
 

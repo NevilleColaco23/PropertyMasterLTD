@@ -20,5 +20,6 @@
     {
         public string subLabel { get; set; }
         public string subPath { get; set; }
+        public int subOrder { get; set; } = 0; // Priority for sorting sub-items
     }
 }
