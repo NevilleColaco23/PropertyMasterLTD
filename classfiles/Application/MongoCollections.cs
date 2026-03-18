@@ -10,7 +10,7 @@ public static class MongoCollections
     public const string AccessLogCollection = "AccessLog";
     public const string MenuCollection = "Menus";
     public const string MenuPermissionsCollection = "MenuPermissions";
-    public const string BookingsCollection = "bookings";
+    public const string BookingsCollection = "Bookings";
     public const string SystemMessagesCollection = "systemMessages";
     public const string EmailOutboxCollection = "EmailOutbox";
     public const string AuditLogsCollection = "AuditLogs";

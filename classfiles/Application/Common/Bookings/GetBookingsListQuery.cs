@@ -1,5 +1,6 @@
 ﻿using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories.Common;
 using MyWarehouse.Application.Common.Dependencies.DataAccess;
+using MyWarehouse.Application.Common.Dependencies.DataAccess.Extensions;
 using System.Data;
 using MyWarehouse.Application.Common.Bookings.BookingsQuery;
 
@@ -23,8 +24,24 @@ namespace MyWarehouse.Application.Common.Bookings
         {
             DataTable templateTable = new();
 
-            var menuList = _unitOfWork.Bookings?.GetPagedListBy<GetBookingsListDTO>(MongoCollections.BookingsCollection
-                      , new GetBookingsMongoQuery(request.BookingId, request.SearchItem, request.PageIndex, request.PageSize, request.OrderBy, request.ActiveSortDirection, request.PropertyIds));
+            // Create the query
+            var mongoQuery = new GetBookingsMongoQuery(
+                request.BookingId, 
+                request.SearchItem, 
+                request.PageIndex, 
+                request.PageSize, 
+                request.OrderBy, 
+                request.ActiveSortDirection, 
+                request.PropertyIds);
+
+            // 🔍 DEBUG: Store query debug info in local variables (set breakpoint here to inspect)
+            var debugInfo = mongoQuery.GetDebugInfo();
+            var debugPipeline = mongoQuery.GetPipelineAsJsonString();
+
+            var menuList = _unitOfWork.Bookings?.GetPagedListBy<GetBookingsListDTO>(MongoCollections.BookingsCollection, mongoQuery);
+
+            // 🔍 DEBUG: Store results info (set breakpoint here to inspect)
+            var resultCount = menuList.results.Count;
 
             var response = new ListResponseModel<GetBookingsListDTO>
             {

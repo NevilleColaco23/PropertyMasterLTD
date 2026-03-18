@@ -1,6 +1,5 @@
 ﻿using MongoDB.Bson;
 using MyWarehouse.Application.Common.Dependencies.DataAccess;
-using MyWarehouse.Domain.Property;
 using System.Data;
 
 namespace MyWarehouse.Application.Common.Bookings.BookingsQuery
@@ -49,12 +48,12 @@ namespace MyWarehouse.Application.Common.Bookings.BookingsQuery
             if (!string.IsNullOrWhiteSpace(_filterString))
             {
                 var orConditions = new BsonArray
-        {
-            new BsonDocument("bookingId",
-                new BsonDocument("$regex", new BsonRegularExpression(_filterString, "i"))),
-            new BsonDocument("roomNumber",
-                new BsonDocument("$regex", new BsonRegularExpression(_filterString, "i"))),
-        };
+                {
+                    new BsonDocument("bookingId",
+                        new BsonDocument("$regex", new BsonRegularExpression(_filterString, "i"))),
+                    new BsonDocument("roomNumber",
+                        new BsonDocument("$regex", new BsonRegularExpression(_filterString, "i"))),
+                };
 
                 if (long.TryParse(_filterString, out var guestIdToSearch))
                 {
@@ -71,20 +70,20 @@ namespace MyWarehouse.Application.Common.Bookings.BookingsQuery
             }
 
             pipeline.Add(new BsonDocument("$facet", new BsonDocument
-    {
-        { "results", new BsonArray
             {
-                new BsonDocument("$sort", new BsonDocument(_orderBy, _sortDirection)),
-                new BsonDocument("$skip", ((_pageIndex - 1) * _pageSize)),
-                new BsonDocument("$limit", _pageSize)
-            }
-        },
-        { "totalCount", new BsonArray
-            {
-                new BsonDocument("$count", "count")
-            }
-        }
-    }));
+                { "results", new BsonArray
+                    {
+                        new BsonDocument("$sort", new BsonDocument(_orderBy, _sortDirection)),
+                        new BsonDocument("$skip", ((_pageIndex - 1) * _pageSize)),
+                        new BsonDocument("$limit", _pageSize)
+                    }
+                },
+                { "totalCount", new BsonArray
+                    {
+                        new BsonDocument("$count", "count")
+                    }
+                }
+            }));
 
             return pipeline;
         }
