@@ -117,29 +117,36 @@ namespace MyWarehouse.Application.Dashboard.Queries
             var today = DateTime.UtcNow.Date;
             var tomorrow = today.AddDays(1);
 
-            // Use provided property IDs or default to all properties
-            var propertyFilter = request.PropertyIds != null && request.PropertyIds.Any()
-                ? Builders<BsonDocument>.Filter.In("propertyId", request.PropertyIds)
-                : Builders<BsonDocument>.Filter.Empty;
+            // Build filters list conditionally
+            var filtersToday = new List<FilterDefinition<BsonDocument>>
+            {
+                Builders<BsonDocument>.Filter.Gte("CreatedAt", today),
+                Builders<BsonDocument>.Filter.Lt("CreatedAt", tomorrow)
+            };
+
+            var filtersYesterday = new List<FilterDefinition<BsonDocument>>
+            {
+                Builders<BsonDocument>.Filter.Gte("CreatedAt", today.AddDays(-1)),
+                Builders<BsonDocument>.Filter.Lt("CreatedAt", today)
+            };
+
+            // Add property filter only if property IDs are provided
+            if (request.PropertyIds != null && request.PropertyIds.Any())
+            {
+                var propertyFilter = Builders<BsonDocument>.Filter.In("propertyId", request.PropertyIds);
+                filtersToday.Add(propertyFilter);
+                filtersYesterday.Add(propertyFilter);
+            }
 
             // Count bookings created today
             var bookingsToday = await collection.CountDocumentsAsync(
-                Builders<BsonDocument>.Filter.And(
-                    propertyFilter,
-                    Builders<BsonDocument>.Filter.Gte("CreatedAt", today),
-                    Builders<BsonDocument>.Filter.Lt("CreatedAt", tomorrow)
-                ),
+                Builders<BsonDocument>.Filter.And(filtersToday),
                 cancellationToken: cancellationToken
             );
 
             // Calculate trend (compare with yesterday)
-            var yesterday = today.AddDays(-1);
             var bookingsYesterday = await collection.CountDocumentsAsync(
-                Builders<BsonDocument>.Filter.And(
-                    propertyFilter,
-                    Builders<BsonDocument>.Filter.Gte("CreatedAt", yesterday),
-                    Builders<BsonDocument>.Filter.Lt("CreatedAt", today)
-                ),
+                Builders<BsonDocument>.Filter.And(filtersYesterday),
                 cancellationToken: cancellationToken
             );
 

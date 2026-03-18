@@ -139,8 +139,16 @@ export class DashboardService {
   /**
    * Get KPI value for a specific widget
    */
-  getKpiValue(widgetId: string, userId: number): Observable<KpiValueResponse> {
-    const params = new HttpParams().set('userId', userId.toString());
+  getKpiValue(widgetId: string, userId: number, propertyIds?: number[]): Observable<KpiValueResponse> {
+    let params = new HttpParams().set('userId', userId.toString());
+
+    // Add property IDs if provided
+    if (propertyIds && propertyIds.length > 0) {
+      propertyIds.forEach(id => {
+        params = params.append('propertyIds', id.toString());
+      });
+    }
+
     return this.http.get<KpiValueResponse>(`${this.apiUrl}/kpi/${widgetId}`, { params });
   }
 

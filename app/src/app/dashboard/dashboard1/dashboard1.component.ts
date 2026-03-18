@@ -387,7 +387,12 @@ export class Dashboard1Component implements OnInit {
    */
   loadKpiWidgetData(item: DashboardGridsterItem, userId: number): void {
     console.log(`🔢 Loading KPI data for widget: ${item.widgetId}, userId: ${userId}`);
-    this.dashboardService.getKpiValue(item.widgetId, userId).pipe(
+
+    // Get selected property IDs from localStorage
+    const propertyIds = this.getSelectedPropertyIds();
+    console.log(`📍 Selected property IDs: ${propertyIds.length > 0 ? propertyIds.join(', ') : 'none (all properties)'}`);
+
+    this.dashboardService.getKpiValue(item.widgetId, userId, propertyIds).pipe(
       catchError(error => {
         console.error(`Error loading KPI ${item.widgetId}:`, error);
         return of({ 
@@ -1107,6 +1112,19 @@ export class Dashboard1Component implements OnInit {
       }
     }
     return 1; // Default test user
+  }
+
+  /**
+   * Get selected property IDs from localStorage
+   */
+  private getSelectedPropertyIds(): number[] {
+    const stored = localStorage.getItem('selectedPropertyIds');
+    if (!stored) return [];
+    try {
+      return JSON.parse(stored) as number[];
+    } catch {
+      return [];
+    }
   }
 
   /**
