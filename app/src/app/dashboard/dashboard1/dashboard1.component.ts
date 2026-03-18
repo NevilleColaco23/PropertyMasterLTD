@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewEncapsulation, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +11,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTabsModule, MatTabChangeEvent } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import { Gridster, GridsterItem, GridsterConfig } from 'angular-gridster2';
 import { forkJoin, of } from 'rxjs';
@@ -56,6 +57,7 @@ export interface DashboardGridsterItem {
   standalone: true,
   imports: [
     CommonModule,
+    DatePipe,
     MatCardModule,
     MatIconModule,
     MatButtonModule,
@@ -67,6 +69,7 @@ export interface DashboardGridsterItem {
     MatTooltipModule,
     MatBadgeModule,
     MatDividerModule,
+    MatTabsModule,
     Gridster,
     GridsterItem,
     KpiCardWidgetComponent,
@@ -76,7 +79,7 @@ export interface DashboardGridsterItem {
     ActivityStreamWidgetComponent
   ],
   templateUrl: './dashboard1.component.html',
-  styleUrls: ['./dashboard1.component.css'],
+  styleUrls: ['./dashboard1-layout-fix.css', './dashboard1.component.css', './room-planner-styles.css'],
   encapsulation: ViewEncapsulation.None
 })
 export class Dashboard1Component implements OnInit {
@@ -99,6 +102,20 @@ export class Dashboard1Component implements OnInit {
   // ===== Gridster Configuration =====
   options: GridsterConfig;
   dashboardItems: DashboardGridsterItem[] = [];
+
+  // ===== Tab Management =====
+  selectedTabIndex = 0;
+
+  // ===== Room Planner Properties =====
+  loadingRoomPlanner = false;
+  currentPlannerMonth = new Date();
+  plannerDays: Array<{ date: Date; dayOfWeek: string }> = [];
+  rooms: Array<any> = [];
+  roomBookings: Map<string, any> = new Map();
+  totalRooms = 0;
+  occupiedRoomsToday = 0;
+  availableRoomsToday = 0;
+  occupancyRateToday = 0;
 
   constructor(
     private router: Router,
@@ -136,12 +153,18 @@ export class Dashboard1Component implements OnInit {
         if (dashboards.length > 0) {
           // Find default dashboard or use first one
           const defaultDashboard = dashboards.find(d => d.isDefault) || dashboards[0];
-          this.selectedDashboard = defaultDashboard.id!;
+          // Wrap in setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+          setTimeout(() => {
+            this.selectedDashboard = defaultDashboard.id!;
+          });
           this.loadDashboard(defaultDashboard.id!);
         } else {
           // No saved dashboards, load default widgets
           console.log('No saved dashboards found, loading default widgets');
-          this.selectedDashboard = null;
+          // Wrap in setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+          setTimeout(() => {
+            this.selectedDashboard = null;
+          });
           this.loadDefaultWidgets();
           this.refreshAllWidgetData();
         }
@@ -439,7 +462,11 @@ export class Dashboard1Component implements OnInit {
     console.log('📦 loadListWidgetBookings called for userId:', userId);
     const requestedView = 'bookings'; // Track what we're requesting
 
-    this.dashboardService.getRecentBookings(userId, 10).pipe(
+    // Get selected property IDs from localStorage
+    const propertyIds = this.getSelectedPropertyIds();
+    console.log(`📍 Loading bookings for properties: ${propertyIds.length > 0 ? propertyIds.join(', ') : 'all'}`);
+
+    this.dashboardService.getRecentBookings(userId, 10, propertyIds).pipe(
       catchError(error => {
         console.error('❌ Error loading bookings data:', error);
         return of([]);
@@ -547,7 +574,11 @@ export class Dashboard1Component implements OnInit {
     const daysBack = item.settings?.daysBack || 30;
     const groupBy = item.settings?.groupBy || 'day';
 
-    this.dashboardService.getBookingTrends(userId, daysBack, groupBy).pipe(
+    // Get selected property IDs from localStorage
+    const propertyIds = this.getSelectedPropertyIds();
+    console.log(`📍 Loading chart for properties: ${propertyIds.length > 0 ? propertyIds.join(', ') : 'all'}`);
+
+    this.dashboardService.getBookingTrends(userId, daysBack, groupBy, propertyIds).pipe(
       catchError(error => {
         console.error('Error loading chart data:', error);
         // Return default data on error
@@ -568,7 +599,11 @@ export class Dashboard1Component implements OnInit {
     const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    this.dashboardService.getCalendarEvents(userId, startDate, endDate).pipe(
+    // Get selected property IDs from localStorage
+    const propertyIds = this.getSelectedPropertyIds();
+    console.log(`📍 Loading calendar for properties: ${propertyIds.length > 0 ? propertyIds.join(', ') : 'all'}`);
+
+    this.dashboardService.getCalendarEvents(userId, startDate, endDate, propertyIds).pipe(
       catchError(error => {
         console.error('Error loading calendar data:', error);
         return of([]);
@@ -1125,6 +1160,229 @@ export class Dashboard1Component implements OnInit {
     } catch {
       return [];
     }
+  }
+
+  // ========================================
+  // TAB MANAGEMENT
+  // ========================================
+
+  /**
+   * Handle tab change event
+   */
+  onTabChange(event: MatTabChangeEvent): void {
+    console.log(`Tab changed to index: ${event.index}, label: ${event.tab.textLabel}`);
+    this.selectedTabIndex = event.index;
+
+    if (event.index === 1) {
+      // Room Planner tab selected
+      this.loadRoomPlannerData();
+    }
+  }
+
+  // ========================================
+  // ROOM PLANNER METHODS
+  // ========================================
+
+  /**
+   * Load room planner data
+   */
+  loadRoomPlannerData(): void {
+    this.loadingRoomPlanner = true;
+    this.generatePlannerDays();
+
+    const propertyIds = this.getSelectedPropertyIds();
+    const userId = this.getCurrentUserId();
+
+    // Load rooms and bookings
+    this.loadRoomsForPlanner(propertyIds, userId);
+  }
+
+  /**
+   * Generate days for the current planner month
+   */
+  private generatePlannerDays(): void {
+    const year = this.currentPlannerMonth.getFullYear();
+    const month = this.currentPlannerMonth.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    this.plannerDays = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      this.plannerDays.push({
+        date: date,
+        dayOfWeek: date.toLocaleDateString('en-US', { weekday: 'short' })
+      });
+    }
+  }
+
+  /**
+   * Load rooms for the selected properties
+   */
+  private loadRoomsForPlanner(propertyIds: number[], userId: number): void {
+    // TODO: Replace with actual API call
+    // For now, using mock data
+
+    // Mock rooms data
+    this.rooms = [
+      { id: 1, roomNumber: '101', roomType: 'Standard', propertyId: propertyIds[0] || 1 },
+      { id: 2, roomNumber: '102', roomType: 'Standard', propertyId: propertyIds[0] || 1 },
+      { id: 3, roomNumber: '201', roomType: 'Deluxe', propertyId: propertyIds[0] || 1 },
+      { id: 4, roomNumber: '202', roomType: 'Deluxe', propertyId: propertyIds[0] || 1 },
+      { id: 5, roomNumber: '301', roomType: 'Suite', propertyId: propertyIds[0] || 1 }
+    ];
+
+    this.totalRooms = this.rooms.length;
+
+    // Load bookings for the month
+    const startDate = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth(), 1);
+    const endDate = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth() + 1, 0);
+
+    this.dashboardService.getCalendarEvents(userId, startDate, endDate, propertyIds).pipe(
+      catchError(error => {
+        console.error('Error loading room planner data:', error);
+        return of([]);
+      })
+    ).subscribe(events => {
+      this.processBookingsForPlanner(events);
+      this.calculateOccupancyStats();
+      this.loadingRoomPlanner = false;
+      this.cdr.detectChanges();
+    });
+  }
+
+  /**
+   * Process bookings and map them to rooms and dates
+   */
+  private processBookingsForPlanner(events: any[]): void {
+    this.roomBookings.clear();
+
+    events.forEach(event => {
+      // Extract room number from event title
+      const roomMatch = event.title.match(/Room (\d+)/);
+      if (roomMatch) {
+        const roomNumber = roomMatch[1];
+        const room = this.rooms.find(r => r.roomNumber === roomNumber);
+
+        if (room) {
+          const startDate = new Date(event.start);
+          const endDate = event.end ? new Date(event.end) : startDate;
+
+          // Add booking for each day in the range
+          let currentDate = new Date(startDate);
+          while (currentDate <= endDate) {
+            const key = `${room.id}-${currentDate.toISOString().split('T')[0]}`;
+            this.roomBookings.set(key, {
+              type: event.type,
+              guestName: event.description?.split('-')[1]?.trim() || 'Guest',
+              bookingId: event.id,
+              color: event.color
+            });
+            currentDate.setDate(currentDate.getDate() + 1);
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Calculate occupancy statistics
+   */
+  private calculateOccupancyStats(): void {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    this.occupiedRoomsToday = 0;
+    this.rooms.forEach(room => {
+      const status = this.getRoomStatus(room.id, today);
+      if (status === 'occupied' || status === 'checkin') {
+        this.occupiedRoomsToday++;
+      }
+    });
+
+    this.availableRoomsToday = this.totalRooms - this.occupiedRoomsToday;
+    this.occupancyRateToday = this.totalRooms > 0 
+      ? Math.round((this.occupiedRoomsToday / this.totalRooms) * 100) 
+      : 0;
+  }
+
+  /**
+   * Get room status for a specific date
+   */
+  getRoomStatus(roomId: number, date: Date): string {
+    const key = `${roomId}-${date.toISOString().split('T')[0]}`;
+    const booking = this.roomBookings.get(key);
+
+    if (booking) {
+      return booking.type || 'occupied';
+    }
+
+    return 'available';
+  }
+
+  /**
+   * Get booking info for tooltip
+   */
+  getRoomTooltip(roomId: number, date: Date): string {
+    const status = this.getRoomStatus(roomId, date);
+    const key = `${roomId}-${date.toISOString().split('T')[0]}`;
+    const booking = this.roomBookings.get(key);
+
+    switch (status) {
+      case 'occupied':
+        return `Occupied by ${booking?.guestName || 'Guest'}`;
+      case 'checkin':
+        return `Check-in: ${booking?.guestName || 'Guest'}`;
+      case 'checkout':
+        return `Check-out: ${booking?.guestName || 'Guest'}`;
+      case 'maintenance':
+        return 'Under maintenance';
+      default:
+        return 'Available';
+    }
+  }
+
+  /**
+   * Get booking info for display
+   */
+  getBookingInfo(roomId: number, date: Date): any {
+    const key = `${roomId}-${date.toISOString().split('T')[0]}`;
+    return this.roomBookings.get(key);
+  }
+
+  /**
+   * Navigate to previous/next month
+   */
+  navigateMonth(direction: number): void {
+    this.currentPlannerMonth = new Date(
+      this.currentPlannerMonth.getFullYear(),
+      this.currentPlannerMonth.getMonth() + direction,
+      1
+    );
+    this.loadRoomPlannerData();
+  }
+
+  /**
+   * Go to today's date
+   */
+  goToToday(): void {
+    this.currentPlannerMonth = new Date();
+    this.loadRoomPlannerData();
+  }
+
+  /**
+   * Refresh room planner data
+   */
+  refreshRoomPlanner(): void {
+    this.loadRoomPlannerData();
+    this.snackBar.open('Room planner refreshed', 'Close', { duration: 2000 });
+  }
+
+  /**
+   * Handle room day click
+   */
+  onRoomDayClick(room: any, date: Date): void {
+    console.log('Room day clicked:', room.roomNumber, date);
+    // TODO: Open dialog for booking details or create new booking
   }
 
   /**

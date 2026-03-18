@@ -293,17 +293,20 @@ namespace MyWarehouse.WebApi.API.V1
         /// </summary>
         /// <param name="userId">User ID</param>
         /// <param name="limit">Number of items to return</param>
+        /// <param name="propertyIds">Optional property IDs to filter by</param>
         /// <returns>List of recent bookings</returns>
         [HttpGet("activity/recent-bookings")]
         [ProducesResponseType(typeof(List<RecentBookingResponse>), 200)]
         public async Task<ActionResult<List<RecentBookingResponse>>> GetRecentBookings(
             [FromQuery] int userId,
-            [FromQuery] int limit = 10)
+            [FromQuery] int limit = 10,
+            [FromQuery] List<int>? propertyIds = null)
         {
             var result = await _mediator.Send(new GetRecentBookingsQuery 
             { 
                 UserId = userId,
-                Limit = limit 
+                Limit = limit,
+                PropertyIds = propertyIds ?? new List<int>()
             });
             return Ok(result);
         }
@@ -314,13 +317,15 @@ namespace MyWarehouse.WebApi.API.V1
         /// <param name="userId">User ID</param>
         /// <param name="startDate">Start date for events</param>
         /// <param name="endDate">End date for events</param>
+        /// <param name="propertyIds">Optional property IDs to filter by</param>
         /// <returns>List of calendar events</returns>
         [HttpGet("activity/calendar-events")]
         [ProducesResponseType(typeof(List<CalendarEventResponse>), 200)]
         public async Task<ActionResult<List<CalendarEventResponse>>> GetCalendarEvents(
             [FromQuery] int userId,
             [FromQuery] DateTime? startDate = null,
-            [FromQuery] DateTime? endDate = null)
+            [FromQuery] DateTime? endDate = null,
+            [FromQuery] List<int>? propertyIds = null)
         {
             var start = startDate ?? DateTime.UtcNow.Date.AddDays(-30);
             var end = endDate ?? DateTime.UtcNow.Date.AddDays(30);
@@ -329,7 +334,8 @@ namespace MyWarehouse.WebApi.API.V1
             { 
                 UserId = userId,
                 StartDate = start,
-                EndDate = end 
+                EndDate = end,
+                PropertyIds = propertyIds ?? new List<int>()
             });
             return Ok(result);
         }
@@ -340,19 +346,22 @@ namespace MyWarehouse.WebApi.API.V1
         /// <param name="userId">User ID</param>
         /// <param name="daysBack">Number of days to look back (default: 30)</param>
         /// <param name="groupBy">Grouping: day, week, or month (default: day)</param>
+        /// <param name="propertyIds">Optional property IDs to filter by</param>
         /// <returns>Booking trends data</returns>
         [HttpGet("activity/booking-trends")]
         [ProducesResponseType(typeof(BookingTrendsResponse), 200)]
         public async Task<ActionResult<BookingTrendsResponse>> GetBookingTrends(
             [FromQuery] int userId,
             [FromQuery] int daysBack = 30,
-            [FromQuery] string groupBy = "day")
+            [FromQuery] string groupBy = "day",
+            [FromQuery] List<int>? propertyIds = null)
         {
             var result = await _mediator.Send(new GetBookingTrendsQuery
             {
                 UserId = userId,
                 DaysBack = daysBack,
-                GroupBy = groupBy
+                GroupBy = groupBy,
+                PropertyIds = propertyIds ?? new List<int>()
             });
             return Ok(result);
         }

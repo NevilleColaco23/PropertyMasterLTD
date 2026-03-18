@@ -165,10 +165,18 @@ export class DashboardService {
   /**
    * Get recent bookings for dashboard
    */
-  getRecentBookings(userId: number, limit: number = 10): Observable<ActivityItemResponse[]> {
-    const params = new HttpParams()
+  getRecentBookings(userId: number, limit: number = 10, propertyIds?: number[]): Observable<ActivityItemResponse[]> {
+    let params = new HttpParams()
       .set('userId', userId.toString())
       .set('limit', limit.toString());
+
+    // Add property IDs if provided
+    if (propertyIds && propertyIds.length > 0) {
+      propertyIds.forEach(id => {
+        params = params.append('propertyIds', id.toString());
+      });
+    }
+
     return this.http.get<ActivityItemResponse[]>(`${this.apiUrl}/activity/recent-bookings`, { params });
   }
 
@@ -178,7 +186,8 @@ export class DashboardService {
   getCalendarEvents(
     userId: number,
     startDate?: Date,
-    endDate?: Date
+    endDate?: Date,
+    propertyIds?: number[]
   ): Observable<CalendarEventResponse[]> {
     let params = new HttpParams().set('userId', userId.toString());
 
@@ -197,6 +206,13 @@ export class DashboardService {
       params = params.set('endDate', `${year}-${month}-${day}`);
     }
 
+    // Add property IDs if provided
+    if (propertyIds && propertyIds.length > 0) {
+      propertyIds.forEach(id => {
+        params = params.append('propertyIds', id.toString());
+      });
+    }
+
     return this.http.get<CalendarEventResponse[]>(`${this.apiUrl}/activity/calendar-events`, { params });
   }
 
@@ -206,12 +222,20 @@ export class DashboardService {
   getBookingTrends(
     userId: number,
     daysBack: number = 30,
-    groupBy: 'day' | 'week' | 'month' = 'day'
+    groupBy: 'day' | 'week' | 'month' = 'day',
+    propertyIds?: number[]
   ): Observable<any> {
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('userId', userId.toString())
       .set('daysBack', daysBack.toString())
       .set('groupBy', groupBy);
+
+    // Add property IDs if provided
+    if (propertyIds && propertyIds.length > 0) {
+      propertyIds.forEach(id => {
+        params = params.append('propertyIds', id.toString());
+      });
+    }
 
     return this.http.get<any>(`${this.apiUrl}/activity/booking-trends`, { params });
   }

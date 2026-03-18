@@ -96,14 +96,33 @@ export class PropertySelectionComponent implements OnInit {
     }, { headers }).subscribe({
       next: () => {
         console.log('✅ Property selection logged successfully:', message);
-        this.router.navigate(['/propertyLanding']);
+        this.navigateAfterSelection();
       },
       error: (err) => {
         console.error('⚠️ Failed to log property selection, but continuing:', err);
         // Still navigate even if logging fails
-        this.router.navigate(['/propertyLanding']);
+        this.navigateAfterSelection();
       }
     });
+  }
+
+  /**
+   * Navigate to the appropriate page after property selection
+   * Checks for stored redirect URL from propertySelectionGuard
+   */
+  private navigateAfterSelection(): void {
+    // Check if there was a redirect URL stored by the guard
+    const redirectUrl = sessionStorage.getItem('redirect_after_property_selection');
+
+    if (redirectUrl) {
+      console.log('🔄 Redirecting to stored URL:', redirectUrl);
+      sessionStorage.removeItem('redirect_after_property_selection');
+      this.router.navigateByUrl(redirectUrl);
+    } else {
+      // Default navigation to property landing
+      console.log('🏠 Navigating to default property landing');
+      this.router.navigate(['/propertyLanding']);
+    }
   }
 
   clearSelection(): void {

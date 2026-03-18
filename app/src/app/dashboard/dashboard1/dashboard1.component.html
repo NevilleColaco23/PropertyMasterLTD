@@ -1,140 +1,154 @@
 <div class="dashboard-container">
-  <div class="dashboard-header">
-    <div class="header-left">
-      <h1>
-        <mat-icon>dashboard</mat-icon>
+  <!-- Tab Navigation -->
+  <mat-tab-group class="dashboard-tabs" [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)">
+
+    <!-- Tab 1: Dashboard -->
+    <mat-tab label="Dashboard">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">dashboard</mat-icon>
         Dashboard
-      </h1>
-    </div>
+      </ng-template>
 
-    <div class="header-right">
-      <!-- Edit Mode Buttons -->
-      @if (editMode) {
-        <button mat-raised-button 
-                color="primary"
-                (click)="saveDashboard()"
-                [disabled]="!hasUnsavedChanges || loading"
-                matTooltip="Save Dashboard">
-          <mat-icon>save</mat-icon>
-          Save
-          @if (hasUnsavedChanges) {
-            <mat-icon class="unsaved-badge">fiber_manual_record</mat-icon>
+      <div class="tab-content">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+          <div class="header-left">
+            <h1>
+              <mat-icon>dashboard</mat-icon>
+              Dashboard
+            </h1>
+          </div>
+
+          <div class="header-right">
+            <!-- Edit Mode Buttons -->
+            @if (editMode) {
+              <button mat-raised-button 
+                      color="primary"
+                      (click)="saveDashboard()"
+                      [disabled]="!hasUnsavedChanges || loading"
+                      matTooltip="Save Dashboard">
+                <mat-icon>save</mat-icon>
+                Save
+                @if (hasUnsavedChanges) {
+                  <mat-icon class="unsaved-badge">fiber_manual_record</mat-icon>
+                }
+              </button>
+
+              <button mat-raised-button 
+                      (click)="saveDashboardAs()"
+                      [disabled]="loading"
+                      matTooltip="Save As New Dashboard">
+                <mat-icon>save_as</mat-icon>
+                Save As
+              </button>
+
+              <button mat-raised-button 
+                      (click)="cancelEdit()"
+                      [disabled]="loading"
+                      matTooltip="Cancel Changes">
+                <mat-icon>cancel</mat-icon>
+                Cancel
+              </button>
+
+              <button mat-raised-button 
+                      color="warn"
+                      (click)="revertToLastSaved()"
+                      [disabled]="!hasUnsavedChanges || loading"
+                      matTooltip="Revert to Last Saved State">
+                <mat-icon>restore</mat-icon>
+                Revert
+              </button>
+
+              <button mat-raised-button 
+                      color="accent"
+                      (click)="openWidgetPicker()"
+                      matTooltip="Add Widget">
+                <mat-icon>add</mat-icon>
+                Add Widget
+              </button>
+            }
+
+            <!-- Dashboard Selector -->
+            <mat-form-field appearance="outline" class="dashboard-selector">
+              <mat-label>Dashboard</mat-label>
+              <mat-select 
+                [(value)]="selectedDashboard" 
+                (selectionChange)="onDashboardChange($event)"
+                [disabled]="loading || isLoadingDashboards">
+                <mat-option [value]="null">
+                  <mat-icon>add_circle</mat-icon>
+                  Create New Dashboard
+                </mat-option>
+                <mat-divider></mat-divider>
+                @for (dashboard of userDashboards; track dashboard.id) {
+                  <mat-option [value]="dashboard.id">
+                    <mat-icon>{{ dashboard.isDefault ? 'star' : 'dashboard' }}</mat-icon>
+                    {{ dashboard.dashboardName }}
+                    @if (dashboard.isDefault) {
+                      <span class="default-badge">Default</span>
+                    }
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Set as Default Button -->
+            @if (selectedDashboard && !isCurrentDashboardDefault() && !editMode) {
+              <button mat-icon-button 
+                      (click)="setAsDefaultDashboard()"
+                      [disabled]="loading"
+                      matTooltip="Set as Default Dashboard"
+                      color="accent">
+                <mat-icon>star_border</mat-icon>
+              </button>
+            }
+
+            <!-- Save As Button (non-edit mode) -->
+            @if (!editMode && selectedDashboard) {
+              <button mat-raised-button 
+                      (click)="saveDashboardAs()"
+                      [disabled]="loading"
+                      matTooltip="Save As New Dashboard">
+                <mat-icon>save_as</mat-icon>
+                Save As
+              </button>
+            }
+
+            <!-- Delete Dashboard Button -->
+            @if (selectedDashboard && !editMode && userDashboards.length > 1) {
+              <button mat-icon-button 
+                      (click)="deleteDashboard()"
+                      [disabled]="loading"
+                      matTooltip="Delete Dashboard"
+                      color="warn">
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
+
+            <!-- Edit Mode Toggle -->
+            <button mat-raised-button 
+                    [color]="editMode ? 'warn' : 'primary'"
+                    (click)="toggleEditMode()"
+                    matTooltip="{{ editMode ? 'Exit Edit Mode' : 'Customize Dashboard' }}">
+              <mat-icon>{{ editMode ? 'close' : 'edit' }}</mat-icon>
+              {{ editMode ? 'Exit Edit' : 'Customize' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Dashboard Content Wrapper -->
+        <div class="dashboard-content-wrapper">
+          <!-- Loading Spinner -->
+          @if (loading) {
+            <div class="loading-container">
+              <mat-spinner></mat-spinner>
+              <p>Loading dashboard...</p>
+            </div>
           }
-        </button>
 
-        <button mat-raised-button 
-                (click)="saveDashboardAs()"
-                [disabled]="loading"
-                matTooltip="Save As New Dashboard">
-          <mat-icon>save_as</mat-icon>
-          Save As
-        </button>
-
-        <button mat-raised-button 
-                (click)="cancelEdit()"
-                [disabled]="loading"
-                matTooltip="Cancel Changes">
-          <mat-icon>cancel</mat-icon>
-          Cancel
-        </button>
-
-        <button mat-raised-button 
-                color="warn"
-                (click)="revertToLastSaved()"
-                [disabled]="!hasUnsavedChanges || loading"
-                matTooltip="Revert to Last Saved State">
-          <mat-icon>restore</mat-icon>
-          Revert
-        </button>
-
-        <button mat-raised-button 
-                color="accent"
-                (click)="openWidgetPicker()"
-                matTooltip="Add Widget">
-          <mat-icon>add</mat-icon>
-          Add Widget
-        </button>
-      }
-
-      <!-- Dashboard Selector -->
-      <mat-form-field appearance="outline" class="dashboard-selector">
-        <mat-label>Dashboard</mat-label>
-        <mat-select 
-          [(value)]="selectedDashboard" 
-          (selectionChange)="onDashboardChange($event)"
-          [disabled]="loading || isLoadingDashboards">
-          <mat-option [value]="null">
-            <mat-icon>add_circle</mat-icon>
-            Create New Dashboard
-          </mat-option>
-          <mat-divider></mat-divider>
-          @for (dashboard of userDashboards; track dashboard.id) {
-            <mat-option [value]="dashboard.id">
-              <mat-icon>{{ dashboard.isDefault ? 'star' : 'dashboard' }}</mat-icon>
-              {{ dashboard.dashboardName }}
-              @if (dashboard.isDefault) {
-                <span class="default-badge">Default</span>
-              }
-            </mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-
-      <!-- Set as Default Button -->
-      @if (selectedDashboard && !isCurrentDashboardDefault() && !editMode) {
-        <button mat-icon-button 
-                (click)="setAsDefaultDashboard()"
-                [disabled]="loading"
-                matTooltip="Set as Default Dashboard"
-                color="accent">
-          <mat-icon>star_border</mat-icon>
-        </button>
-      }
-
-      <!-- Save As Button (non-edit mode) -->
-      @if (!editMode && selectedDashboard) {
-        <button mat-raised-button 
-                (click)="saveDashboardAs()"
-                [disabled]="loading"
-                matTooltip="Save As New Dashboard">
-          <mat-icon>save_as</mat-icon>
-          Save As
-        </button>
-      }
-
-      <!-- Delete Dashboard Button -->
-      @if (selectedDashboard && !editMode && userDashboards.length > 1) {
-        <button mat-icon-button 
-                (click)="deleteDashboard()"
-                [disabled]="loading"
-                matTooltip="Delete Dashboard"
-                color="warn">
-          <mat-icon>delete</mat-icon>
-        </button>
-      }
-
-      <!-- Edit Mode Toggle -->
-      <button mat-raised-button 
-              [color]="editMode ? 'warn' : 'primary'"
-              (click)="toggleEditMode()"
-              matTooltip="{{ editMode ? 'Exit Edit Mode' : 'Customize Dashboard' }}">
-        <mat-icon>{{ editMode ? 'close' : 'edit' }}</mat-icon>
-        {{ editMode ? 'Exit Edit' : 'Customize' }}
-      </button>
-    </div>
-  </div>
-
-  <!-- Loading Spinner -->
-  @if (loading) {
-    <div class="loading-container">
-      <mat-spinner></mat-spinner>
-      <p>Loading dashboard...</p>
-    </div>
-  }
-
-  <!-- Gridster Dashboard -->
-  @if (!loading) {
-    <gridster [options]="options">
+          <!-- Gridster Dashboard -->
+          @if (!loading) {
+            <gridster [options]="options">
       @for (item of dashboardItems; track item.widgetId) {
         <gridster-item [item]="item" (itemChange)="itemChange($event, item)">
           <mat-card class="widget-card">
@@ -210,17 +224,156 @@
       }
     </gridster>
 
-    <!-- Empty State -->
-    @if (dashboardItems.length === 0) {
-      <div class="empty-dashboard">
-        <mat-icon class="empty-icon">widgets</mat-icon>
-        <h2>No Widgets Added</h2>
-        <p>Click "Customize" and then "Add Widget" to start building your dashboard.</p>
-        <button mat-raised-button color="primary" (click)="toggleEditMode()">
-          <mat-icon>edit</mat-icon>
-          Customize Dashboard
-        </button>
+            <!-- Empty State -->
+            @if (dashboardItems.length === 0) {
+              <div class="empty-dashboard">
+                <mat-icon class="empty-icon">widgets</mat-icon>
+                <h2>No Widgets Added</h2>
+                <p>Click "Customize" and then "Add Widget" to start building your dashboard.</p>
+                <button mat-raised-button color="primary" (click)="toggleEditMode()">
+                  <mat-icon>edit</mat-icon>
+                  Customize Dashboard
+                </button>
+              </div>
+            }
+          }
+        </div><!-- Close dashboard-content-wrapper -->
       </div>
-    }
-  }
+    </mat-tab>
+
+    <!-- Tab 2: Room Planner -->
+    <mat-tab label="Room Planner">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">calendar_month</mat-icon>
+        Room Planner
+      </ng-template>
+
+      <div class="tab-content">
+        <div class="room-planner-container">
+          <div class="planner-header">
+            <h2>
+              <mat-icon>hotel</mat-icon>
+              Room Occupancy Calendar
+            </h2>
+            <div class="planner-controls">
+              <button mat-icon-button (click)="navigateMonth(-1)" matTooltip="Previous Month">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+              <span class="current-month">{{ currentPlannerMonth | date:'MMMM yyyy' }}</span>
+              <button mat-icon-button (click)="navigateMonth(1)" matTooltip="Next Month">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+              <button mat-icon-button (click)="goToToday()" matTooltip="Today">
+                <mat-icon>today</mat-icon>
+              </button>
+              <button mat-raised-button color="primary" (click)="refreshRoomPlanner()" matTooltip="Refresh Data">
+                <mat-icon>refresh</mat-icon>
+                Refresh
+              </button>
+            </div>
+          </div>
+
+          <!-- Room Planner Calendar Grid -->
+          <div class="room-planner-grid" *ngIf="!loadingRoomPlanner">
+            <!-- Legend -->
+            <div class="planner-legend">
+              <div class="legend-item">
+                <div class="legend-color available"></div>
+                <span>Available</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color occupied"></div>
+                <span>Occupied</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color checkin"></div>
+                <span>Check-in</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color checkout"></div>
+                <span>Check-out</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color maintenance"></div>
+                <span>Maintenance</span>
+              </div>
+            </div>
+
+            <!-- Calendar Grid Header (Days) -->
+            <div class="calendar-header">
+              <div class="room-label-cell">Room</div>
+              <div class="day-cell" *ngFor="let day of plannerDays">
+                <div class="day-number">{{ day.date | date:'d' }}</div>
+                <div class="day-name">{{ day.date | date:'EEE' }}</div>
+              </div>
+            </div>
+
+            <!-- Room Rows -->
+            <div class="room-row" *ngFor="let room of rooms">
+              <div class="room-label-cell">
+                <div class="room-number">{{ room.roomNumber }}</div>
+                <div class="room-type">{{ room.roomType }}</div>
+              </div>
+              <div class="day-cell" 
+                   *ngFor="let day of plannerDays"
+                   [class.available]="getRoomStatus(room.id, day.date) === 'available'"
+                   [class.occupied]="getRoomStatus(room.id, day.date) === 'occupied'"
+                   [class.checkin]="getRoomStatus(room.id, day.date) === 'checkin'"
+                   [class.checkout]="getRoomStatus(room.id, day.date) === 'checkout'"
+                   [class.maintenance]="getRoomStatus(room.id, day.date) === 'maintenance'"
+                   [matTooltip]="getRoomTooltip(room.id, day.date)"
+                   (click)="onRoomDayClick(room, day.date)">
+                <div class="day-content">
+                  <span class="booking-info" *ngIf="getBookingInfo(room.id, day.date) as booking">
+                    {{ booking.guestName || 'Guest' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-planner" *ngIf="rooms.length === 0">
+              <mat-icon>hotel_class</mat-icon>
+              <p>No rooms available. Please add properties and rooms first.</p>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div class="planner-loading" *ngIf="loadingRoomPlanner">
+            <mat-spinner diameter="60"></mat-spinner>
+            <p>Loading room availability...</p>
+          </div>
+
+          <!-- Summary Stats -->
+          <div class="planner-stats" *ngIf="!loadingRoomPlanner && rooms.length > 0">
+            <mat-card class="stat-card">
+              <mat-card-content>
+                <div class="stat-value">{{ totalRooms }}</div>
+                <div class="stat-label">Total Rooms</div>
+              </mat-card-content>
+            </mat-card>
+            <mat-card class="stat-card">
+              <mat-card-content>
+                <div class="stat-value">{{ occupiedRoomsToday }}</div>
+                <div class="stat-label">Occupied Today</div>
+              </mat-card-content>
+            </mat-card>
+            <mat-card class="stat-card">
+              <mat-card-content>
+                <div class="stat-value">{{ availableRoomsToday }}</div>
+                <div class="stat-label">Available Today</div>
+              </mat-card-content>
+            </mat-card>
+            <mat-card class="stat-card">
+              <mat-card-content>
+                <div class="stat-value">{{ occupancyRateToday }}%</div>
+                <div class="stat-label">Occupancy Rate</div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
 </div>

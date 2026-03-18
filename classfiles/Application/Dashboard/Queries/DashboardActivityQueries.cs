@@ -18,6 +18,7 @@ namespace MyWarehouse.Application.Dashboard.Queries
     {
         public int UserId { get; set; }
         public int Limit { get; set; } = 10;
+        public List<int> PropertyIds { get; set; } = new List<int>();
     }
 
     /// <summary>
@@ -28,6 +29,7 @@ namespace MyWarehouse.Application.Dashboard.Queries
         public int UserId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public List<int> PropertyIds { get; set; } = new List<int>();
     }
 
     /// <summary>
@@ -38,6 +40,7 @@ namespace MyWarehouse.Application.Dashboard.Queries
         public int UserId { get; set; }
         public int DaysBack { get; set; } = 30; // Default to last 30 days
         public string GroupBy { get; set; } = "day"; // "day", "week", "month"
+        public List<int> PropertyIds { get; set; } = new List<int>();
     }
 
     /// <summary>

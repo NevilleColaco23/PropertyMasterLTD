@@ -1,9 +1,4 @@
-.dashboard-container {
-  padding: 16px 20px;
-  max-width: 1400px;
-  margin: 0 auto;
-  min-height: calc(100vh - 64px);
-}
+/* Dashboard Component Styles */
 
 .dashboard-header {
   display: flex;
@@ -28,7 +23,6 @@
   flex-wrap: wrap;
 }
 
-/* Edit mode button group */
 .header-right button {
   font-weight: 500;
   text-transform: uppercase;
@@ -48,7 +42,6 @@
   height: 20px;
 }
 
-/* Revert button specific styling */
 .header-right button[color="warn"]:not(:disabled) {
   background-color: #ff6b6b;
   color: white;
@@ -122,6 +115,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  flex: 1;
   padding: 80px 20px;
   text-align: center;
 }
@@ -131,17 +125,6 @@
   color: #666;
 }
 
-/* ========================================
-   PHASE 5: GRIDSTER STYLES
-   ======================================== */
-
-gridster {
-  background: transparent !important;
-  overflow: visible !important;
-  min-height: 100%;
-}
-
-/* Hide gridster grid lines and row backgrounds in normal mode */
 gridster .gridster-column,
 gridster .gridster-row {
   background: transparent !important;
@@ -171,7 +154,6 @@ gridster-item {
   transform: translateY(-2px);
 }
 
-/* Edit Mode Header - Only visible when editing */
 .widget-card .widget-edit-header {
   padding: 8px 12px;
   background-color: rgba(25, 118, 210, 0.05);
@@ -182,7 +164,6 @@ gridster-item {
   justify-content: flex-end;
 }
 
-/* Normal Mode - No header, full content */
 .widget-card mat-card-content {
   padding: 0;
   flex: 1;
@@ -191,29 +172,26 @@ gridster-item {
   flex-direction: column;
 }
 
-/* Remove top padding when no header */
 .widget-card mat-card-content.no-header {
   padding: 0;
 }
 
-/* Ensure widgets inside expand to fill space */
 .widget-card mat-card-content > * {
   flex: 1;
   height: 100%;
   min-height: 0;
 }
 
-/* Force widget components to fill their containers - Multiple approaches for reliability */
 .widget-card mat-card-content > app-kpi-card-widget,
 .widget-card mat-card-content > app-list-widget,
 .widget-card mat-card-content > app-chart-widget,
-.widget-card mat-card-content > app-calendar-widget {
+.widget-card mat-card-content > app-calendar-widget,
+.widget-card mat-card-content > app-activity-stream-widget {
   display: block !important;
   height: 100% !important;
   width: 100% !important;
 }
 
-/* Also target directly without parent context */
 gridster-item app-kpi-card-widget,
 gridster-item app-list-widget,
 gridster-item app-chart-widget,
@@ -223,7 +201,6 @@ gridster-item app-calendar-widget {
   width: 100% !important;
 }
 
-/* Force inner mat-cards to fill space */
 app-kpi-card-widget > mat-card,
 app-list-widget > mat-card,
 app-chart-widget > mat-card,
@@ -283,17 +260,16 @@ app-calendar-widget > mat-card > mat-card-content {
   font-size: 14px;
 }
 
-/* Empty Dashboard State */
 .empty-dashboard {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  flex: 1;
   padding: 80px 20px;
   text-align: center;
   background-color: #f5f5f5;
   border-radius: 8px;
-  margin-top: 40px;
 }
 
 .empty-icon {
@@ -315,7 +291,6 @@ app-calendar-widget > mat-card > mat-card-content {
   max-width: 400px;
 }
 
-/* Unsaved Changes Badge */
 .unsaved-badge {
   font-size: 12px;
   width: 12px;
@@ -334,7 +309,6 @@ app-calendar-widget > mat-card > mat-card-content {
   }
 }
 
-/* Gridster Dragging States */
 gridster-item.gridster-item-moving .widget-card {
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
   opacity: 0.9;
@@ -344,7 +318,6 @@ gridster-item.gridster-item-resizing .widget-card {
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
-/* Responsive Adjustments */
 @media (max-width: 768px) {
   .dashboard-header {
     flex-direction: column;
@@ -360,7 +333,6 @@ gridster-item.gridster-item-resizing .widget-card {
   }
 }
 
-/* Phase 5: Widget-specific overrides */
 .widget-card app-kpi-card-widget,
 .widget-card app-list-widget,
 .widget-card app-chart-widget,

@@ -11,11 +11,13 @@ namespace MyWarehouse.Application.Dashboard.Queries
     {
         private readonly int _limit;
         private readonly int _userId;
+        private readonly List<int> _propertyIds;
 
-        public GetRecentBookingsMongoQuery(int userId, int limit)
+        public GetRecentBookingsMongoQuery(int userId, int limit, List<int> propertyIds = null)
         {
             _userId = userId;
             _limit = limit;
+            _propertyIds = propertyIds ?? new List<int>();
         }
 
         public BsonArray? BsonPipeline => GetRecentBookingsPipeline();
@@ -24,10 +26,17 @@ namespace MyWarehouse.Application.Dashboard.Queries
         {
             var pipeline = new BsonArray();
 
-            // Stage 1: Sort by CreatedAt descending (most recent first)
+            // Stage 1: Match by property IDs if provided
+            if (_propertyIds != null && _propertyIds.Any())
+            {
+                var propertyIdsArray = new BsonArray(_propertyIds.Select(id => new BsonInt32(id)));
+                pipeline.Add(new BsonDocument("$match", new BsonDocument("propertyId", new BsonDocument("$in", propertyIdsArray))));
+            }
+
+            // Stage 2: Sort by CreatedAt descending (most recent first)
             pipeline.Add(new BsonDocument("$sort", new BsonDocument("bookingDate", -1)));
 
-            // Stage 2: Limit results
+            // Stage 3: Limit results
             pipeline.Add(new BsonDocument("$limit", _limit));
 
             pipeline.Add(new BsonDocument("$lookup", new BsonDocument
@@ -38,14 +47,14 @@ namespace MyWarehouse.Application.Dashboard.Queries
                 { "as", "guestInfo" }
             }));
 
-            // Stage 4: Unwind guestInfo array (converts array to object, preserveNullAndEmptyArrays keeps bookings without guests)
+            // Stage 5: Unwind guestInfo array (converts array to object, preserveNullAndEmptyArrays keeps bookings without guests)
             pipeline.Add(new BsonDocument("$unwind", new BsonDocument
             {
                 { "path", "$guestInfo" },
                 { "preserveNullAndEmptyArrays", true }
             }));
 
-            // Stage 5: Project final shape with guest name extracted and concatenated  
+            // Stage 6: Project final shape with guest name extracted and concatenated  
             pipeline.Add(new BsonDocument("$project", new BsonDocument
             {
                 { "_id", 1 },

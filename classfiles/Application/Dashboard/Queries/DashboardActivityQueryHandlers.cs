@@ -168,12 +168,21 @@ namespace MyWarehouse.Application.Dashboard.Queries
                 // Get bookings within date range
                 var bookingsCollection = _database.GetCollection<BsonDocument>("Bookings");
 
-                // Filter by check-in date within the requested range
-                var filter = Builders<BsonDocument>.Filter.And(
+                // Build filters list conditionally
+                var filters = new List<FilterDefinition<BsonDocument>>
+                {
                     Builders<BsonDocument>.Filter.Gte("checkInDate", request.StartDate),
                     Builders<BsonDocument>.Filter.Lte("checkInDate", request.EndDate),
                     Builders<BsonDocument>.Filter.Eq("Status", "Active") // Only active bookings
-                );
+                };
+
+                // Add property filter if property IDs are provided
+                if (request.PropertyIds != null && request.PropertyIds.Any())
+                {
+                    filters.Add(Builders<BsonDocument>.Filter.In("propertyId", request.PropertyIds));
+                }
+
+                var filter = Builders<BsonDocument>.Filter.And(filters);
 
                 var bookings = await bookingsCollection
                     .Find(filter)
@@ -268,12 +277,21 @@ namespace MyWarehouse.Application.Dashboard.Queries
                 var endDate = DateTime.UtcNow.Date.AddDays(1); // Include today
                 var startDate = endDate.AddDays(-request.DaysBack);
 
-                // Get bookings in date range
-                var filter = Builders<BsonDocument>.Filter.And(
+                // Build filters list conditionally
+                var filters = new List<FilterDefinition<BsonDocument>>
+                {
                     Builders<BsonDocument>.Filter.Gte("CreatedAt", startDate),
                     Builders<BsonDocument>.Filter.Lt("CreatedAt", endDate),
                     Builders<BsonDocument>.Filter.Eq("Status", "Active")
-                );
+                };
+
+                // Add property filter if property IDs are provided
+                if (request.PropertyIds != null && request.PropertyIds.Any())
+                {
+                    filters.Add(Builders<BsonDocument>.Filter.In("propertyId", request.PropertyIds));
+                }
+
+                var filter = Builders<BsonDocument>.Filter.And(filters);
 
                 var bookings = await bookingsCollection
                     .Find(filter)
@@ -439,7 +457,7 @@ namespace MyWarehouse.Application.Dashboard.Queries
                 var bookingsCollection = _database.GetCollection<BsonDocument>("Bookings");
 
                 // Use MongoDB aggregation pipeline with $lookup for guest information
-                var mongoQuery = new GetRecentBookingsMongoQuery(request.UserId, request.Limit);
+                var mongoQuery = new GetRecentBookingsMongoQuery(request.UserId, request.Limit, request.PropertyIds);
                 var pipelineStages = mongoQuery.BsonPipeline.Select(stage => (BsonDocument)stage).ToArray();
 
                 Console.WriteLine($"🔧 Executing aggregation with {pipelineStages.Length} stages");
