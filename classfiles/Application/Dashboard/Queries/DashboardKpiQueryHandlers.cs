@@ -117,9 +117,15 @@ namespace MyWarehouse.Application.Dashboard.Queries
             var today = DateTime.UtcNow.Date;
             var tomorrow = today.AddDays(1);
 
+            // Use provided property IDs or default to all properties
+            var propertyFilter = request.PropertyIds != null && request.PropertyIds.Any()
+                ? Builders<BsonDocument>.Filter.In("propertyId", request.PropertyIds)
+                : Builders<BsonDocument>.Filter.Empty;
+
             // Count bookings created today
             var bookingsToday = await collection.CountDocumentsAsync(
                 Builders<BsonDocument>.Filter.And(
+                    propertyFilter,
                     Builders<BsonDocument>.Filter.Gte("CreatedAt", today),
                     Builders<BsonDocument>.Filter.Lt("CreatedAt", tomorrow)
                 ),
@@ -130,6 +136,7 @@ namespace MyWarehouse.Application.Dashboard.Queries
             var yesterday = today.AddDays(-1);
             var bookingsYesterday = await collection.CountDocumentsAsync(
                 Builders<BsonDocument>.Filter.And(
+                    propertyFilter,
                     Builders<BsonDocument>.Filter.Gte("CreatedAt", yesterday),
                     Builders<BsonDocument>.Filter.Lt("CreatedAt", today)
                 ),

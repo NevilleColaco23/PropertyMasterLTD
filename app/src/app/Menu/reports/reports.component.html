@@ -1,3 +1,25 @@
+<!-- Header with navigation -->
+<div class="reports-header">
+  <div class="header-left">
+    <button mat-icon-button (click)="goBackToDashboard()" matTooltip="Back to Dashboard" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>
+      <mat-icon>receipt_long</mat-icon>
+      Bookings Report
+    </h1>
+  </div>
+  @if (filterMode) {
+    <div class="filter-badge">
+      <mat-icon>filter_alt</mat-icon>
+      <span>{{ getFilterLabel() }}</span>
+      <button mat-icon-button (click)="clearFilters()" matTooltip="Clear Filters" class="clear-filter-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  }
+</div>
+
 <mat-expansion-panel [expanded]="panelOpenState" class="reports-panel">
   <mat-expansion-panel-header>
     <mat-panel-title>
@@ -18,6 +40,11 @@
 
 <div class="mat-elevation-z2 table-container">
   <table mat-table [dataSource]="dataSource" matSort>
+
+    <ng-container matColumnDef="srNo">
+      <th mat-header-cell *matHeaderCellDef> Sr. No </th>
+      <td mat-cell *matCellDef="let booking; let i = index"> {{ (pageIndex * pageSize) + i + 1 }} </td>
+    </ng-container>
 
     <ng-container matColumnDef="bookingId">
       <th mat-header-cell *matHeaderCellDef mat-sort-header> Booking ID </th>
@@ -72,9 +99,25 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
     <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="7">No data matching the filter "{{ input.value }}"</td>
+      <td class="mat-cell" colspan="8">No data matching the filter "{{ input.value }}"</td>
     </tr>
   </table>
+
+  <div class="table-stats">
+    <div class="stats-info">
+      <mat-icon>info</mat-icon>
+      <span><strong>Total Records:</strong> {{ totalCount }}</span>
+      <span class="separator">|</span>
+      <span><strong>Showing:</strong> {{ dataSource.data.length }} of {{ totalCount }}</span>
+      @if (filterMode) {
+        <span class="separator">|</span>
+        <span class="filter-indicator">
+          <mat-icon>filter_alt</mat-icon>
+          {{ getFilterLabel() }}
+        </span>
+      }
+    </div>
+  </div>
 
   <mat-paginator
     [length]="totalCount"

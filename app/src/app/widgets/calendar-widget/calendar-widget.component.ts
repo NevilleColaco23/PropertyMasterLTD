@@ -72,7 +72,9 @@ export interface CalendarWidgetData {
                     class="calendar-day"
                     [class.other-month]="!day.isCurrentMonth"
                     [class.today]="day.isToday"
-                    [class.has-events]="day.events.length > 0">
+                    [class.has-events]="day.events.length > 0"
+                    [class.clickable]="day.isCurrentMonth && day.events.length > 0"
+                    (click)="onDayClick(day)">
                     <div class="day-number">{{ day.dayNumber }}</div>
                     @if (day.events.length > 0) {
                       <div class="day-events">
@@ -224,11 +226,14 @@ export interface CalendarWidgetData {
       display: flex;
       flex-direction: column;
       position: relative;
-      cursor: pointer;
       transition: all 0.2s;
     }
 
-    .calendar-day:hover {
+    .calendar-day.clickable {
+      cursor: pointer;
+    }
+
+    .calendar-day.clickable:hover {
       background: #f5f5f5;
       transform: scale(1.05);
       z-index: 1;
@@ -327,6 +332,7 @@ export class CalendarWidgetComponent implements OnInit {
   @Input() settings: any = {};
   @Output() refresh = new EventEmitter<{ timestamp: Date }>();
   @Output() moreDetails = new EventEmitter<void>();
+  @Output() dayClick = new EventEmitter<{ date: Date; events: CalendarEvent[] }>();
 
   currentDate: Date = new Date();
   weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -471,5 +477,16 @@ export class CalendarWidgetComponent implements OnInit {
   onMoreDetails(): void {
     console.log('📋 Calendar Widget More Details clicked!');
     this.moreDetails.emit();
+  }
+
+  onDayClick(dayData: any): void {
+    // Only emit for current month days with events
+    if (dayData.isCurrentMonth && dayData.events.length > 0) {
+      console.log('📅 Calendar day clicked:', dayData.date, 'Events:', dayData.events.length);
+      this.dayClick.emit({
+        date: dayData.date,
+        events: dayData.events
+      });
+    }
   }
 }

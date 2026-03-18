@@ -10,6 +10,8 @@ namespace MyWarehouse.Application.Common.Bookings
     {
         public string BookingId { get; init; }
         public List<int> PropertyIds { get; init; } = new List<int>();
+        public DateTime? StartDate { get; init; }
+        public DateTime? EndDate { get; init; }
     }
 
     public class GetBookingsListQueryHandler : IRequestHandler<GetBookingsListQuery, IListResponseModel<GetBookingsListDTO>>
@@ -32,7 +34,10 @@ namespace MyWarehouse.Application.Common.Bookings
                 request.PageSize, 
                 request.OrderBy, 
                 request.ActiveSortDirection, 
-                request.PropertyIds);
+                request.PropertyIds,
+                getAllProperties: false,
+                startDate: request.StartDate,
+                endDate: request.EndDate);
 
             // 🔍 DEBUG: Store query debug info in local variables (set breakpoint here to inspect)
             var debugInfo = mongoQuery.GetDebugInfo();
@@ -43,13 +48,16 @@ namespace MyWarehouse.Application.Common.Bookings
             // 🔍 DEBUG: Store results info (set breakpoint here to inspect)
             var resultCount = menuList.results.Count;
 
+            // Get total count from MongoDB aggregation (from $facet totalCount)
+            var totalRowCount = menuList?.totalCount?.FirstOrDefault()?.count ?? 0;
+
             var response = new ListResponseModel<GetBookingsListDTO>
             {
                 PageIndex = request.PageIndex,
                 PageSize = request.PageSize,
                 PageCount = menuList.results.Count,
                 RowCount = menuList.results.Count,
-                TotalRowCount = 3000,
+                TotalRowCount = totalRowCount,
                 ActiveFilter = request.Filter,
                 ActiveOrderBy = request.OrderBy,
                 FirstRowOnPage = 1,

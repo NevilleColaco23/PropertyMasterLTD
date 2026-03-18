@@ -24,6 +24,7 @@ namespace MyWarehouse.Application.Dashboard.Queries
     public class GetBookingsTodayQuery : IRequest<KpiValueResponse>
     {
         public int UserId { get; set; }
+        public List<int> PropertyIds { get; set; } = new List<int>();
     }
 
     /// <summary>

@@ -1134,4 +1134,161 @@ export class Dashboard1Component implements OnInit {
       this.refreshAllWidgetData();
     }
   }
+
+  /**
+   * Handle "More Details" button click from widgets
+   */
+  onWidgetMoreDetails(item: DashboardGridsterItem): void {
+    console.log('📋 More Details clicked for widget:', item.widgetId, item.widgetType);
+
+    // Handle different widget types
+    switch (item.widgetType) {
+      case 'kpi-card':
+        this.handleKpiMoreDetails(item);
+        break;
+      case 'list':
+        this.handleListMoreDetails(item);
+        break;
+      case 'chart':
+        this.handleChartMoreDetails(item);
+        break;
+      case 'calendar':
+        this.handleCalendarMoreDetails(item);
+        break;
+      default:
+        console.warn('More Details not implemented for widget type:', item.widgetType);
+    }
+  }
+
+  /**
+   * Handle More Details for KPI widgets
+   */
+  private handleKpiMoreDetails(item: DashboardGridsterItem): void {
+    switch (item.widgetId) {
+      case 'bookings-today':
+        // Navigate to bookings report filtered for today's bookings
+        this.navigateToBookingsReport('today');
+        break;
+      case 'total-properties':
+        // Navigate to properties list
+        console.log('Navigate to properties list');
+        // TODO: Implement when properties report is ready
+        break;
+      case 'total-rooms':
+        // Navigate to rooms list
+        console.log('Navigate to rooms list');
+        // TODO: Implement when rooms report is ready
+        break;
+      case 'occupancy-rate':
+        // Navigate to occupancy report
+        console.log('Navigate to occupancy report');
+        // TODO: Implement when occupancy report is ready
+        break;
+      default:
+        console.warn('More Details not configured for KPI:', item.widgetId);
+    }
+  }
+
+  /**
+   * Handle More Details for List widgets
+   */
+  private handleListMoreDetails(item: DashboardGridsterItem): void {
+    if (item.currentListView === 'bookings') {
+      // Navigate to recent bookings
+      this.navigateToBookingsReport('recent');
+    } else {
+      // Navigate to activity log
+      console.log('Navigate to activity log');
+      // TODO: Implement when activity log page is ready
+    }
+  }
+
+  /**
+   * Handle More Details for Chart widgets
+   */
+  private handleChartMoreDetails(item: DashboardGridsterItem): void {
+    // Navigate to full analytics/reports page with current filter settings
+    const settings = item.settings || {};
+    const daysBack = settings.daysBack || 30;
+
+    // Calculate date range based on current filter
+    const today = new Date();
+    const startDate = new Date(today.getTime() - daysBack * 24 * 60 * 60 * 1000);
+
+    const queryParams: any = {
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: today.toISOString().split('T')[0],
+      filter: 'trends',
+      daysBack: daysBack,
+      groupBy: settings.groupBy || 'day'
+    };
+
+    console.log('📊 Navigating to bookings report with chart filters:', queryParams);
+    this.router.navigate(['/bookings'], { queryParams });
+  }
+
+  /**
+   * Handle More Details for Calendar widgets
+   */
+  private handleCalendarMoreDetails(item: DashboardGridsterItem): void {
+    // Navigate to calendar view with current month
+    this.navigateToBookingsReport('calendar');
+  }
+
+  /**
+   * Handle calendar day click event
+   */
+  onCalendarDayClick(event: { date: Date; events: any[] }): void {
+    console.log('📅 Calendar day clicked:', event.date, 'Events:', event.events.length);
+
+    // Navigate to bookings report filtered for the specific day
+    const selectedDate = event.date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const queryParams = {
+      bookingDate: selectedDate,
+      filter: 'calendar-day'
+    };
+
+    console.log('🔗 Navigating to bookings report for date:', selectedDate);
+    this.router.navigate(['/bookings'], { queryParams });
+  }
+
+  /**
+   * Navigate to bookings report with specific filter
+   */
+  private navigateToBookingsReport(filterType: 'today' | 'recent' | 'trends' | 'calendar'): void {
+    const today = new Date();
+    const queryParams: any = {};
+
+    switch (filterType) {
+      case 'today':
+        // Filter for today's bookings
+        queryParams.bookingDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+        queryParams.filter = 'today';
+        break;
+      case 'recent':
+        // Show recent bookings (last 7 days)
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        queryParams.startDate = weekAgo.toISOString().split('T')[0];
+        queryParams.endDate = today.toISOString().split('T')[0];
+        queryParams.filter = 'recent';
+        break;
+      case 'trends':
+        // Show last 30 days for trends
+        const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+        queryParams.startDate = monthAgo.toISOString().split('T')[0];
+        queryParams.endDate = today.toISOString().split('T')[0];
+        queryParams.filter = 'trends';
+        break;
+      case 'calendar':
+        // Show current month
+        queryParams.view = 'calendar';
+        queryParams.month = today.getMonth() + 1;
+        queryParams.year = today.getFullYear();
+        break;
+    }
+
+    console.log('🔗 Navigating to bookings report with params:', queryParams);
+    this.router.navigate(['/bookings'], { queryParams });
+  }
 }
+

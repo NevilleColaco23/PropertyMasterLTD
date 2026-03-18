@@ -175,10 +175,18 @@ export class DashboardService {
     let params = new HttpParams().set('userId', userId.toString());
 
     if (startDate) {
-      params = params.set('startDate', startDate.toISOString());
+      // Format date as YYYY-MM-DD to avoid timezone conversion
+      const year = startDate.getFullYear();
+      const month = String(startDate.getMonth() + 1).padStart(2, '0');
+      const day = String(startDate.getDate()).padStart(2, '0');
+      params = params.set('startDate', `${year}-${month}-${day}`);
     }
     if (endDate) {
-      params = params.set('endDate', endDate.toISOString());
+      // Format date as YYYY-MM-DD to avoid timezone conversion
+      const year = endDate.getFullYear();
+      const month = String(endDate.getMonth() + 1).padStart(2, '0');
+      const day = String(endDate.getDate()).padStart(2, '0');
+      params = params.set('endDate', `${year}-${month}-${day}`);
     }
 
     return this.http.get<CalendarEventResponse[]>(`${this.apiUrl}/activity/calendar-events`, { params });

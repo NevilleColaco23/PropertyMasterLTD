@@ -235,12 +235,19 @@ namespace MyWarehouse.WebApi.API.V1
         /// Get bookings today KPI value
         /// </summary>
         /// <param name="userId">User ID</param>
+        /// <param name="propertyIds">Optional property IDs to filter by</param>
         /// <returns>KPI value with trend</returns>
         [HttpGet("kpi/bookings-today")]
         [ProducesResponseType(typeof(KpiValueResponse), 200)]
-        public async Task<ActionResult<KpiValueResponse>> GetBookingsTodayKpi([FromQuery] int userId)
+        public async Task<ActionResult<KpiValueResponse>> GetBookingsTodayKpi(
+            [FromQuery] int userId,
+            [FromQuery] List<int>? propertyIds = null)
         {
-            var result = await _mediator.Send(new GetBookingsTodayQuery { UserId = userId });
+            var result = await _mediator.Send(new GetBookingsTodayQuery 
+            { 
+                UserId = userId,
+                PropertyIds = propertyIds ?? new List<int>()
+            });
             return Ok(result);
         }
 
