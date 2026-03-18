@@ -63,7 +63,7 @@ namespace MyWarehouse.Application.Common.Menus.MenuQueries
             // Fields from the 'menu' document (now at the root level, prioritized by mergeObjects)
             { "label", "$label" },
             { "path", "$path" },
-            { "order", "$order" },
+            { "order", new BsonDocument("$ifNull", new BsonArray { "$Priority", "$order", 0 }) }, // Use Priority if exists, fallback to order, then 0
             { "hasDropdown", "$hasDropdown" },
             { "subItems", "$subItems" }, // Explicitly include subItems
             { "isVisible", "$isVisible" },

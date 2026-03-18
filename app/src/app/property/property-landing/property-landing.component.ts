@@ -79,6 +79,13 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
           item.isOpen = false;
         });
 
+        // Sort menu items by order/priority (ascending)
+        this.navItems.sort((a, b) => {
+          const orderA = a.order ?? 999; // Default high number if order is missing
+          const orderB = b.order ?? 999;
+          return orderA - orderB;
+        });
+
         if (this.navItems.length === 0) {
           console.warn('⚠️ WARNING: No menu items received from API!');
           console.warn('This could mean:');
@@ -86,10 +93,10 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
           console.warn('2. Menu data is not in database');
           console.warn('3. API endpoint returned empty results');
         } else {
-          console.log(`✅ Loaded ${this.navItems.length} menu items:`);
-          // Debug each menu item's path
+          console.log(`✅ Loaded ${this.navItems.length} menu items (sorted by priority):`);
+          // Debug each menu item's path and order
           this.navItems.forEach((item, index) => {
-            console.log(`  ${index + 1}. "${item.label}" -> path: "${item.path}"`);
+            console.log(`  ${index + 1}. "${item.label}" -> path: "${item.path}", order: ${item.order}`);
           });
         }
 
@@ -182,12 +189,12 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
   }
 
   toggleMobileMenu(event: Event, item: any) {
-    // If item has no dropdown, let the router handle navigation
-    if (!item.hasDropdown || !item.subItems?.length) {
-      return;
-    }
+    console.log('🔄 toggleMobileMenu called for:', item.label);
+    console.log('   Has dropdown:', item.hasDropdown);
+    console.log('   Sub items count:', item.subItems?.length || 0);
+    console.log('   Current isOpen state:', item.isOpen);
 
-    // Prevent default navigation for items with dropdowns
+    // Prevent default link behavior
     event.preventDefault();
     event.stopPropagation();
 
@@ -200,10 +207,28 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
 
     // Toggle this menu
     item.isOpen = !item.isOpen;
+    console.log('   New isOpen state:', item.isOpen);
+
+    // Force change detection
+    this.cdr.detectChanges();
+  }
+
+  handleTouchStart(event: Event) {
+    // Prevent touch event issues on mobile
+    console.log('👆 Touch event detected');
   }
 
   closeMobileMenu(item: any) {
     item.isOpen = false;
+  }
+
+  isMenuActive(item: any): boolean {
+    // Check if any of the sub-items' paths match the current route
+    if (!item.subItems || item.subItems.length === 0) {
+      return false;
+    }
+    const currentPath = this.router.url;
+    return item.subItems.some((sub: any) => currentPath.includes(sub.subPath));
   }
 
   @HostListener('document:click', ['$event'])

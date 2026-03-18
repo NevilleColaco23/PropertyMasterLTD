@@ -48,18 +48,30 @@
 
         @for (item of navItems; track item.label) {
           <div class="nav-item-wrapper" [class.menu-open]="item.isOpen">
-            <a
-              [routerLink]="item.hasDropdown && item.subItems?.length ? null : item.path"
-              routerLinkActive="nav-link--active"
-              [routerLinkActiveOptions]="{ exact: true }"
-              class="nav-link"
-              (click)="toggleMobileMenu($event, item)"
-            >
-              {{ item.label }}
-              @if (item.hasDropdown && item.subItems?.length) {
+            @if (item.hasDropdown && item.subItems?.length) {
+              <!-- Menu items with dropdowns - no routerLink, just click handler -->
+              <a
+                class="nav-link"
+                (click)="toggleMobileMenu($event, item)"
+                (touchstart)="handleTouchStart($event)"
+                [class.nav-link--active]="isMenuActive(item)"
+                role="button"
+                tabindex="0"
+              >
+                {{ item.label }}
                 <span class="arrow-down" [class.arrow-up]="item.isOpen" aria-hidden="true"></span>
-              }
-            </a>
+              </a>
+            } @else {
+              <!-- Regular menu items without dropdowns - use routerLink -->
+              <a
+                [routerLink]="item.path"
+                routerLinkActive="nav-link--active"
+                [routerLinkActiveOptions]="{ exact: true }"
+                class="nav-link"
+              >
+                {{ item.label }}
+              </a>
+            }
 
             @if (item.hasDropdown && item.subItems?.length) {
               <div class="mega-menu-panel" [class.mobile-open]="item.isOpen">

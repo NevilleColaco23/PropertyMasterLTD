@@ -6,5 +6,6 @@
         public string MenuName { get; set; }
         public int ParentMenuId { get; set; }
         public bool isActive { get; set; }
+        public int Priority { get; set; } = 0;
     }
 }

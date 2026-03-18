@@ -199,6 +199,7 @@
 
   border: 1px solid transparent;
   background: transparent;
+  cursor: pointer;
 
   transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease, color 160ms ease;
 }
@@ -367,6 +368,14 @@
     flex-wrap: wrap;
   }
 
+  /* Ensure nav links are tappable on mobile */
+  .nav-link {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
   /* Mobile menu positioning */
   .nav-item-wrapper {
     position: relative;
@@ -396,11 +405,16 @@
     left: 0;
     z-index: 3000;
     min-width: 200px;
+    max-height: 80vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Make menu items more touch-friendly */
   .mega-menu-column li a {
     padding: 12px 16px;
     font-size: 15px;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
   }
 }
