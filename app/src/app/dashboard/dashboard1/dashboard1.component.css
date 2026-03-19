@@ -6,13 +6,15 @@
 /* ============================================
    0. LAYOUT & CONTAINER FIXES
    - Height and overflow management
+   - PROPERTY MASTER STYLE LAYOUT
    ============================================ */
 
 .dashboard-container {
-  height: calc(100vh - 140px);
-  overflow: hidden;
-  background-color: #ffffff;
-  padding: 0;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: #f5f7fa;
+  min-height: calc(100vh - 140px);
 }
 
 /* Tab body wrapper and content */
@@ -27,6 +29,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding: 0;  /* Remove padding to match Property Master */
 }
 
 .dashboard-tabs ::ng-deep .mat-mdc-tab-body {
@@ -37,10 +40,11 @@
 
 .dashboard-tabs ::ng-deep .mat-mdc-tab-body-content {
   height: 100%;
-  overflow: hidden;
+  overflow: visible;  /* Changed from hidden to visible to allow scrolling */
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding: 0;  /* Remove padding */
 }
 
 /* Tab styling */
@@ -90,11 +94,11 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 20px 32px;
-  max-width: 100%;
+  padding: 24px;  /* Property Master style padding */
+  max-width: none;  /* Remove max-width constraint */
   margin: 0;
   overflow-y: auto;
-  background-color: #f8f9fa;
+  background-color: transparent;  /* Transparent to show container background */
 }
 
 /* ============================================
