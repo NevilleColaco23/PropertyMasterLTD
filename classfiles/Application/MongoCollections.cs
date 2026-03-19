@@ -7,6 +7,7 @@ public static class MongoCollections
     public const string UsersPropertyMapCollection = "UsersPropertyMap";
     public const string KeyCounterCollection = "KeyCounter";
     public const string RoomCollection = "Room";
+    public const string RoomsCollection = "rooms"; // Plural version for room planner queries
     public const string AccessLogCollection = "AccessLog";
     public const string MenuCollection = "Menus";
     public const string MenuPermissionsCollection = "MenuPermissions";

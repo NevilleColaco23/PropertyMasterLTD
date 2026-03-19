@@ -29,6 +29,7 @@ import { CalendarWidgetComponent, CalendarWidgetData, CalendarEvent } from '../.
 import { ActivityStreamWidgetComponent } from '../../widgets/activity-stream-widget/activity-stream-widget.component';
 import { WidgetPickerDialogComponent } from '../../widgets/widget-picker-dialog/widget-picker-dialog.component';
 import { SaveDashboardDialogComponent, SaveDashboardDialogData } from '../../dialogs/save-dashboard-dialog/save-dashboard-dialog.component';
+import { BookingDetailsDialogComponent, BookingDetailsData } from '../booking-details-dialog/booking-details-dialog.component';
 import { GridsterConfigService } from '../../services/gridster-config.service';
 
 export interface DashboardType {
@@ -1190,8 +1191,16 @@ export class Dashboard1Component implements OnInit {
     this.loadingRoomPlanner = true;
     this.generatePlannerDays();
 
-    const propertyIds = this.getSelectedPropertyIds();
+    let propertyIds = this.getSelectedPropertyIds();
     const userId = this.getCurrentUserId();
+
+    // If no properties selected, default to Property 1 for testing
+    if (!propertyIds || propertyIds.length === 0) {
+      console.warn('⚠️ No properties selected, defaulting to Property ID 1 for Room Planner');
+      propertyIds = [1];
+    }
+
+    console.log(`🏨 Loading Room Planner for properties: ${JSON.stringify(propertyIds)}`);
 
     // Load rooms and bookings
     this.loadRoomsForPlanner(propertyIds, userId);
@@ -1219,34 +1228,50 @@ export class Dashboard1Component implements OnInit {
    * Load rooms for the selected properties
    */
   private loadRoomsForPlanner(propertyIds: number[], userId: number): void {
-    // TODO: Replace with actual API call
-    // For now, using mock data
+    console.log('🏨 Loading rooms from backend API...');
 
-    // Mock rooms data
-    this.rooms = [
-      { id: 1, roomNumber: '101', roomType: 'Standard', propertyId: propertyIds[0] || 1 },
-      { id: 2, roomNumber: '102', roomType: 'Standard', propertyId: propertyIds[0] || 1 },
-      { id: 3, roomNumber: '201', roomType: 'Deluxe', propertyId: propertyIds[0] || 1 },
-      { id: 4, roomNumber: '202', roomType: 'Deluxe', propertyId: propertyIds[0] || 1 },
-      { id: 5, roomNumber: '301', roomType: 'Suite', propertyId: propertyIds[0] || 1 }
-    ];
-
-    this.totalRooms = this.rooms.length;
-
-    // Load bookings for the month
-    const startDate = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth(), 1);
-    const endDate = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth() + 1, 0);
-
-    this.dashboardService.getCalendarEvents(userId, startDate, endDate, propertyIds).pipe(
+    // Call the real API
+    this.dashboardService.getRoomsByProperty(userId, propertyIds, true).pipe(
       catchError(error => {
-        console.error('Error loading room planner data:', error);
+        console.error('❌ Error loading rooms:', error);
+        this.snackBar.open('Failed to load rooms', 'Close', { duration: 3000 });
         return of([]);
       })
-    ).subscribe(events => {
-      this.processBookingsForPlanner(events);
-      this.calculateOccupancyStats();
-      this.loadingRoomPlanner = false;
-      this.cdr.detectChanges();
+    ).subscribe(rooms => {
+      console.log(`✅ Rooms loaded from API: ${rooms.length} rooms`);
+
+      // Map API response to component format
+      this.rooms = rooms.map(room => ({
+        id: room.roomId,
+        roomNumber: room.roomNumber,
+        roomName: room.roomName || room.roomNumber,
+        roomType: room.roomType,
+        propertyId: room.propertyId,
+        propertyName: room.propertyName,
+        floor: room.floor,
+        capacity: room.capacity,
+        status: room.status,
+        amenities: room.amenities,
+        pricePerNight: room.pricePerNight
+      }));
+
+      this.totalRooms = this.rooms.length;
+
+      // Load bookings for the month
+      const startDate = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth(), 1);
+      const endDate = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth() + 1, 0);
+
+      this.dashboardService.getCalendarEvents(userId, startDate, endDate, propertyIds).pipe(
+        catchError(error => {
+          console.error('Error loading room planner data:', error);
+          return of([]);
+        })
+      ).subscribe(events => {
+        this.processBookingsForPlanner(events);
+        this.calculateOccupancyStats();
+        this.loadingRoomPlanner = false;
+        this.cdr.detectChanges();
+      });
     });
   }
 
@@ -1382,7 +1407,47 @@ export class Dashboard1Component implements OnInit {
    */
   onRoomDayClick(room: any, date: Date): void {
     console.log('Room day clicked:', room.roomNumber, date);
-    // TODO: Open dialog for booking details or create new booking
+
+    // Get booking info for this room and date
+    const bookingInfo = this.getBookingInfo(room.id, date);
+
+    // Prepare dialog data
+    const dialogData: BookingDetailsData = {
+      room: {
+        roomNumber: room.roomNumber,
+        roomName: room.roomName,
+        roomType: room.roomType,
+        floor: room.floor,
+        capacity: room.capacity,
+        status: room.status
+      },
+      date: new Date(date), // Create new Date object to avoid reference issues
+      booking: bookingInfo
+    };
+
+    // Open dialog
+    const dialogRef = this.dialog.open(BookingDetailsDialogComponent, {
+      width: '600px',
+      data: dialogData,
+      panelClass: 'booking-details-dialog'
+    });
+
+    // Handle dialog result
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Dialog result:', result);
+
+        if (result.action === 'create') {
+          // TODO: Navigate to booking creation or open booking form
+          console.log('Create new booking for room:', result.room.roomNumber, 'on', result.date);
+          this.snackBar.open('Booking creation coming soon!', 'Close', { duration: 3000 });
+        } else if (result.action === 'view') {
+          // TODO: Navigate to booking details page
+          console.log('View booking:', result.bookingId);
+          this.snackBar.open('View booking details coming soon!', 'Close', { duration: 3000 });
+        }
+      }
+    });
   }
 
   /**

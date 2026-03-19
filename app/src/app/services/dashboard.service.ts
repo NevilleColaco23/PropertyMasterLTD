@@ -12,7 +12,8 @@ import {
   GetDashboardTemplatesParams,
   KpiValueResponse,
   ActivityItemResponse,
-  CalendarEventResponse
+  CalendarEventResponse,
+  RoomData
 } from '../models/dashboard.models';
 
 @Injectable({
@@ -238,5 +239,27 @@ export class DashboardService {
     }
 
     return this.http.get<any>(`${this.apiUrl}/activity/booking-trends`, { params });
+  }
+
+  // ==========================================
+  // ROOM PLANNER API METHODS
+  // ==========================================
+
+  /**
+   * Get rooms for room planner (Gantt chart view)
+   */
+  getRoomsByProperty(userId: number, propertyIds?: number[], activeOnly: boolean = true): Observable<RoomData[]> {
+    let params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('activeOnly', activeOnly.toString());
+
+    // Add property IDs if provided
+    if (propertyIds && propertyIds.length > 0) {
+      propertyIds.forEach(id => {
+        params = params.append('propertyIds', id.toString());
+      });
+    }
+
+    return this.http.get<RoomData[]>(`${this.apiUrl}/rooms`, { params });
   }
 }

@@ -132,3 +132,22 @@ export interface CalendarEventResponse {
   type: string;
   description: string;
 }
+
+/**
+ * Room Data for Room Planner
+ */
+export interface RoomData {
+  id: string;
+  roomId: number;
+  roomNumber: string;
+  roomName?: string;
+  roomType: string;
+  propertyId: number;
+  propertyName: string;
+  floor?: number;
+  capacity?: number;
+  status: string;
+  amenities: string[];
+  pricePerNight?: number;
+  isActive: boolean;
+}

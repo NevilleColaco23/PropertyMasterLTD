@@ -365,5 +365,33 @@ namespace MyWarehouse.WebApi.API.V1
             });
             return Ok(result);
         }
+
+        // ==========================================
+        // ROOM PLANNER ENDPOINTS
+        // ==========================================
+
+        /// <summary>
+        /// Get rooms for room planner (Gantt chart view)
+        /// </summary>
+        /// <param name="userId">User ID</param>
+        /// <param name="propertyIds">Optional property IDs to filter by</param>
+        /// <param name="activeOnly">Return only active rooms</param>
+        /// <returns>List of rooms with details</returns>
+        [HttpGet("rooms")]
+        [ProducesResponseType(typeof(List<MyWarehouse.Application.Dashboard.DTOs.GetRoomListDTO>), 200)]
+        [LogList("Rooms", Description = "User viewed room planner data")]
+        public async Task<ActionResult<List<MyWarehouse.Application.Dashboard.DTOs.GetRoomListDTO>>> GetRoomsByProperty(
+            [FromQuery] int userId,
+            [FromQuery] List<int>? propertyIds = null,
+            [FromQuery] bool activeOnly = true)
+        {
+            var result = await _mediator.Send(new GetRoomsByPropertyQuery
+            {
+                UserId = userId,
+                PropertyIds = propertyIds ?? new List<int>(),
+                ActiveOnly = activeOnly
+            });
+            return Ok(result);
+        }
     }
 }
