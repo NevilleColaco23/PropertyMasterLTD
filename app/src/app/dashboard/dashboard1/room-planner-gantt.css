@@ -62,80 +62,85 @@
   max-height: calc(100vh - 400px);
   min-height: 500px;
   background: white;
+  position: relative;
 }
 
-/* Gantt Header */
-.gantt-header {
-  display: flex;
+/* Gantt Body */
+.gantt-body {
+  position: relative;
+}
+
+/* Gantt Header Row (Sticky within scroll) */
+.gantt-row.gantt-header-row {
   position: sticky;
   top: 0;
   z-index: 100;
   background: white;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   border-bottom: 3px solid #3b82f6;
+  min-height: auto;
 }
 
-.room-sidebar-header {
-  display: flex;
-  flex-shrink: 0;
-  width: 240px;
+.gantt-row.gantt-header-row:hover {
+  background: white; /* Don't change on hover */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* Keep same shadow */
+}
+
+/* Room Sidebar Header (when inside gantt-row) */
+.gantt-row.gantt-header-row .room-sidebar-header {
   background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
   color: white;
   font-weight: 700;
-  border-right: 2px solid #cbd5e0;
 }
 
-.room-sidebar-header .room-col {
-  flex: 0 0 120px;
+.gantt-row.gantt-header-row .room-sidebar-header .room-col,
+.gantt-row.gantt-header-row .room-sidebar-header .type-col {
   padding: 16px 12px;
   text-align: center;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: white;
+}
+
+.gantt-row.gantt-header-row .room-sidebar-header .room-col {
   border-right: 1px solid rgba(255,255,255,0.2);
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-.room-sidebar-header .type-col {
-  flex: 0 0 120px;
-  padding: 16px 12px;
-  text-align: center;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Timeline Header */
-.gantt-timeline-header {
+/* Timeline Header (when inside gantt-row) */
+.gantt-row.gantt-header-row .gantt-timeline-header {
   display: flex;
   flex: 1;
   min-width: 0;
 }
 
-.gantt-timeline-header .day-header {
+.gantt-row.gantt-header-row .gantt-timeline-header .day-header {
   flex: 0 0 50px;
   min-width: 50px;
-  padding: 12px 4px;
+  padding: 12px 0; /* Vertical padding only - no horizontal padding to match day-column */
   text-align: center;
   background: #f1f5f9;
   border-right: 1px solid #e2e8f0;
   transition: all 0.2s ease;
+  box-sizing: content-box; /* Match day-column's box-sizing */
+  width: 50px; /* Explicit width */
 }
 
-.gantt-timeline-header .day-header.today {
+.gantt-row.gantt-header-row .gantt-timeline-header .day-header.today {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   border-left: 3px solid #f59e0b;
   border-right: 3px solid #f59e0b;
   font-weight: 700;
 }
 
-.gantt-timeline-header .day-header .day-number {
+.gantt-row.gantt-header-row .gantt-timeline-header .day-header .day-number {
   font-size: 16px;
   font-weight: 700;
   color: #1e293b;
   line-height: 1.2;
 }
 
-.gantt-timeline-header .day-header .day-name {
+.gantt-row.gantt-header-row .gantt-timeline-header .day-header .day-name {
   font-size: 10px;
   color: #64748b;
   text-transform: uppercase;
@@ -143,18 +148,13 @@
   margin-top: 4px;
 }
 
-.gantt-timeline-header .day-header.today .day-number {
+.gantt-row.gantt-header-row .gantt-timeline-header .day-header.today .day-number {
   color: #b45309;
 }
 
-.gantt-timeline-header .day-header.today .day-name {
+.gantt-row.gantt-header-row .gantt-timeline-header .day-header.today .day-name {
   color: #92400e;
   font-weight: 600;
-}
-
-/* Gantt Body */
-.gantt-body {
-  position: relative;
 }
 
 /* Gantt Row */
@@ -275,10 +275,10 @@
   position: relative;
   height: 40px;
   border-radius: 6px;
-  margin: 0 2px; /* 2px margin on each side */
+  margin: 0; /* Remove horizontal margins for perfect alignment */
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  padding: 0 6px; /* Reduce padding since we removed margin */
   cursor: pointer;
   pointer-events: all;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);

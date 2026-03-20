@@ -297,22 +297,26 @@
 
             <!-- Gantt Grid Container -->
             <div class="gantt-container">
-              <!-- Header Row -->
-              <div class="gantt-header">
-                <div class="room-sidebar-header">
-                  <div class="room-col">Room</div>
-                  <div class="type-col">Type</div>
-                </div>
-                <div class="gantt-timeline-header">
-                  <div class="day-header" *ngFor="let day of plannerDays" [class.today]="isToday(day.date)">
-                    <div class="day-number">{{ day.date | date:'d' }}</div>
-                    <div class="day-name">{{ day.date | date:'EEE' }}</div>
-                  </div>
-                </div>
-              </div>
-
               <!-- Room Rows with Booking Bars -->
               <div class="gantt-body">
+                <!-- Date Header Row (Sticky within scroll) -->
+                <div class="gantt-row gantt-header-row">
+                  <!-- Room Sidebar Header -->
+                  <div class="room-sidebar room-sidebar-header">
+                    <div class="room-col">Room</div>
+                    <div class="type-col">Type</div>
+                  </div>
+
+                  <!-- Timeline Date Headers -->
+                  <div class="gantt-timeline gantt-timeline-header">
+                    <div class="day-header" *ngFor="let day of plannerDays" [class.today]="isToday(day.date)">
+                      <div class="day-number">{{ day.date | date:'d' }}</div>
+                      <div class="day-name">{{ day.date | date:'EEE' }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Data Rows -->
                 <div class="gantt-row" *ngFor="let room of rooms; let i = index" [class.even]="i % 2 === 0">
                   <!-- Room Sidebar -->
                   <div class="room-sidebar">
@@ -335,7 +339,7 @@
 
                     <!-- Booking Bars Overlay -->
                     <div class="booking-bars-layer" [style.grid-template-columns]="'repeat(' + plannerDays.length + ', 51px)'">
-                      <div class="booking-bar" 
+                      <div class="booking-bar"
                            *ngFor="let bar of getBookingBars(room.id)"
                            [style.grid-column]="bar.startCol + ' / span ' + bar.span"
                            [class.occupied]="bar.type === 'occupied' || bar.type === 'confirmed'"
