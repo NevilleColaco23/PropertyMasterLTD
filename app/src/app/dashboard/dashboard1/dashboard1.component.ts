@@ -63,6 +63,7 @@ export interface BookingBar {
   endDate: Date;
   startCol: number; // Grid column start (1-based)
   span: number; // Number of days to span
+  continuesNextMonth?: boolean; // Indicates if booking extends into next month
   propertyName?: string;
   checkInDate?: Date;
   checkOutDate?: Date;
@@ -1459,6 +1460,9 @@ export class Dashboard1Component implements OnInit {
     const bookingStart = new Date(Math.max(booking.startDate.getTime(), monthStart.getTime()));
     const bookingEnd = new Date(Math.min(booking.endDate.getTime(), monthEnd.getTime()));
 
+    // Detect if booking continues to next month
+    const continuesNextMonth = booking.endDate.getTime() > monthEnd.getTime();
+
     // Calculate day difference from month start (1-based, so add 1)
     const dayDiff = Math.floor((bookingStart.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24));
     const startCol = dayDiff + 1; // 1-based column index
@@ -1478,6 +1482,7 @@ export class Dashboard1Component implements OnInit {
     console.log(`   - Booking Start: ${bookingStart.toDateString()}`);
     console.log(`   - Booking End: ${bookingEnd.toDateString()}`);
     console.log(`   - Original Booking End: ${booking.endDate.toDateString()}`);
+    console.log(`   - Continues Next Month: ${continuesNextMonth ? 'YES ✅' : 'NO'}`);
     console.log(`   - Day Diff: ${dayDiff}`);
     console.log(`   - Start Column: ${startCol} (1-based)`);
     console.log(`   - Span: ${span} days`);
@@ -1487,7 +1492,8 @@ export class Dashboard1Component implements OnInit {
       const bar: BookingBar = {
         ...booking,
         startCol,
-        span
+        span,
+        continuesNextMonth // NEW: Flag for continuation indicator
       };
 
       if (!this.roomBookingBars.has(roomId)) {
@@ -1495,7 +1501,7 @@ export class Dashboard1Component implements OnInit {
       }
       this.roomBookingBars.get(roomId)!.push(bar);
 
-      console.log(`✅ Booking bar created: Column ${startCol}, spanning ${span} day(s)`);
+      console.log(`✅ Booking bar created: Column ${startCol}, spanning ${span} day(s)${continuesNextMonth ? ' → Continues to next month' : ''}`);
     } else {
       console.warn(`⚠️ Invalid span (${span}), booking bar not created`);
     }

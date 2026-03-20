@@ -346,7 +346,10 @@
                            [class.checkin]="bar.type === 'checkin'"
                            [class.checkout]="bar.type === 'checkout'"
                            [class.maintenance]="bar.type === 'maintenance'"
-                           [matTooltip]="bar.guestName + ' (' + (bar.startDate | date:'MMM d') + ' - ' + (bar.endDate | date:'MMM d') + ')'"
+                           [class.continues-next-month]="bar.continuesNextMonth"
+                           [matTooltip]="bar.continuesNextMonth ? 
+                                         bar.guestName + ' (Continues to ' + (bar.endDate | date:'MMM d, y') + ')' : 
+                                         bar.guestName + ' (' + (bar.startDate | date:'MMM d') + ' - ' + (bar.endDate | date:'MMM d') + ')'"
                            (click)="onBookingBarClick(room, bar, $event)">
                         <span class="bar-label">{{ bar.guestName }}</span>
                         <div class="bar-marker start"></div>
