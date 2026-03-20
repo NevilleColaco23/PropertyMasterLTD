@@ -334,12 +334,11 @@
                     </div>
 
                     <!-- Booking Bars Overlay -->
-                    <div class="booking-bars-layer">
+                    <div class="booking-bars-layer" [style.grid-template-columns]="'repeat(' + plannerDays.length + ', 51px)'">
                       <div class="booking-bar" 
                            *ngFor="let bar of getBookingBars(room.id)"
-                           [style.grid-column]="'span ' + bar.span"
-                           [style.grid-column-start]="bar.startCol - 1"
-                           [class.occupied]="bar.type === 'occupied'"
+                           [style.grid-column]="bar.startCol + ' / span ' + bar.span"
+                           [class.occupied]="bar.type === 'occupied' || bar.type === 'confirmed'"
                            [class.checkin]="bar.type === 'checkin'"
                            [class.checkout]="bar.type === 'checkout'"
                            [class.maintenance]="bar.type === 'maintenance'"

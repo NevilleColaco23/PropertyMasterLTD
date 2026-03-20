@@ -1452,17 +1452,25 @@ export class Dashboard1Component implements OnInit {
     const monthStart = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth(), 1);
     const monthEnd = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth() + 1, 0);
 
-    // Calculate start column (1-based, +1 for room label column)
-    let startCol = 2; // Start after room label column
+    // Calculate start column (1-based)
     const bookingStart = new Date(Math.max(booking.startDate.getTime(), monthStart.getTime()));
     const bookingEnd = new Date(Math.min(booking.endDate.getTime(), monthEnd.getTime()));
 
-    // Calculate day difference from month start
+    // Calculate day difference from month start (1-based, so add 1)
     const dayDiff = Math.floor((bookingStart.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24));
-    startCol += dayDiff;
+    const startCol = dayDiff + 1; // 1-based column index
 
     // Calculate span (number of days)
     const span = Math.floor((bookingEnd.getTime() - bookingStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    console.log(`📍 Booking Bar Position Calculation:`);
+    console.log(`   - Month Start: ${monthStart.toDateString()}`);
+    console.log(`   - Booking Start: ${bookingStart.toDateString()}`);
+    console.log(`   - Booking End: ${bookingEnd.toDateString()}`);
+    console.log(`   - Day Diff: ${dayDiff}`);
+    console.log(`   - Start Column: ${startCol} (1-based)`);
+    console.log(`   - Span: ${span} days`);
+    console.log(`   - Grid Column CSS: ${startCol} / span ${span}`);
 
     if (span > 0) {
       const bar: BookingBar = {
@@ -1475,6 +1483,10 @@ export class Dashboard1Component implements OnInit {
         this.roomBookingBars.set(roomId, []);
       }
       this.roomBookingBars.get(roomId)!.push(bar);
+
+      console.log(`✅ Booking bar created: Column ${startCol}, spanning ${span} day(s)`);
+    } else {
+      console.warn(`⚠️ Invalid span (${span}), booking bar not created`);
     }
   }
 

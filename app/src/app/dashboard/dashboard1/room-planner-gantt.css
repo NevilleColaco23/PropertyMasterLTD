@@ -160,7 +160,7 @@
 /* Gantt Row */
 .gantt-row {
   display: flex;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0 !important; /* Force border on all rows */
   min-height: 56px;
   transition: all 0.2s ease;
   position: relative;
@@ -235,6 +235,7 @@
   transition: all 0.2s ease;
   position: relative;
   z-index: 1;
+  box-sizing: content-box; /* Borders are added to the 50px width */
 }
 
 .gantt-timeline .day-column:hover {
@@ -259,11 +260,14 @@
   right: 0;
   bottom: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, 50px);
+  /* Grid columns will be set dynamically via inline style */
+  grid-template-rows: 1fr;
   gap: 0;
   pointer-events: none;
   padding: 8px 0;
   z-index: 5;
+  /* Account for the 1px borders on each day column */
+  padding-left: 0;
 }
 
 /* Booking Bar */
@@ -271,10 +275,10 @@
   position: relative;
   height: 40px;
   border-radius: 6px;
-  margin: 0 2px;
+  margin: 0 2px; /* 2px margin on each side */
   display: flex;
   align-items: center;
-  padding: 0 12px;
+  padding: 0 8px;
   cursor: pointer;
   pointer-events: all;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -367,7 +371,7 @@
   }
   
   .booking-bars-layer {
-    grid-template-columns: repeat(auto-fill, 40px);
+    grid-template-columns: repeat(31, 40px); /* 31 days max per month */
   }
 }
 
