@@ -1,0 +1,432 @@
+/* ============================================
+   ROOM PLANNER - GANTT CHART STYLE
+   Professional booking visualization
+   ============================================ */
+
+/* Gantt Container */
+.room-planner-gantt {
+  background: #f8f9fa;
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Legend */
+.room-planner-gantt .planner-legend {
+  display: flex;
+  gap: 24px;
+  padding: 16px 24px;
+  background: white;
+  border-bottom: 2px solid #e2e8f0;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.planner-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.planner-legend .legend-color {
+  width: 32px;
+  height: 18px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.planner-legend .legend-color.occupied {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.planner-legend .legend-color.checkin {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.planner-legend .legend-color.checkout {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.planner-legend .legend-color.maintenance {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+}
+
+/* Gantt Container */
+.gantt-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 400px);
+  min-height: 500px;
+  background: white;
+}
+
+/* Gantt Header */
+.gantt-header {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-bottom: 3px solid #3b82f6;
+}
+
+.room-sidebar-header {
+  display: flex;
+  flex-shrink: 0;
+  width: 240px;
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+  color: white;
+  font-weight: 700;
+  border-right: 2px solid #cbd5e0;
+}
+
+.room-sidebar-header .room-col {
+  flex: 0 0 120px;
+  padding: 16px 12px;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.2);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.room-sidebar-header .type-col {
+  flex: 0 0 120px;
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Timeline Header */
+.gantt-timeline-header {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.gantt-timeline-header .day-header {
+  flex: 0 0 50px;
+  min-width: 50px;
+  padding: 12px 4px;
+  text-align: center;
+  background: #f1f5f9;
+  border-right: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.gantt-timeline-header .day-header.today {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left: 3px solid #f59e0b;
+  border-right: 3px solid #f59e0b;
+  font-weight: 700;
+}
+
+.gantt-timeline-header .day-header .day-number {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.2;
+}
+
+.gantt-timeline-header .day-header .day-name {
+  font-size: 10px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.gantt-timeline-header .day-header.today .day-number {
+  color: #b45309;
+}
+
+.gantt-timeline-header .day-header.today .day-name {
+  color: #92400e;
+  font-weight: 600;
+}
+
+/* Gantt Body */
+.gantt-body {
+  position: relative;
+}
+
+/* Gantt Row */
+.gantt-row {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+  min-height: 56px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.gantt-row:hover {
+  background: #f8fafc;
+  box-shadow: inset 0 0 0 2px #e0e7ff;
+}
+
+.gantt-row.even {
+  background: #ffffff;
+}
+
+/* Room Sidebar */
+.room-sidebar {
+  display: flex;
+  flex-shrink: 0;
+  width: 240px;
+  background: white;
+  border-right: 2px solid #cbd5e0;
+  position: sticky;
+  left: 0;
+  z-index: 10;
+}
+
+.room-sidebar .room-col {
+  flex: 0 0 120px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #e2e8f0;
+}
+
+.room-sidebar .room-number {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e40af;
+  letter-spacing: 0.5px;
+}
+
+.room-sidebar .type-col {
+  flex: 0 0 120px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.room-sidebar .room-type {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* Gantt Timeline */
+.gantt-timeline {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+
+.gantt-timeline .day-column {
+  flex: 0 0 50px;
+  min-width: 50px;
+  border-right: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.gantt-timeline .day-column:hover {
+  background: #eff6ff;
+}
+
+.gantt-timeline .day-column.today {
+  background: rgba(254, 243, 199, 0.3);
+  border-left: 2px solid #fbbf24;
+  border-right: 2px solid #fbbf24;
+}
+
+.gantt-timeline .day-column.weekend {
+  background: #f8fafc;
+}
+
+/* Booking Bars Layer */
+.booking-bars-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 50px);
+  gap: 0;
+  pointer-events: none;
+  padding: 8px 0;
+  z-index: 5;
+}
+
+/* Booking Bar */
+.booking-bar {
+  position: relative;
+  height: 40px;
+  border-radius: 6px;
+  margin: 0 2px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  cursor: pointer;
+  pointer-events: all;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.booking-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 50%);
+  pointer-events: none;
+}
+
+.booking-bar:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  z-index: 20;
+}
+
+/* Booking Bar Colors */
+.booking-bar.occupied {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: 2px solid #b91c1c;
+  color: white;
+}
+
+.booking-bar.checkin {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: 2px solid #1d4ed8;
+  color: white;
+}
+
+.booking-bar.checkout {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: 2px solid #b45309;
+  color: white;
+}
+
+.booking-bar.maintenance {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  border: 2px solid #374151;
+  color: white;
+}
+
+/* Bar Label */
+.booking-bar .bar-label {
+  position: relative;
+  z-index: 2;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  letter-spacing: 0.3px;
+}
+
+/* Bar Markers (start/end indicators) */
+.booking-bar .bar-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: rgba(255,255,255,0.6);
+  z-index: 1;
+}
+
+.booking-bar .bar-marker.start {
+  left: 0;
+  border-radius: 6px 0 0 6px;
+}
+
+.booking-bar .bar-marker.end {
+  right: 0;
+  border-radius: 0 6px 6px 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1400px) {
+  .gantt-timeline-header .day-header,
+  .gantt-timeline .day-column {
+    flex: 0 0 40px;
+    min-width: 40px;
+  }
+  
+  .booking-bars-layer {
+    grid-template-columns: repeat(auto-fill, 40px);
+  }
+}
+
+@media (max-width: 1200px) {
+  .room-sidebar-header,
+  .room-sidebar {
+    width: 180px;
+  }
+  
+  .room-sidebar-header .room-col,
+  .room-sidebar .room-col {
+    flex: 0 0 90px;
+  }
+  
+  .room-sidebar-header .type-col,
+  .room-sidebar .type-col {
+    flex: 0 0 90px;
+  }
+}
+
+/* Scrollbar Styling */
+.gantt-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.gantt-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 5px;
+}
+
+.gantt-container::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 5px;
+}
+
+.gantt-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Empty State */
+.room-planner-gantt .empty-planner {
+  text-align: center;
+  padding: 80px 40px;
+  color: #64748b;
+  background: white;
+  margin: 24px;
+  border-radius: 12px;
+}
+
+.room-planner-gantt .empty-planner mat-icon {
+  font-size: 96px;
+  width: 96px;
+  height: 96px;
+  color: #cbd5e0;
+  margin-bottom: 24px;
+}
+
+.room-planner-gantt .empty-planner p {
+  font-size: 18px;
+  font-weight: 500;
+}

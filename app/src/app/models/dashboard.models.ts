@@ -151,3 +151,24 @@ export interface RoomData {
   pricePerNight?: number;
   isActive: boolean;
 }
+
+/**
+ * Booking with guest details response from backend
+ */
+export interface BookingWithGuestData {
+  id: string;
+  bookingId: string;
+  roomNumber: string;
+  propertyId: number;
+  propertyName: string;
+  checkInDate: Date | string;
+  checkOutDate: Date | string;
+  status: string;
+  guestId: string;
+  guestFirstName: string;
+  guestLastName: string;
+  guestEmail: string;
+  guestPhoneNumber: string;
+  guestNationality: string;
+}
+

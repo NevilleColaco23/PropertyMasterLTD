@@ -13,6 +13,18 @@ export interface CalendarEvent {
   color?: string;
   type?: string;
   description?: string;
+  bookingId?: string;
+  checkInDate?: Date;
+  checkOutDate?: Date;
+  propertyName?: string;
+  guestDetails?: {
+    guestId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    nationality: string;
+  };
 }
 
 export interface CalendarWidgetData {

@@ -15,12 +15,23 @@ export interface BookingDetailsData {
     capacity?: number;
     status: string;
   };
+  propertyName?: string;
   date: Date;
   booking?: {
     type: string;
     guestName: string;
     bookingId: string;
     color: string;
+    checkInDate?: Date;
+    checkOutDate?: Date;
+    guestDetails?: {
+      guestId: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      phoneNumber: string;
+      nationality: string;
+    };
   };
 }
 
@@ -50,6 +61,10 @@ export interface BookingDetailsData {
         </h3>
         <div class="info-grid">
           <div class="info-item">
+            <span class="label">Property:</span>
+            <span class="value property-name">{{ data.propertyName || 'Unknown Property' }}</span>
+          </div>
+          <div class="info-item">
             <span class="label">Room Number:</span>
             <span class="value">{{ data.room.roomNumber }}</span>
           </div>
@@ -70,7 +85,7 @@ export interface BookingDetailsData {
             <span class="value">{{ data.room.capacity }} guests</span>
           </div>
           <div class="info-item">
-            <span class="label">Date:</span>
+            <span class="label">Selected Date:</span>
             <span class="value">{{ data.date | date:'fullDate' }}</span>
           </div>
         </div>
@@ -82,9 +97,9 @@ export interface BookingDetailsData {
       <div class="info-section">
         <h3>
           <mat-icon>{{ getBookingIcon() }}</mat-icon>
-          Status
+          Booking Status
         </h3>
-        
+
         <div class="status-container">
           <mat-chip 
             [ngClass]="getStatusClass()"
@@ -93,17 +108,66 @@ export interface BookingDetailsData {
           </mat-chip>
         </div>
 
-        <div class="info-grid" *ngIf="data.booking">
-          <div class="info-item">
-            <span class="label">Guest:</span>
-            <span class="value">{{ data.booking.guestName }}</span>
+        <!-- Booking Details (if booked) -->
+        <div *ngIf="data.booking">
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Booking ID:</span>
+              <span class="value booking-id">{{ data.booking.bookingId }}</span>
+            </div>
+            <div class="info-item" *ngIf="data.booking.checkInDate">
+              <span class="label">Check-in Date:</span>
+              <span class="value">{{ data.booking.checkInDate | date:'mediumDate' }}</span>
+            </div>
+            <div class="info-item" *ngIf="data.booking.checkOutDate">
+              <span class="label">Check-out Date:</span>
+              <span class="value">{{ data.booking.checkOutDate | date:'mediumDate' }}</span>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="label">Booking ID:</span>
-            <span class="value">{{ data.booking.bookingId }}</span>
+
+          <mat-divider class="sub-divider"></mat-divider>
+
+          <!-- Guest Information -->
+          <h4 class="sub-heading">
+            <mat-icon>person</mat-icon>
+            Guest Information
+          </h4>
+
+          <div class="info-grid" *ngIf="data.booking.guestDetails">
+            <div class="info-item">
+              <span class="label">Guest ID:</span>
+              <span class="value">{{ data.booking.guestDetails.guestId }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">First Name:</span>
+              <span class="value">{{ data.booking.guestDetails.firstName }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Last Name:</span>
+              <span class="value">{{ data.booking.guestDetails.lastName }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Email:</span>
+              <span class="value email">{{ data.booking.guestDetails.email }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Phone Number:</span>
+              <span class="value">{{ data.booking.guestDetails.phoneNumber }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Nationality:</span>
+              <span class="value">{{ data.booking.guestDetails.nationality }}</span>
+            </div>
+          </div>
+
+          <!-- Fallback if guest details not loaded -->
+          <div class="guest-unavailable" *ngIf="!data.booking.guestDetails">
+            <mat-icon>person_off</mat-icon>
+            <p>Guest details unavailable</p>
           </div>
         </div>
 
+        <!-- Available state -->
         <div class="empty-state" *ngIf="!data.booking">
           <mat-icon>event_available</mat-icon>
           <p>This room is available for booking on the selected date.</p>
@@ -261,6 +325,72 @@ export interface BookingDetailsData {
       font-size: 16px;
     }
 
+    .sub-heading {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #616161;
+      margin: 20px 0 12px 0;
+    }
+
+    .sub-heading mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
+    .sub-divider {
+      margin: 16px 0 !important;
+      opacity: 0.6;
+    }
+
+    .property-name {
+      font-weight: 600;
+      font-size: 17px;
+      color: #1976d2;
+    }
+
+    .booking-id {
+      font-family: 'Courier New', monospace;
+      font-size: 15px;
+      background-color: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .email {
+      word-break: break-all;
+      overflow-wrap: break-word;
+    }
+
+    .guest-unavailable {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+      text-align: center;
+      color: #9e9e9e;
+      background-color: #fafafa;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .guest-unavailable mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+      color: #bdbdbd;
+    }
+
+    .guest-unavailable p {
+      margin: 0;
+      font-size: 14px;
+      font-style: italic;
+    }
+
     mat-dialog-actions {
       padding: 16px 24px;
       gap: 8px;
@@ -274,7 +404,8 @@ export class BookingDetailsDialogComponent {
   ) {}
 
   getDialogTitle(): string {
-    return `Room ${this.data.room.roomNumber} - ${this.data.date.toLocaleDateString()}`;
+    const propertyPart = this.data.propertyName ? `${this.data.propertyName} - ` : '';
+    return `${propertyPart}Room ${this.data.room.roomNumber} - ${this.data.date.toLocaleDateString()}`;
   }
 
   getBookingIcon(): string {

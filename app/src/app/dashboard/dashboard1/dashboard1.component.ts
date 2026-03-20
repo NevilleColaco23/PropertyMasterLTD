@@ -53,6 +53,29 @@ export interface DashboardGridsterItem {
   [key: string]: any; // Allow additional gridster properties
 }
 
+// Interface for booking bars in Room Planner
+export interface BookingBar {
+  bookingId: string;
+  guestName: string;
+  type: string;
+  color: string;
+  startDate: Date;
+  endDate: Date;
+  startCol: number; // Grid column start (1-based)
+  span: number; // Number of days to span
+  propertyName?: string;
+  checkInDate?: Date;
+  checkOutDate?: Date;
+  guestDetails?: {
+    guestId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    nationality: string;
+  };
+}
+
 @Component({
   selector: 'app-dashboard1',
   standalone: true,
@@ -80,7 +103,7 @@ export interface DashboardGridsterItem {
     ActivityStreamWidgetComponent
   ],
   templateUrl: './dashboard1.component.html',
-  styleUrls: ['./dashboard1.component.css'],
+  styleUrls: ['./dashboard1.component.css', './room-planner-gantt.css'],
   encapsulation: ViewEncapsulation.None
 })
 export class Dashboard1Component implements OnInit {
@@ -113,6 +136,7 @@ export class Dashboard1Component implements OnInit {
   plannerDays: Array<{ date: Date; dayOfWeek: string }> = [];
   rooms: Array<any> = [];
   roomBookings: Map<string, any> = new Map();
+  roomBookingBars: Map<number, BookingBar[]> = new Map(); // NEW: Continuous booking bars per room
   totalRooms = 0;
   occupiedRoomsToday = 0;
   availableRoomsToday = 0;
@@ -1257,17 +1281,20 @@ export class Dashboard1Component implements OnInit {
 
       this.totalRooms = this.rooms.length;
 
-      // Load bookings for the month
+      // Load bookings with guest details for the month
       const startDate = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth(), 1);
       const endDate = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth() + 1, 0);
 
-      this.dashboardService.getCalendarEvents(userId, startDate, endDate, propertyIds).pipe(
+      console.log('🔍 Loading bookings with guest details...');
+      this.dashboardService.getBookingsWithGuests(userId, startDate, endDate, propertyIds).pipe(
         catchError(error => {
-          console.error('Error loading room planner data:', error);
+          console.error('❌ Error loading bookings with guests:', error);
+          this.snackBar.open('Failed to load bookings', 'Close', { duration: 3000 });
           return of([]);
         })
-      ).subscribe(events => {
-        this.processBookingsForPlanner(events);
+      ).subscribe(bookings => {
+        console.log(`✅ Bookings with guests loaded: ${bookings.length} bookings`);
+        this.processBookingsForPlanner(bookings);
         this.calculateOccupancyStats();
         this.loadingRoomPlanner = false;
         this.cdr.detectChanges();
@@ -1278,32 +1305,246 @@ export class Dashboard1Component implements OnInit {
   /**
    * Process bookings and map them to rooms and dates
    */
-  private processBookingsForPlanner(events: any[]): void {
+  private processBookingsForPlanner(bookings: any[]): void {
     this.roomBookings.clear();
+    this.roomBookingBars.clear();
 
-    events.forEach(event => {
-      // Extract room number from event title
-      const roomMatch = event.title.match(/Room (\d+)/);
-      if (roomMatch) {
-        const roomNumber = roomMatch[1];
-        const room = this.rooms.find(r => r.roomNumber === roomNumber);
+    console.log(`📊 ===== PROCESSING BOOKINGS FOR PLANNER =====`);
+    console.log(`📊 Received ${bookings.length} bookings from API`);
+    console.log(`📊 Current rooms loaded: ${this.rooms.length}`);
+    console.log(`📊 Current planner month: ${this.currentPlannerMonth.toLocaleDateString()}`);
 
-        if (room) {
-          const startDate = new Date(event.start);
-          const endDate = event.end ? new Date(event.end) : startDate;
+    if (bookings.length === 0) {
+      console.warn(`⚠️ No bookings received from API!`);
+      console.warn(`⚠️ Check if:`);
+      console.warn(`⚠️   1. Bookings collection has data for this date range`);
+      console.warn(`⚠️   2. Property ID filter is correct`);
+      console.warn(`⚠️   3. Backend query is returning results`);
+      return;
+    }
 
-          // Add booking for each day in the range
-          let currentDate = new Date(startDate);
-          while (currentDate <= endDate) {
-            const key = `${room.id}-${currentDate.toISOString().split('T')[0]}`;
-            this.roomBookings.set(key, {
-              type: event.type,
-              guestName: event.description?.split('-')[1]?.trim() || 'Guest',
-              bookingId: event.id,
-              color: event.color
-            });
-            currentDate.setDate(currentDate.getDate() + 1);
-          }
+    // Log first booking structure for debugging
+    console.log(`📊 First booking structure:`, bookings[0]);
+
+    // Log available room numbers
+    console.log(`📊 Available room numbers:`, this.rooms.map(r => r.roomNumber));
+
+    let processedCount = 0;
+    let skippedCount = 0;
+
+    bookings.forEach((booking, index) => {
+      // Find the room by room number
+      const room = this.rooms.find(r => r.roomNumber === booking.roomNumber);
+
+      if (room) {
+        const startDate = new Date(booking.checkInDate);
+        const endDate = new Date(booking.checkOutDate);
+
+        console.log(`📌 [${index + 1}/${bookings.length}] Processing Booking:`);
+        console.log(`   - Booking ID: ${booking.bookingId}`);
+        console.log(`   - Room: ${booking.roomNumber} (matched room ID: ${room.id})`);
+        console.log(`   - Dates: ${startDate.toDateString()} - ${endDate.toDateString()}`);
+        console.log(`   - Status: ${booking.status}`);
+        console.log(`   - Guest: ${booking.guestFirstName} ${booking.guestLastName}`);
+
+        // Determine booking type/status
+        const bookingType = booking.status || 'confirmed';
+        const color = this.getBookingColor(bookingType);
+
+        // Construct guest name
+        const guestName = (booking.guestFirstName !== 'Unavailable' && booking.guestLastName !== 'Unavailable')
+          ? `${booking.guestFirstName} ${booking.guestLastName}`
+          : 'Guest';
+
+        // Add booking for each day in the range (for backward compatibility with cell-based view)
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+          const key = `${room.id}-${currentDate.toISOString().split('T')[0]}`;
+          this.roomBookings.set(key, {
+            type: bookingType,
+            guestName: guestName,
+            bookingId: booking.bookingId,
+            color: color
+          });
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        // Create continuous booking bar with guest details
+        this.addBookingBar(room.id, {
+          bookingId: booking.bookingId,
+          guestName: guestName,
+          type: bookingType,
+          color: color,
+          startDate: startDate,
+          endDate: endDate,
+          propertyName: booking.propertyName,
+          checkInDate: startDate,
+          checkOutDate: endDate,
+          guestDetails: (booking.guestFirstName !== 'Unavailable') ? {
+            guestId: booking.guestId,
+            firstName: booking.guestFirstName,
+            lastName: booking.guestLastName,
+            email: booking.guestEmail,
+            phoneNumber: booking.guestPhoneNumber,
+            nationality: booking.guestNationality
+          } : undefined
+        });
+
+        processedCount++;
+      } else {
+        console.warn(`⚠️ [${index + 1}/${bookings.length}] Room NOT FOUND for booking:`);
+        console.warn(`   - Booking ID: ${booking.bookingId}`);
+        console.warn(`   - Room Number: ${booking.roomNumber}`);
+        console.warn(`   - This booking will be skipped`);
+        skippedCount++;
+      }
+    });
+
+    console.log(`✅ ===== BOOKING PROCESSING COMPLETE =====`);
+    console.log(`✅ Successfully processed: ${processedCount} bookings`);
+    console.log(`⚠️ Skipped (room not found): ${skippedCount} bookings`);
+    console.log(`✅ Created ${this.roomBookingBars.size} room booking bars`);
+    console.log(`✅ Total booking entries in map: ${this.roomBookings.size}`);
+
+    // Log booking bars for each room
+    this.roomBookingBars.forEach((bars, roomId) => {
+      const room = this.rooms.find(r => r.id === roomId);
+      console.log(`   Room ${room?.roomNumber}: ${bars.length} booking bar(s)`);
+    });
+  }
+
+  /**
+   * Get color for booking type
+   */
+  private getBookingColor(status: string): string {
+    switch (status?.toLowerCase()) {
+      case 'confirmed': return '#4caf50';
+      case 'checkin': return '#2196f3';
+      case 'checkout': return '#ff9800';
+      case 'cancelled': return '#f44336';
+      case 'pending': return '#ffc107';
+      default: return '#4caf50';
+    }
+  }
+
+  /**
+   * Add a booking bar for a room (NEW METHOD)
+   */
+  private addBookingBar(roomId: number, booking: {
+    bookingId: string;
+    guestName: string;
+    type: string;
+    color: string;
+    startDate: Date;
+    endDate: Date;
+    propertyName?: string;
+    checkInDate?: Date;
+    checkOutDate?: Date;
+    guestDetails?: {
+      guestId: string;
+      firstName: string;
+      lastName: string;
+      email: string;
+      phoneNumber: string;
+      nationality: string;
+    };
+  }): void {
+    const monthStart = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth(), 1);
+    const monthEnd = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth() + 1, 0);
+
+    // Calculate start column (1-based, +1 for room label column)
+    let startCol = 2; // Start after room label column
+    const bookingStart = new Date(Math.max(booking.startDate.getTime(), monthStart.getTime()));
+    const bookingEnd = new Date(Math.min(booking.endDate.getTime(), monthEnd.getTime()));
+
+    // Calculate day difference from month start
+    const dayDiff = Math.floor((bookingStart.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24));
+    startCol += dayDiff;
+
+    // Calculate span (number of days)
+    const span = Math.floor((bookingEnd.getTime() - bookingStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    if (span > 0) {
+      const bar: BookingBar = {
+        ...booking,
+        startCol,
+        span
+      };
+
+      if (!this.roomBookingBars.has(roomId)) {
+        this.roomBookingBars.set(roomId, []);
+      }
+      this.roomBookingBars.get(roomId)!.push(bar);
+    }
+  }
+
+  /**
+   * Get booking bars for a specific room (NEW METHOD)
+   */
+  getBookingBars(roomId: number): BookingBar[] {
+    return this.roomBookingBars.get(roomId) || [];
+  }
+
+  /**
+   * Check if a date is today
+   */
+  isToday(date: Date): boolean {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  }
+
+  /**
+   * Check if a date is weekend
+   */
+  isWeekend(date: Date): boolean {
+    const day = date.getDay();
+    return day === 0 || day === 6; // Sunday or Saturday
+  }
+
+  /**
+   * Handle booking bar click
+   */
+  onBookingBarClick(room: any, bar: BookingBar, event: Event): void {
+    event.stopPropagation(); // Prevent day cell click
+    console.log('Booking bar clicked:', room.roomNumber, bar);
+
+    // Open dialog with comprehensive booking and guest details
+    const dialogData: BookingDetailsData = {
+      room: {
+        roomNumber: room.roomNumber,
+        roomName: room.roomName,
+        roomType: room.roomType,
+        floor: room.floor,
+        capacity: room.capacity,
+        status: room.status
+      },
+      date: bar.startDate,
+      propertyName: bar.propertyName || room.propertyName || 'Unknown Property',
+      booking: {
+        type: bar.type,
+        guestName: bar.guestName,
+        bookingId: bar.bookingId,
+        color: bar.color,
+        checkInDate: bar.checkInDate,
+        checkOutDate: bar.checkOutDate,
+        guestDetails: bar.guestDetails
+      }
+    };
+
+    const dialogRef = this.dialog.open(BookingDetailsDialogComponent, {
+      width: '600px',
+      data: dialogData,
+      panelClass: 'booking-details-dialog'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Dialog result:', result);
+
+        if (result.action === 'create') {
+          this.snackBar.open('Booking creation coming soon!', 'Close', { duration: 3000 });
+        } else if (result.action === 'view') {
+          this.snackBar.open('View booking details coming soon!', 'Close', { duration: 3000 });
         }
       }
     });

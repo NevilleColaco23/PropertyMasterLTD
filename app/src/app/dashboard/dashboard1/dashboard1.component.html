@@ -274,13 +274,9 @@
           </div>
 
           <!-- Room Planner Calendar Grid -->
-          <div class="room-planner-grid" *ngIf="!loadingRoomPlanner">
+          <div class="room-planner-gantt" *ngIf="!loadingRoomPlanner">
             <!-- Legend -->
             <div class="planner-legend">
-              <div class="legend-item">
-                <div class="legend-color available"></div>
-                <span>Available</span>
-              </div>
               <div class="legend-item">
                 <div class="legend-color occupied"></div>
                 <span>Occupied</span>
@@ -299,34 +295,62 @@
               </div>
             </div>
 
-            <!-- Calendar Grid Header (Days) -->
-            <div class="calendar-header">
-              <div class="room-label-cell">Room</div>
-              <div class="day-cell" *ngFor="let day of plannerDays">
-                <div class="day-number">{{ day.date | date:'d' }}</div>
-                <div class="day-name">{{ day.date | date:'EEE' }}</div>
+            <!-- Gantt Grid Container -->
+            <div class="gantt-container">
+              <!-- Header Row -->
+              <div class="gantt-header">
+                <div class="room-sidebar-header">
+                  <div class="room-col">Room</div>
+                  <div class="type-col">Type</div>
+                </div>
+                <div class="gantt-timeline-header">
+                  <div class="day-header" *ngFor="let day of plannerDays" [class.today]="isToday(day.date)">
+                    <div class="day-number">{{ day.date | date:'d' }}</div>
+                    <div class="day-name">{{ day.date | date:'EEE' }}</div>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <!-- Room Rows -->
-            <div class="room-row" *ngFor="let room of rooms">
-              <div class="room-label-cell">
-                <div class="room-number">{{ room.roomNumber }}</div>
-                <div class="room-type">{{ room.roomType }}</div>
-              </div>
-              <div class="day-cell" 
-                   *ngFor="let day of plannerDays"
-                   [class.available]="getRoomStatus(room.id, day.date) === 'available'"
-                   [class.occupied]="getRoomStatus(room.id, day.date) === 'occupied'"
-                   [class.checkin]="getRoomStatus(room.id, day.date) === 'checkin'"
-                   [class.checkout]="getRoomStatus(room.id, day.date) === 'checkout'"
-                   [class.maintenance]="getRoomStatus(room.id, day.date) === 'maintenance'"
-                   [matTooltip]="getRoomTooltip(room.id, day.date)"
-                   (click)="onRoomDayClick(room, day.date)">
-                <div class="day-content">
-                  <span class="booking-info" *ngIf="getBookingInfo(room.id, day.date) as booking">
-                    {{ booking.guestName || 'Guest' }}
-                  </span>
+              <!-- Room Rows with Booking Bars -->
+              <div class="gantt-body">
+                <div class="gantt-row" *ngFor="let room of rooms; let i = index" [class.even]="i % 2 === 0">
+                  <!-- Room Sidebar -->
+                  <div class="room-sidebar">
+                    <div class="room-col">
+                      <span class="room-number">{{ room.roomNumber }}</span>
+                    </div>
+                    <div class="type-col">
+                      <span class="room-type">{{ room.roomType }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Timeline Grid (Days) -->
+                  <div class="gantt-timeline">
+                    <div class="day-column" 
+                         *ngFor="let day of plannerDays" 
+                         [class.today]="isToday(day.date)"
+                         [class.weekend]="isWeekend(day.date)"
+                         (click)="onRoomDayClick(room, day.date)">
+                    </div>
+
+                    <!-- Booking Bars Overlay -->
+                    <div class="booking-bars-layer">
+                      <div class="booking-bar" 
+                           *ngFor="let bar of getBookingBars(room.id)"
+                           [style.grid-column]="'span ' + bar.span"
+                           [style.grid-column-start]="bar.startCol - 1"
+                           [class.occupied]="bar.type === 'occupied'"
+                           [class.checkin]="bar.type === 'checkin'"
+                           [class.checkout]="bar.type === 'checkout'"
+                           [class.maintenance]="bar.type === 'maintenance'"
+                           [matTooltip]="bar.guestName + ' (' + (bar.startDate | date:'MMM d') + ' - ' + (bar.endDate | date:'MMM d') + ')'"
+                           (click)="onBookingBarClick(room, bar, $event)">
+                        <span class="bar-label">{{ bar.guestName }}</span>
+                        <div class="bar-marker start"></div>
+                        <div class="bar-marker end"></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

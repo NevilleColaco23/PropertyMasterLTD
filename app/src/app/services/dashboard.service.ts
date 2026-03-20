@@ -13,7 +13,8 @@ import {
   KpiValueResponse,
   ActivityItemResponse,
   CalendarEventResponse,
-  RoomData
+  RoomData,
+  BookingWithGuestData
 } from '../models/dashboard.models';
 
 @Injectable({
@@ -261,5 +262,40 @@ export class DashboardService {
     }
 
     return this.http.get<RoomData[]>(`${this.apiUrl}/rooms`, { params });
+  }
+
+  /**
+   * Get bookings with guest details for room planner
+   */
+  getBookingsWithGuests(
+    userId: number,
+    startDate?: Date,
+    endDate?: Date,
+    propertyIds?: number[]
+  ): Observable<BookingWithGuestData[]> {
+    let params = new HttpParams().set('userId', userId.toString());
+
+    // Add dates if provided
+    if (startDate) {
+      const year = startDate.getFullYear();
+      const month = String(startDate.getMonth() + 1).padStart(2, '0');
+      const day = String(startDate.getDate()).padStart(2, '0');
+      params = params.set('startDate', `${year}-${month}-${day}`);
+    }
+    if (endDate) {
+      const year = endDate.getFullYear();
+      const month = String(endDate.getMonth() + 1).padStart(2, '0');
+      const day = String(endDate.getDate()).padStart(2, '0');
+      params = params.set('endDate', `${year}-${month}-${day}`);
+    }
+
+    // Add property IDs if provided
+    if (propertyIds && propertyIds.length > 0) {
+      propertyIds.forEach(id => {
+        params = params.append('propertyIds', id.toString());
+      });
+    }
+
+    return this.http.get<BookingWithGuestData[]>(`${this.apiUrl}/bookings-with-guests`, { params });
   }
 }

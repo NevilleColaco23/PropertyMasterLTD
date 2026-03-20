@@ -393,5 +393,35 @@ namespace MyWarehouse.WebApi.API.V1
             });
             return Ok(result);
         }
+
+        /// <summary>
+        /// Get bookings with guest details for room planner
+        /// </summary>
+        /// <param name="userId">User ID</param>
+        /// <param name="startDate">Start date for bookings</param>
+        /// <param name="endDate">End date for bookings</param>
+        /// <param name="propertyIds">Optional property IDs to filter by</param>
+        /// <returns>List of bookings with guest details</returns>
+        [HttpGet("bookings-with-guests")]
+        [ProducesResponseType(typeof(List<BookingWithGuestDTO>), 200)]
+        [LogList("Bookings with Guests", Description = "User viewed bookings with guest details")]
+        public async Task<ActionResult<List<BookingWithGuestDTO>>> GetBookingsWithGuests(
+            [FromQuery] int userId,
+            [FromQuery] DateTime? startDate = null,
+            [FromQuery] DateTime? endDate = null,
+            [FromQuery] List<int>? propertyIds = null)
+        {
+            var start = startDate ?? DateTime.UtcNow.Date.AddDays(-30);
+            var end = endDate ?? DateTime.UtcNow.Date.AddDays(60);
+
+            var result = await _mediator.Send(new GetBookingsWithGuestsQuery
+            {
+                UserId = userId,
+                StartDate = start,
+                EndDate = end,
+                PropertyIds = propertyIds ?? new List<int>()
+            });
+            return Ok(result);
+        }
     }
 }
