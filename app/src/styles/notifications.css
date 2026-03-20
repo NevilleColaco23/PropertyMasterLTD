@@ -1,0 +1,296 @@
+/* ========================================
+   BEAUTIFUL NOTIFICATION SYSTEM STYLES
+   - Enhanced Material Design
+   - Bottom-Right Positioning
+   - Smooth Animations & Effects
+   - Progress Indicators
+   ======================================== */
+
+/* Base Snackbar Styling with Premium Effects */
+.custom-snackbar {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 
+              0 4px 12px rgba(0, 0, 0, 0.1),
+              0 16px 48px rgba(0, 0, 0, 0.1) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  min-width: 320px !important;
+  max-width: 450px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-snackbar .mat-mdc-snack-bar-label {
+  padding: 0 !important;
+}
+
+.custom-snackbar .mdc-snackbar__surface {
+  border-radius: 12px !important;
+}
+
+/* Glow effect on hover */
+.custom-snackbar:hover {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), 
+              0 8px 16px rgba(0, 0, 0, 0.15),
+              0 20px 56px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* Progress bar indicator */
+.custom-snackbar::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.25);
+  animation: progressBar 3s linear;
+  border-radius: 0 0 12px 12px;
+}
+
+@keyframes progressBar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* Success Snackbar (Green) with Gradient */
+.success-snackbar {
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%) !important;
+  color: white !important;
+  border-left: 4px solid #2e7d32 !important;
+}
+
+.success-snackbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.success-snackbar .mat-mdc-button {
+  color: white !important;
+  font-weight: 600 !important;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+}
+
+.success-snackbar .mat-mdc-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Error Snackbar (Red) with Gradient */
+.error-snackbar {
+  background: linear-gradient(135deg, #f44336 0%, #ef5350 100%) !important;
+  color: white !important;
+  border-left: 4px solid #c62828 !important;
+}
+
+.error-snackbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.error-snackbar .mat-mdc-button {
+  color: white !important;
+  font-weight: 600 !important;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+}
+
+.error-snackbar .mat-mdc-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Warning Snackbar (Orange) with Gradient */
+.warning-snackbar {
+  background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%) !important;
+  color: white !important;
+  border-left: 4px solid #e65100 !important;
+}
+
+.warning-snackbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.warning-snackbar .mat-mdc-button {
+  color: white !important;
+  font-weight: 600 !important;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+}
+
+.warning-snackbar .mat-mdc-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Info Snackbar (Blue) with Gradient */
+.info-snackbar {
+  background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%) !important;
+  color: white !important;
+  border-left: 4px solid #1565c0 !important;
+}
+
+.info-snackbar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.info-snackbar .mat-mdc-button {
+  color: white !important;
+  font-weight: 600 !important;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+}
+
+.info-snackbar .mat-mdc-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ========================================
+   CONFIRM DIALOG STYLES
+   ======================================== */
+
+/* Dialog Backdrop - Enhanced with Blur */
+.confirm-dialog-backdrop {
+  background-color: rgba(0, 0, 0, 0.25) !important;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Dialog Container */
+.confirm-dialog-container .mat-mdc-dialog-container {
+  border-radius: 16px !important;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2),
+              0 8px 16px rgba(0, 0, 0, 0.1) !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.confirm-dialog-container .mat-mdc-dialog-surface {
+  border-radius: 16px !important;
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+/* Snackbar Entrance Animation - Enhanced */
+.mat-mdc-snack-bar-container {
+  animation: slideInFromRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+             float 3s ease-in-out infinite !important;
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(400px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Subtle floating animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Dialog Entrance Animation - Enhanced */
+.confirm-dialog-container {
+  animation: slideInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+@keyframes slideInScale {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 768px) {
+  .custom-snackbar {
+    min-width: 280px !important;
+    max-width: calc(100vw - 40px) !important;
+  }
+
+  .confirm-dialog-container {
+    max-width: calc(100vw - 20px) !important;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  .mat-mdc-snack-bar-container,
+  .confirm-dialog-container {
+    animation: fadeIn 0.2s ease !important;
+  }
+
+  .custom-snackbar::after {
+    animation: none !important;
+  }
+}
+

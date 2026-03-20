@@ -31,6 +31,7 @@ import { WidgetPickerDialogComponent } from '../../widgets/widget-picker-dialog/
 import { SaveDashboardDialogComponent, SaveDashboardDialogData } from '../../dialogs/save-dashboard-dialog/save-dashboard-dialog.component';
 import { BookingDetailsDialogComponent, BookingDetailsData } from '../booking-details-dialog/booking-details-dialog.component';
 import { GridsterConfigService } from '../../services/gridster-config.service';
+import { NotificationService } from '../../services/notification.service';
 
 export interface DashboardType {
   value: string;
@@ -152,7 +153,8 @@ export class Dashboard1Component implements OnInit {
     private dashboardService: DashboardService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private notificationService: NotificationService
   ) {
     // Initialize gridster configuration
     this.options = GridsterConfigService.getDefaultConfig(false);
@@ -206,7 +208,7 @@ export class Dashboard1Component implements OnInit {
       },
       error: (error) => {
         console.error('Error loading user dashboards:', error);
-        this.snackBar.open('Failed to load dashboards', 'Close', { duration: 3000 });
+        this.notificationService.error('Failed to load dashboards', 'Close', 3000);
         this.loadDefaultWidgets();
         this.refreshAllWidgetData();
         this.isLoadingDashboards = false;
@@ -246,7 +248,7 @@ export class Dashboard1Component implements OnInit {
         },
         error: (error) => {
           console.error('Error loading dashboard:', error);
-          this.snackBar.open('Failed to load dashboard', 'Close', { duration: 3000 });
+          this.notificationService.error('Failed to load dashboard', 'Close', 3000);
           this.loadDefaultWidgets();
           this.refreshAllWidgetData();
           this.loading = false;
@@ -386,7 +388,7 @@ export class Dashboard1Component implements OnInit {
       this.cdr.detectChanges();
     }, 500);
 
-    this.snackBar.open('Widget refreshed', '', { duration: 2000 });
+    this.notificationService.info('Widget refreshed', '', 2000);
   }
 
   /**
@@ -671,9 +673,16 @@ export class Dashboard1Component implements OnInit {
    */
   toggleEditMode(): void {
     if (this.editMode && this.hasUnsavedChanges) {
-      const confirmExit = confirm('You have unsaved changes. Do you want to discard them?');
-      if (!confirmExit) return;
+      this.notificationService.confirmUnsavedChanges().subscribe(confirmed => {
+        if (!confirmed) return;
+        this.performToggleEditMode();
+      });
+      return;
     }
+    this.performToggleEditMode();
+  }
+
+  private performToggleEditMode(): void {
 
     this.editMode = !this.editMode;
     this.options = GridsterConfigService.getDefaultConfig(this.editMode);
@@ -742,7 +751,7 @@ export class Dashboard1Component implements OnInit {
     // Load real data for the new widget
     this.loadWidgetRealData(newItem);
 
-    this.snackBar.open(`${widget.name} added to dashboard`, 'Close', { duration: 2000 });
+    this.notificationService.success(`${widget.name} added to dashboard`);
     console.log('Widget added:', widget.widgetId, 'at position:', position);
   }
 
@@ -756,7 +765,7 @@ export class Dashboard1Component implements OnInit {
     if (index > -1) {
       this.dashboardItems.splice(index, 1);
       this.hasUnsavedChanges = true;
-      this.snackBar.open(`${widgetName} removed`, 'Close', { duration: 2000 });
+      this.notificationService.info(`${widgetName} removed`);
       console.log('Widget removed:', item.widgetId);
     }
   }
@@ -831,7 +840,7 @@ export class Dashboard1Component implements OnInit {
     this.dashboardService.saveDashboard(request).subscribe({
       next: (id) => {
         console.log('Dashboard saved with ID:', id);
-        this.snackBar.open(`Dashboard "${dashboardName}" saved successfully!`, 'Close', { duration: 3000 });
+        this.notificationService.success(`Dashboard "${dashboardName}" saved successfully!`);
         this.hasUnsavedChanges = false;
         this.editMode = false;
         this.loading = false;
@@ -844,7 +853,7 @@ export class Dashboard1Component implements OnInit {
       },
       error: (error) => {
         console.error('Error saving dashboard:', error);
-        this.snackBar.open('Failed to save dashboard', 'Close', { duration: 3000 });
+        this.notificationService.error('Failed to save dashboard', 'Close');
         this.loading = false;
       }
     });
@@ -855,9 +864,17 @@ export class Dashboard1Component implements OnInit {
    */
   cancelEdit(): void {
     if (this.hasUnsavedChanges) {
-      const confirmCancel = confirm('Discard unsaved changes?');
-      if (!confirmCancel) return;
+      this.notificationService.confirmDiscard().subscribe(confirmed => {
+        if (confirmed) {
+          this.performCancelEdit();
+        }
+      });
+      return;
     }
+    this.performCancelEdit();
+  }
+
+  private performCancelEdit(): void {
 
     this.editMode = false;
     this.hasUnsavedChanges = false;
@@ -876,12 +893,19 @@ export class Dashboard1Component implements OnInit {
    */
   deleteDashboard(): void {
     if (!this.selectedDashboard || !this.dashboardConfig) {
-      this.snackBar.open('No dashboard selected to delete', 'Close', { duration: 3000 });
+      this.notificationService.warning('No dashboard selected to delete');
       return;
     }
 
-    const confirmDelete = confirm(`Delete dashboard "${this.dashboardConfig.dashboardName}"? This action cannot be undone.`);
-    if (!confirmDelete) return;
+    this.notificationService.confirmDelete(this.dashboardConfig.dashboardName).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.performDeleteDashboard();
+    });
+  }
+
+  private performDeleteDashboard(): void {
+
+    if (!this.selectedDashboard) return;
 
     this.loading = true;
     const userId = this.getCurrentUserId();
@@ -889,18 +913,18 @@ export class Dashboard1Component implements OnInit {
     this.dashboardService.deleteDashboard(this.selectedDashboard, userId).subscribe({
       next: (success) => {
         if (success) {
-          this.snackBar.open('Dashboard deleted successfully', 'Close', { duration: 3000 });
+          this.notificationService.success('Dashboard deleted successfully');
           this.selectedDashboard = null;
           this.dashboardConfig = null;
           this.loadUserDashboards(); // Reload dashboard list
         } else {
-          this.snackBar.open('Failed to delete dashboard', 'Close', { duration: 3000 });
+          this.notificationService.error('Failed to delete dashboard');
         }
         this.loading = false;
       },
       error: (error) => {
         console.error('Error deleting dashboard:', error);
-        this.snackBar.open('Failed to delete dashboard', 'Close', { duration: 3000 });
+        this.notificationService.error('Failed to delete dashboard');
         this.loading = false;
       }
     });
@@ -911,7 +935,7 @@ export class Dashboard1Component implements OnInit {
    */
   setAsDefaultDashboard(): void {
     if (!this.selectedDashboard) {
-      this.snackBar.open('No dashboard selected', 'Close', { duration: 3000 });
+      this.notificationService.warning('No dashboard selected', 'Close');
       return;
     }
 
@@ -921,17 +945,17 @@ export class Dashboard1Component implements OnInit {
     this.dashboardService.setDefaultDashboard(this.selectedDashboard, userId).subscribe({
       next: (success) => {
         if (success) {
-          this.snackBar.open('Default dashboard updated successfully', 'Close', { duration: 3000 });
+          this.notificationService.success('Default dashboard updated successfully');
           // Reload dashboard list to update isDefault flags
           this.loadUserDashboards();
         } else {
-          this.snackBar.open('Failed to set default dashboard', 'Close', { duration: 3000 });
+          this.notificationService.error('Failed to set default dashboard', 'Close');
           this.loading = false;
         }
       },
       error: (error) => {
         console.error('Error setting default dashboard:', error);
-        this.snackBar.open('Failed to set default dashboard', 'Close', { duration: 3000 });
+        this.notificationService.error('Failed to set default dashboard', 'Close');
         this.loading = false;
       }
     });
@@ -950,8 +974,21 @@ export class Dashboard1Component implements OnInit {
    * Revert dashboard to last saved state
    */
   revertToLastSaved(): void {
-    const confirmRevert = confirm('Revert all changes to the last saved state?');
-    if (!confirmRevert) return;
+    this.notificationService.confirm(
+      'Revert Changes?',
+      'Revert all changes to the last saved state? Current changes will be lost.',
+      'Revert',
+      'Cancel',
+      'restore',
+      '#ff9800',
+      'warn'
+    ).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.performRevertToLastSaved();
+    });
+  }
+
+  private performRevertToLastSaved(): void {
 
     // Restore from backup
     this.dashboardItems = JSON.parse(JSON.stringify(this.savedDashboardState));
@@ -960,7 +997,7 @@ export class Dashboard1Component implements OnInit {
     // Refresh data for all widgets
     this.refreshAllWidgetData();
 
-    this.snackBar.open('Dashboard reverted to last saved state', 'Close', { duration: 3000 });
+    this.notificationService.success('Dashboard reverted to last saved state');
     console.log('Dashboard reverted to last saved state');
   }
 
@@ -1319,7 +1356,7 @@ export class Dashboard1Component implements OnInit {
     this.dashboardService.getRoomsByProperty(userId, propertyIds, true).pipe(
       catchError(error => {
         console.error('❌ Error loading rooms:', error);
-        this.snackBar.open('Failed to load rooms', 'Close', { duration: 3000 });
+        this.notificationService.error('Failed to load rooms', 'Close');
         return of([]);
       })
     ).subscribe(rooms => {
@@ -1355,7 +1392,7 @@ export class Dashboard1Component implements OnInit {
       this.dashboardService.getBookingsWithGuests(userId, startDate, endDate, propertyIds).pipe(
         catchError(error => {
           console.error('❌ Error loading bookings with guests:', error);
-          this.snackBar.open('Failed to load bookings', 'Close', { duration: 3000 });
+          this.notificationService.error('Failed to load bookings', 'Close');
           return of([]);
         })
       ).subscribe(bookings => {
@@ -1646,9 +1683,9 @@ export class Dashboard1Component implements OnInit {
         console.log('Dialog result:', result);
 
         if (result.action === 'create') {
-          this.snackBar.open('Booking creation coming soon!', 'Close', { duration: 3000 });
+          this.notificationService.info('Booking creation coming soon!');
         } else if (result.action === 'view') {
-          this.snackBar.open('View booking details coming soon!', 'Close', { duration: 3000 });
+          this.notificationService.info('View booking details coming soon!');
         }
       }
     });
@@ -1744,7 +1781,7 @@ export class Dashboard1Component implements OnInit {
    */
   refreshRoomPlanner(): void {
     this.loadRoomPlannerData();
-    this.snackBar.open('Room planner refreshed', 'Close', { duration: 2000 });
+    this.notificationService.success('Room planner refreshed');
   }
 
   /**
@@ -1785,11 +1822,11 @@ export class Dashboard1Component implements OnInit {
         if (result.action === 'create') {
           // TODO: Navigate to booking creation or open booking form
           console.log('Create new booking for room:', result.room.roomNumber, 'on', result.date);
-          this.snackBar.open('Booking creation coming soon!', 'Close', { duration: 3000 });
+          this.notificationService.info('Booking creation coming soon!');
         } else if (result.action === 'view') {
           // TODO: Navigate to booking details page
           console.log('View booking:', result.bookingId);
-          this.snackBar.open('View booking details coming soon!', 'Close', { duration: 3000 });
+          this.notificationService.info('View booking details coming soon!');
         }
       }
     });
@@ -1800,15 +1837,21 @@ export class Dashboard1Component implements OnInit {
    */
   onDashboardChange(event: MatSelectChange): void {
     if (this.hasUnsavedChanges) {
-      const confirmSwitch = confirm('You have unsaved changes. Do you want to discard them?');
-      if (!confirmSwitch) {
-        // Revert selection
-        event.source.value = this.selectedDashboard;
-        return;
-      }
+      this.notificationService.confirmUnsavedChanges().subscribe(confirmed => {
+        if (!confirmed) {
+          // Revert selection
+          event.source.value = this.selectedDashboard;
+          return;
+        }
+        this.performDashboardChange(event.value);
+      });
+      return;
     }
+    this.performDashboardChange(event.value);
+  }
 
-    const dashboardId = event.value;
+  private performDashboardChange(dashboardId: string): void {
+
     this.selectedDashboard = dashboardId;
 
     if (dashboardId) {
