@@ -1452,6 +1452,9 @@ export class Dashboard1Component implements OnInit {
     const monthStart = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth(), 1);
     const monthEnd = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth() + 1, 0);
 
+    // Set to end of day (23:59:59.999) to include the full last day
+    monthEnd.setHours(23, 59, 59, 999);
+
     // Calculate start column (1-based)
     const bookingStart = new Date(Math.max(booking.startDate.getTime(), monthStart.getTime()));
     const bookingEnd = new Date(Math.min(booking.endDate.getTime(), monthEnd.getTime()));
@@ -1460,13 +1463,21 @@ export class Dashboard1Component implements OnInit {
     const dayDiff = Math.floor((bookingStart.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24));
     const startCol = dayDiff + 1; // 1-based column index
 
-    // Calculate span (number of days)
-    const span = Math.floor((bookingEnd.getTime() - bookingStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    // Calculate span (number of days) - adding 1 to include both start and end dates
+    // For bookings extending past month end, ensure we include the last day
+    const daysInMonth = monthEnd.getDate();
+    const span = Math.min(
+      Math.floor((bookingEnd.getTime() - bookingStart.getTime()) / (1000 * 60 * 60 * 24)) + 1,
+      daysInMonth - dayDiff // Maximum span to last day of month
+    );
 
     console.log(`📍 Booking Bar Position Calculation:`);
     console.log(`   - Month Start: ${monthStart.toDateString()}`);
+    console.log(`   - Month End: ${monthEnd.toDateString()}`);
+    console.log(`   - Days in Month: ${daysInMonth}`);
     console.log(`   - Booking Start: ${bookingStart.toDateString()}`);
     console.log(`   - Booking End: ${bookingEnd.toDateString()}`);
+    console.log(`   - Original Booking End: ${booking.endDate.toDateString()}`);
     console.log(`   - Day Diff: ${dayDiff}`);
     console.log(`   - Start Column: ${startCol} (1-based)`);
     console.log(`   - Span: ${span} days`);
