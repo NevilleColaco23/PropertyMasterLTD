@@ -296,6 +296,7 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   z-index: 10;
+  grid-row: 1; /* CRITICAL: Force all bars to stay in first row of grid */
 }
 
 .booking-bar::before {
@@ -332,11 +333,32 @@
   font-weight: bold;
   color: rgba(255, 255, 255, 0.95);
   text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-  animation: pulse-arrow 2s ease-in-out infinite;
+  animation: pulse-arrow-right 2s ease-in-out infinite;
   z-index: 3;
 }
 
-@keyframes pulse-arrow {
+/* Booking bar that continues from previous month */
+.booking-bar.continues-from-previous-month {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  padding-left: 24px; /* Extra space for arrow */
+}
+
+.booking-bar.continues-from-previous-month::before {
+  content: '←';
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  animation: pulse-arrow-left 2s ease-in-out infinite;
+  z-index: 3;
+}
+
+@keyframes pulse-arrow-right {
   0%, 100% { 
     opacity: 0.7; 
     transform: translateY(-50%) translateX(0); 
@@ -344,6 +366,17 @@
   50% { 
     opacity: 1; 
     transform: translateY(-50%) translateX(3px); 
+  }
+}
+
+@keyframes pulse-arrow-left {
+  0%, 100% { 
+    opacity: 0.7; 
+    transform: translateY(-50%) translateX(0); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: translateY(-50%) translateX(-3px); 
   }
 }
 

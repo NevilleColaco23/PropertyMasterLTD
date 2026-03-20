@@ -63,6 +63,7 @@ export interface BookingBar {
   endDate: Date;
   startCol: number; // Grid column start (1-based)
   span: number; // Number of days to span
+  continuesFromPreviousMonth?: boolean; // Indicates if booking starts in previous month
   continuesNextMonth?: boolean; // Indicates if booking extends into next month
   propertyName?: string;
   checkInDate?: Date;
@@ -142,6 +143,9 @@ export class Dashboard1Component implements OnInit {
   occupiedRoomsToday = 0;
   availableRoomsToday = 0;
   occupancyRateToday = 0;
+  availablePlannerProperties: Array<{ id: number; name: string }> = []; // Properties available for planner
+  selectedPlannerPropertyId: number | null = null; // Currently selected property in planner dropdown
+  roomPlannerDataLoaded = false; // Track if data has been loaded at least once
 
   constructor(
     private router: Router,
@@ -158,6 +162,9 @@ export class Dashboard1Component implements OnInit {
     console.log('Dashboard1 component initialized - Phase 5: Gridster + Real Data');
     this.loadUserDashboards();
     this.loadWidgetLibrary();
+
+    // Pre-load Room Planner data in background
+    this.initializeRoomPlanner();
   }
 
   // ========================================
@@ -1199,15 +1206,62 @@ export class Dashboard1Component implements OnInit {
     console.log(`Tab changed to index: ${event.index}, label: ${event.tab.textLabel}`);
     this.selectedTabIndex = event.index;
 
-    if (event.index === 1) {
-      // Room Planner tab selected
-      this.loadRoomPlannerData();
-    }
+    // Room Planner tab selected - data is pre-loaded in background, no auto-refresh
+    // User can explicitly click refresh button if needed
   }
 
   // ========================================
   // ROOM PLANNER METHODS
   // ========================================
+
+  /**
+   * Initialize Room Planner - Load available properties and pre-load data in background
+   */
+  private initializeRoomPlanner(): void {
+    console.log('🏨 Initializing Room Planner in background...');
+
+    // Pre-load room planner data in background (non-blocking)
+    setTimeout(() => {
+      if (!this.roomPlannerDataLoaded) {
+        console.log('🏨 Pre-loading Room Planner data in background...');
+        this.loadRoomPlannerData();
+      }
+    }, 1000); // Small delay to not interfere with dashboard loading
+  }
+
+  /**
+   * Extract available properties from loaded rooms
+   */
+  private extractAvailablePropertiesFromRooms(): void {
+    const propertyMap = new Map<number, string>();
+
+    this.rooms.forEach(room => {
+      if (room.propertyId && room.propertyName && !propertyMap.has(room.propertyId)) {
+        propertyMap.set(room.propertyId, room.propertyName);
+      }
+    });
+
+    this.availablePlannerProperties = Array.from(propertyMap.entries())
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    console.log('✅ Available planner properties extracted from rooms:', this.availablePlannerProperties);
+
+    // Set first property as default if not already set
+    if (this.availablePlannerProperties.length > 0 && !this.selectedPlannerPropertyId) {
+      this.selectedPlannerPropertyId = this.availablePlannerProperties[0].id;
+      console.log('📍 Default planner property selected:', this.selectedPlannerPropertyId);
+    }
+  }
+
+  /**
+   * Handle planner property selection change
+   */
+  onPlannerPropertyChange(propertyId: number): void {
+    console.log('🏨 Planner property changed to:', propertyId);
+    this.selectedPlannerPropertyId = propertyId;
+    this.loadRoomPlannerData();
+  }
 
   /**
    * Load room planner data
@@ -1216,16 +1270,22 @@ export class Dashboard1Component implements OnInit {
     this.loadingRoomPlanner = true;
     this.generatePlannerDays();
 
-    let propertyIds = this.getSelectedPropertyIds();
     const userId = this.getCurrentUserId();
+    let propertyIds: number[];
 
-    // If no properties selected, default to Property 1 for testing
-    if (!propertyIds || propertyIds.length === 0) {
-      console.warn('⚠️ No properties selected, defaulting to Property ID 1 for Room Planner');
-      propertyIds = [1];
+    // Use selected property from dropdown if available
+    if (this.selectedPlannerPropertyId) {
+      propertyIds = [this.selectedPlannerPropertyId];
+      console.log(`🏨 Loading Room Planner for selected property: ${this.selectedPlannerPropertyId}`);
+    } else {
+      // Fallback to all selected properties or default to Property 1
+      propertyIds = this.getSelectedPropertyIds();
+      if (propertyIds.length === 0) {
+        console.warn('⚠️ No properties selected, defaulting to Property ID 1 for Room Planner');
+        propertyIds = [1];
+      }
+      console.log(`🏨 Loading Room Planner for properties: ${JSON.stringify(propertyIds)}`);
     }
-
-    console.log(`🏨 Loading Room Planner for properties: ${JSON.stringify(propertyIds)}`);
 
     // Load rooms and bookings
     this.loadRoomsForPlanner(propertyIds, userId);
@@ -1282,6 +1342,11 @@ export class Dashboard1Component implements OnInit {
 
       this.totalRooms = this.rooms.length;
 
+      // Extract available properties for dropdown (first time only)
+      if (this.availablePlannerProperties.length === 0) {
+        this.extractAvailablePropertiesFromRooms();
+      }
+
       // Load bookings with guest details for the month
       const startDate = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth(), 1);
       const endDate = new Date(this.currentPlannerMonth.getFullYear(), this.currentPlannerMonth.getMonth() + 1, 0);
@@ -1298,6 +1363,7 @@ export class Dashboard1Component implements OnInit {
         this.processBookingsForPlanner(bookings);
         this.calculateOccupancyStats();
         this.loadingRoomPlanner = false;
+        this.roomPlannerDataLoaded = true; // Mark as loaded
         this.cdr.detectChanges();
       });
     });
@@ -1460,7 +1526,8 @@ export class Dashboard1Component implements OnInit {
     const bookingStart = new Date(Math.max(booking.startDate.getTime(), monthStart.getTime()));
     const bookingEnd = new Date(Math.min(booking.endDate.getTime(), monthEnd.getTime()));
 
-    // Detect if booking continues to next month
+    // Detect if booking continues from previous month or to next month
+    const continuesFromPreviousMonth = booking.startDate.getTime() < monthStart.getTime();
     const continuesNextMonth = booking.endDate.getTime() > monthEnd.getTime();
 
     // Calculate day difference from month start (1-based, so add 1)
@@ -1481,8 +1548,10 @@ export class Dashboard1Component implements OnInit {
     console.log(`   - Days in Month: ${daysInMonth}`);
     console.log(`   - Booking Start: ${bookingStart.toDateString()}`);
     console.log(`   - Booking End: ${bookingEnd.toDateString()}`);
+    console.log(`   - Original Booking Start: ${booking.startDate.toDateString()}`);
     console.log(`   - Original Booking End: ${booking.endDate.toDateString()}`);
-    console.log(`   - Continues Next Month: ${continuesNextMonth ? 'YES ✅' : 'NO'}`);
+    console.log(`   - Continues From Previous Month: ${continuesFromPreviousMonth ? 'YES ← ✅' : 'NO'}`);
+    console.log(`   - Continues Next Month: ${continuesNextMonth ? 'YES ✅ →' : 'NO'}`);
     console.log(`   - Day Diff: ${dayDiff}`);
     console.log(`   - Start Column: ${startCol} (1-based)`);
     console.log(`   - Span: ${span} days`);
@@ -1493,7 +1562,8 @@ export class Dashboard1Component implements OnInit {
         ...booking,
         startCol,
         span,
-        continuesNextMonth // NEW: Flag for continuation indicator
+        continuesFromPreviousMonth, // NEW: Flag for previous month continuation
+        continuesNextMonth // Flag for next month continuation
       };
 
       if (!this.roomBookingBars.has(roomId)) {
@@ -1501,7 +1571,12 @@ export class Dashboard1Component implements OnInit {
       }
       this.roomBookingBars.get(roomId)!.push(bar);
 
-      console.log(`✅ Booking bar created: Column ${startCol}, spanning ${span} day(s)${continuesNextMonth ? ' → Continues to next month' : ''}`);
+      const continuationFlags = [];
+      if (continuesFromPreviousMonth) continuationFlags.push('← Continues from previous month');
+      if (continuesNextMonth) continuationFlags.push('Continues to next month →');
+      const continuationMessage = continuationFlags.length > 0 ? ` (${continuationFlags.join(' | ')})` : '';
+
+      console.log(`✅ Booking bar created: Column ${startCol}, spanning ${span} day(s)${continuationMessage}`);
     } else {
       console.warn(`⚠️ Invalid span (${span}), booking bar not created`);
     }

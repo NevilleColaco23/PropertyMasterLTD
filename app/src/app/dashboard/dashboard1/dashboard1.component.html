@@ -251,10 +251,22 @@
       <div class="tab-content">
         <div class="room-planner-container">
           <div class="planner-header">
-            <h2>
-              <mat-icon>hotel</mat-icon>
-              Room Occupancy Calendar
-            </h2>
+            <div class="planner-title-section">
+              <h2>
+                <mat-icon>hotel</mat-icon>
+                Room Occupancy Calendar
+              </h2>
+              <!-- Property Selector Dropdown -->
+              <mat-form-field appearance="outline" class="property-selector" *ngIf="availablePlannerProperties.length > 0">
+                <mat-label>Property</mat-label>
+                <mat-select [(value)]="selectedPlannerPropertyId" 
+                            (selectionChange)="onPlannerPropertyChange($event.value)">
+                  <mat-option *ngFor="let property of availablePlannerProperties" [value]="property.id">
+                    {{ property.name }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
             <div class="planner-controls">
               <button mat-icon-button (click)="navigateMonth(-1)" matTooltip="Previous Month">
                 <mat-icon>chevron_left</mat-icon>
@@ -346,8 +358,13 @@
                            [class.checkin]="bar.type === 'checkin'"
                            [class.checkout]="bar.type === 'checkout'"
                            [class.maintenance]="bar.type === 'maintenance'"
+                           [class.continues-from-previous-month]="bar.continuesFromPreviousMonth"
                            [class.continues-next-month]="bar.continuesNextMonth"
-                           [matTooltip]="bar.continuesNextMonth ? 
+                           [matTooltip]="(bar.continuesFromPreviousMonth && bar.continuesNextMonth) ? 
+                                         bar.guestName + ' (Started ' + (bar.startDate | date:'MMM d, y') + ', Continues to ' + (bar.endDate | date:'MMM d, y') + ')' :
+                                         bar.continuesFromPreviousMonth ? 
+                                         bar.guestName + ' (Started ' + (bar.startDate | date:'MMM d, y') + ')' :
+                                         bar.continuesNextMonth ? 
                                          bar.guestName + ' (Continues to ' + (bar.endDate | date:'MMM d, y') + ')' : 
                                          bar.guestName + ' (' + (bar.startDate | date:'MMM d') + ' - ' + (bar.endDate | date:'MMM d') + ')'"
                            (click)="onBookingBarClick(room, bar, $event)">
