@@ -30,6 +30,7 @@ import { ActivityStreamWidgetComponent } from '../../widgets/activity-stream-wid
 import { WidgetPickerDialogComponent } from '../../widgets/widget-picker-dialog/widget-picker-dialog.component';
 import { SaveDashboardDialogComponent, SaveDashboardDialogData } from '../../dialogs/save-dashboard-dialog/save-dashboard-dialog.component';
 import { BookingDetailsDialogComponent, BookingDetailsData } from '../booking-details-dialog/booking-details-dialog.component';
+import { BookingContextMenuComponent, BookingContextMenuData, BookingContextMenuResult } from './booking-context-menu/booking-context-menu.component';
 import { GridsterConfigService } from '../../services/gridster-config.service';
 import { NotificationService } from '../../services/notification.service';
 
@@ -147,6 +148,21 @@ export class Dashboard1Component implements OnInit {
   availablePlannerProperties: Array<{ id: number; name: string }> = []; // Properties available for planner
   selectedPlannerPropertyId: number | null = null; // Currently selected property in planner dropdown
   roomPlannerDataLoaded = false; // Track if data has been loaded at least once
+
+  // ===== Interactive Features State =====
+  draggedBooking: BookingBar | null = null;
+  draggedFromRoomId: number | null = null;
+  isDragging = false;
+  dropTargetRoomId: number | null = null;
+  dropTargetDate: Date | null = null;
+
+  resizingBooking: BookingBar | null = null;
+  resizingRoomId: number | null = null;
+  resizeDirection: 'left' | 'right' | null = null;
+  isResizing = false;
+  resizeStartX: number = 0;
+  resizeOriginalSpan: number = 0;
+  resizeOriginalStartCol: number = 0;
 
   constructor(
     private router: Router,
@@ -2018,6 +2034,657 @@ export class Dashboard1Component implements OnInit {
 
     console.log('🔗 Navigating to bookings report with params:', queryParams);
     this.router.navigate(['/bookings'], { queryParams });
+  }
+
+  // ========================================
+  // INTERACTIVE FEATURES: DRAG & DROP
+  // ========================================
+
+  /**
+   * Handle booking drag start
+   */
+  onBookingDragStart(bar: BookingBar, roomId: number, event: DragEvent): void {
+    console.log('🎯 Drag started:', bar.guestName, 'from room', roomId);
+
+    this.draggedBooking = bar;
+    this.draggedFromRoomId = roomId;
+    this.isDragging = true;
+
+    // Set drag data
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', bar.bookingId);
+    }
+
+    // Add dragging class to element after short delay (to avoid flickering)
+    setTimeout(() => {
+      const element = event.target as HTMLElement;
+      element.classList.add('dragging');
+    }, 0);
+  }
+
+  /**
+   * Handle booking drag over room row
+   */
+  onRoomDragOver(roomId: number, event: DragEvent): void {
+    if (!this.isDragging || !this.draggedBooking) return;
+
+    event.preventDefault(); // Required to allow drop
+    event.stopPropagation();
+
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+
+    // Update drop target
+    if (this.dropTargetRoomId !== roomId) {
+      this.dropTargetRoomId = roomId;
+      console.log('📍 Drop target updated:', roomId);
+    }
+  }
+
+  /**
+   * Handle drag leave from room row
+   */
+  onRoomDragLeave(roomId: number, event: DragEvent): void {
+    if (this.dropTargetRoomId === roomId) {
+      this.dropTargetRoomId = null;
+    }
+  }
+
+  /**
+   * Handle drop on room row
+   */
+  onRoomDrop(roomId: number, event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.draggedBooking || !this.draggedFromRoomId) {
+      console.warn('⚠️ No dragged booking data');
+      return;
+    }
+
+    console.log('📦 Drop event:', {
+      booking: this.draggedBooking.bookingId,
+      fromRoom: this.draggedFromRoomId,
+      toRoom: roomId
+    });
+
+    // Check if dropped on same room
+    if (roomId === this.draggedFromRoomId) {
+      console.log('ℹ️ Dropped on same room, no action needed');
+      this.clearDragState();
+      return;
+    }
+
+    // Get room information
+    const targetRoom = this.rooms.find(r => r.id === roomId);
+    const sourceRoom = this.rooms.find(r => r.id === this.draggedFromRoomId);
+
+    if (!targetRoom || !sourceRoom) {
+      this.notificationService.error('Room not found');
+      this.clearDragState();
+      return;
+    }
+
+    // Check if target room is available for the booking dates
+    const isAvailable = this.checkRoomAvailability(
+      roomId, 
+      this.draggedBooking.startDate, 
+      this.draggedBooking.endDate
+    );
+
+    if (!isAvailable) {
+      this.notificationService.warning(
+        `Room ${targetRoom.roomNumber} is not available for these dates`
+      );
+      this.clearDragState();
+      return;
+    }
+
+    // Confirm move
+    this.notificationService.confirm(
+      'Move Booking?',
+      `Move ${this.draggedBooking.guestName}'s booking from Room ${sourceRoom.roomNumber} to Room ${targetRoom.roomNumber}?`,
+      'Move',
+      'Cancel',
+      'swap_horiz',
+      '#2196f3',
+      'primary'
+    ).subscribe(confirmed => {
+      if (confirmed) {
+        this.performBookingMove(this.draggedBooking!, roomId);
+      }
+      this.clearDragState();
+    });
+  }
+
+  /**
+   * Handle drag end
+   */
+  onBookingDragEnd(event: DragEvent): void {
+    console.log('🏁 Drag ended');
+
+    // Remove dragging class
+    const element = event.target as HTMLElement;
+    element.classList.remove('dragging');
+
+    this.clearDragState();
+  }
+
+  /**
+   * Clear drag state
+   */
+  private clearDragState(): void {
+    this.draggedBooking = null;
+    this.draggedFromRoomId = null;
+    this.isDragging = false;
+    this.dropTargetRoomId = null;
+    this.dropTargetDate = null;
+  }
+
+  /**
+   * Check if room is available for given dates
+   */
+  private checkRoomAvailability(roomId: number, startDate: Date, endDate: Date): boolean {
+    // Get all booking bars for this room
+    const bars = this.roomBookingBars.get(roomId) || [];
+
+    // Check for overlaps
+    for (const bar of bars) {
+      // Skip if it's the same booking being moved
+      if (this.draggedBooking && bar.bookingId === this.draggedBooking.bookingId) {
+        continue;
+      }
+
+      // Check date overlap
+      const barStart = new Date(bar.startDate);
+      const barEnd = new Date(bar.endDate);
+      const checkStart = new Date(startDate);
+      const checkEnd = new Date(endDate);
+
+      if (checkStart <= barEnd && checkEnd >= barStart) {
+        return false; // Overlap detected
+      }
+    }
+
+    return true; // No conflicts
+  }
+
+  /**
+   * Perform booking move to another room
+   */
+  private performBookingMove(booking: BookingBar, newRoomId: number): void {
+    console.log('🚀 Moving booking:', booking.bookingId, 'to room:', newRoomId);
+
+    // TODO: Call backend API to move booking
+    // For now, just update the UI optimistically
+    const sourceRoom = this.rooms.find(r => r.id === this.draggedFromRoomId);
+    const targetRoom = this.rooms.find(r => r.id === newRoomId);
+
+    if (!sourceRoom || !targetRoom) return;
+
+    // Remove from source room
+    const sourceBars = this.roomBookingBars.get(this.draggedFromRoomId!) || [];
+    const updatedSourceBars = sourceBars.filter(b => b.bookingId !== booking.bookingId);
+    this.roomBookingBars.set(this.draggedFromRoomId!, updatedSourceBars);
+
+    // Add to target room
+    if (!this.roomBookingBars.has(newRoomId)) {
+      this.roomBookingBars.set(newRoomId, []);
+    }
+    this.roomBookingBars.get(newRoomId)!.push({ ...booking });
+
+    // Update room bookings map
+    let currentDate = new Date(booking.startDate);
+    const endDate = new Date(booking.endDate);
+    while (currentDate <= endDate) {
+      const sourceKey = `${this.draggedFromRoomId}-${currentDate.toISOString().split('T')[0]}`;
+      const targetKey = `${newRoomId}-${currentDate.toISOString().split('T')[0]}`;
+
+      const bookingData = this.roomBookings.get(sourceKey);
+      if (bookingData) {
+        this.roomBookings.delete(sourceKey);
+        this.roomBookings.set(targetKey, bookingData);
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    this.cdr.detectChanges();
+    this.notificationService.success(
+      `Booking moved from Room ${sourceRoom.roomNumber} to Room ${targetRoom.roomNumber}!`
+    );
+
+    // TODO: Call actual backend API
+    // this.dashboardService.moveBooking(booking.bookingId, newRoomId).subscribe(...)
+  }
+
+  // ========================================
+  // INTERACTIVE FEATURES: RESIZE
+  // ========================================
+
+  /**
+   * Handle resize start
+   */
+  onResizeStart(bar: BookingBar, roomId: number, direction: 'left' | 'right', event: MouseEvent): void {
+    event.stopPropagation(); // Prevent drag start
+    event.preventDefault();
+
+    console.log('📏 Resize started:', direction, bar.guestName);
+
+    this.resizingBooking = bar;
+    this.resizingRoomId = roomId;
+    this.resizeDirection = direction;
+    this.resizeStartX = event.clientX;
+    this.resizeOriginalSpan = bar.span;
+    this.resizeOriginalStartCol = bar.startCol;
+    this.isResizing = true;
+
+    // Add resizing class
+    const barElement = (event.target as HTMLElement).closest('.booking-bar');
+    if (barElement) {
+      barElement.classList.add('resizing');
+    }
+
+    // Add global cursor override
+    document.body.classList.add('resizing');
+
+    // Add global mouse listeners
+    document.addEventListener('mousemove', this.onResizeMove);
+    document.addEventListener('mouseup', this.onResizeEnd);
+  }
+
+  /**
+   * Handle resize move
+   */
+  onResizeMove = (event: MouseEvent): void => {
+    if (!this.isResizing || !this.resizingBooking || !this.resizingRoomId) return;
+
+    const deltaX = event.clientX - this.resizeStartX;
+
+    // Calculate day width from grid (approximately 60px per day)
+    const dayWidth = 60; // This should match CSS grid column width
+    const daysDelta = Math.round(deltaX / dayWidth);
+
+    console.log('📏 Resize delta:', daysDelta, 'days');
+
+    let newSpan = this.resizeOriginalSpan;
+    let newStartCol = this.resizeOriginalStartCol;
+
+    if (this.resizeDirection === 'right') {
+      // Extending/shortening from end date
+      newSpan = this.resizeOriginalSpan + daysDelta;
+    } else {
+      // Extending/shortening from start date
+      newSpan = this.resizeOriginalSpan - daysDelta;
+      newStartCol = this.resizeOriginalStartCol + daysDelta;
+    }
+
+    // Minimum 1 day booking
+    if (newSpan < 1) {
+      newSpan = 1;
+      if (this.resizeDirection === 'left') {
+        newStartCol = this.resizeOriginalStartCol + this.resizeOriginalSpan - 1;
+      }
+    }
+
+    // Maximum span to end of month
+    const daysInMonth = this.plannerDays.length;
+    if (newStartCol + newSpan > daysInMonth + 1) {
+      newSpan = daysInMonth - newStartCol + 1;
+    }
+
+    // Update booking bar visually
+    this.resizingBooking.span = newSpan;
+    this.resizingBooking.startCol = newStartCol;
+    this.cdr.detectChanges();
+  };
+
+  /**
+   * Handle resize end
+   */
+  onResizeEnd = (event: MouseEvent): void => {
+    if (!this.isResizing || !this.resizingBooking || !this.resizingRoomId) return;
+
+    console.log('🏁 Resize ended');
+
+    // Remove global listeners
+    document.removeEventListener('mousemove', this.onResizeMove);
+    document.removeEventListener('mouseup', this.onResizeEnd);
+
+    // Remove global cursor override
+    document.body.classList.remove('resizing');
+
+    // Remove resizing class
+    const barElements = document.querySelectorAll('.booking-bar.resizing');
+    barElements.forEach(el => el.classList.remove('resizing'));
+
+    // Check if size actually changed
+    const spanChanged = this.resizingBooking.span !== this.resizeOriginalSpan;
+    const startChanged = this.resizingBooking.startCol !== this.resizeOriginalStartCol;
+
+    if (spanChanged || startChanged) {
+      // Calculate new dates
+      const monthStart = new Date(
+        this.currentPlannerMonth.getFullYear(), 
+        this.currentPlannerMonth.getMonth(), 
+        1
+      );
+
+      const newStartDate = new Date(monthStart);
+      newStartDate.setDate(this.resizingBooking.startCol);
+
+      const newEndDate = new Date(newStartDate);
+      newEndDate.setDate(newStartDate.getDate() + this.resizingBooking.span - 1);
+
+      console.log('📅 New dates:', {
+        start: newStartDate.toDateString(),
+        end: newEndDate.toDateString(),
+        span: this.resizingBooking.span
+      });
+
+      // Check availability for new dates
+      const isAvailable = this.checkRoomAvailabilityForResize(
+        this.resizingRoomId,
+        newStartDate,
+        newEndDate,
+        this.resizingBooking.bookingId
+      );
+
+      if (!isAvailable) {
+        this.notificationService.warning('Cannot resize: dates conflict with another booking');
+        // Revert to original size
+        this.resizingBooking.span = this.resizeOriginalSpan;
+        this.resizingBooking.startCol = this.resizeOriginalStartCol;
+        this.cdr.detectChanges();
+      } else {
+        // Confirm resize
+        const action = this.resizingBooking.span > this.resizeOriginalSpan ? 'extend' : 'shorten';
+        this.performBookingResize(
+          this.resizingBooking,
+          this.resizingRoomId,
+          newStartDate,
+          newEndDate,
+          action
+        );
+      }
+    }
+
+    // Clear resize state
+    this.clearResizeState();
+  };
+
+  /**
+   * Check room availability for resize (excluding current booking)
+   */
+  private checkRoomAvailabilityForResize(
+    roomId: number, 
+    startDate: Date, 
+    endDate: Date, 
+    excludeBookingId: string
+  ): boolean {
+    const bars = this.roomBookingBars.get(roomId) || [];
+
+    for (const bar of bars) {
+      if (bar.bookingId === excludeBookingId) continue;
+
+      const barStart = new Date(bar.startDate);
+      const barEnd = new Date(bar.endDate);
+      const checkStart = new Date(startDate);
+      const checkEnd = new Date(endDate);
+
+      if (checkStart <= barEnd && checkEnd >= barStart) {
+        return false; // Overlap detected
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Perform booking resize
+   */
+  private performBookingResize(
+    booking: BookingBar, 
+    roomId: number, 
+    newStartDate: Date, 
+    newEndDate: Date,
+    action: 'extend' | 'shorten'
+  ): void {
+    console.log('🚀 Resizing booking:', booking.bookingId, action);
+
+    // Update booking dates
+    booking.startDate = newStartDate;
+    booking.endDate = newEndDate;
+
+    // Recalculate room bookings map
+    // First, remove old entries
+    let currentDate = new Date(booking.startDate);
+    const endDate = new Date(booking.endDate);
+
+    // Clear old entries for this booking
+    this.roomBookings.forEach((value, key) => {
+      if (value.bookingId === booking.bookingId) {
+        this.roomBookings.delete(key);
+      }
+    });
+
+    // Add new entries
+    currentDate = new Date(newStartDate);
+    while (currentDate <= newEndDate) {
+      const key = `${roomId}-${currentDate.toISOString().split('T')[0]}`;
+      this.roomBookings.set(key, {
+        type: booking.type,
+        guestName: booking.guestName,
+        bookingId: booking.bookingId,
+        color: booking.color
+      });
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    this.cdr.detectChanges();
+
+    const actionText = action === 'extend' ? 'extended' : 'shortened';
+    this.notificationService.success(`Booking ${actionText} successfully!`);
+
+    // TODO: Call actual backend API
+    // this.dashboardService.resizeBooking(booking.bookingId, newStartDate, newEndDate).subscribe(...)
+  }
+
+  /**
+   * Clear resize state
+   */
+  private clearResizeState(): void {
+    this.resizingBooking = null;
+    this.resizingRoomId = null;
+    this.resizeDirection = null;
+    this.isResizing = false;
+    this.resizeStartX = 0;
+    this.resizeOriginalSpan = 0;
+    this.resizeOriginalStartCol = 0;
+  }
+
+  // ========================================
+  // INTERACTIVE FEATURES: CONTEXT MENU
+  // ========================================
+
+  /**
+   * Handle right-click on booking bar
+   */
+  onBookingRightClick(bar: BookingBar, roomId: number, event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    console.log('🖱️ Right-click on booking:', bar.guestName);
+
+    const room = this.rooms.find(r => r.id === roomId);
+    if (!room) return;
+
+    const data: BookingContextMenuData = {
+      bookingId: bar.bookingId,
+      guestName: bar.guestName,
+      roomNumber: room.roomNumber,
+      checkInDate: bar.checkInDate || bar.startDate,
+      checkOutDate: bar.checkOutDate || bar.endDate,
+      status: bar.type,
+      position: { x: event.clientX, y: event.clientY }
+    };
+
+    const dialogRef = this.dialog.open(BookingContextMenuComponent, {
+      position: { 
+        left: `${event.clientX}px`, 
+        top: `${event.clientY}px` 
+      },
+      backdropClass: 'context-menu-backdrop',
+      panelClass: 'context-menu-panel',
+      data: data
+    });
+
+    // Add active state to booking bar
+    const barElement = (event.target as HTMLElement).closest('.booking-bar');
+    if (barElement) {
+      barElement.classList.add('context-menu-active');
+    }
+
+    dialogRef.afterClosed().subscribe((result: BookingContextMenuResult | undefined) => {
+      // Remove active state
+      if (barElement) {
+        barElement.classList.remove('context-menu-active');
+      }
+
+      if (result) {
+        this.handleContextMenuAction(result, bar, roomId);
+      }
+    });
+  }
+
+  /**
+   * Handle context menu action selection
+   */
+  private handleContextMenuAction(result: BookingContextMenuResult, bar: BookingBar, roomId: number): void {
+    console.log('⚡ Context menu action:', result.action, 'for booking:', result.bookingId);
+
+    switch (result.action) {
+      case 'view-details':
+        // Open booking details dialog
+        this.openBookingDetailsDialog(bar, roomId);
+        break;
+
+      case 'edit':
+        this.notificationService.info('Edit booking feature coming soon!');
+        // TODO: Navigate to booking edit page or open edit dialog
+        break;
+
+      case 'extend':
+        this.notificationService.info('Tip: Drag the right edge of the booking bar to extend the stay!', '', 4000);
+        break;
+
+      case 'shorten':
+        this.notificationService.info('Tip: Drag the left edge of the booking bar to shorten the stay!', '', 4000);
+        break;
+
+      case 'move':
+        this.notificationService.info('Tip: Drag the booking bar to a different room to move it!', '', 4000);
+        break;
+
+      case 'upgrade':
+        this.notificationService.info('Room upgrade feature coming soon!');
+        // TODO: Show room upgrade options
+        break;
+
+      case 'cancel':
+        this.confirmCancelBooking(bar, roomId);
+        break;
+
+      default:
+        console.warn('Unknown action:', result.action);
+    }
+  }
+
+  /**
+   * Open booking details dialog from context menu
+   */
+  private openBookingDetailsDialog(bar: BookingBar, roomId: number): void {
+    const room = this.rooms.find(r => r.id === roomId);
+    if (!room) return;
+
+    const dialogData: BookingDetailsData = {
+      room: {
+        roomNumber: room.roomNumber,
+        roomName: room.roomName,
+        roomType: room.roomType,
+        floor: room.floor,
+        capacity: room.capacity,
+        status: room.status
+      },
+      date: bar.startDate,
+      propertyName: bar.propertyName || room.propertyName || 'Unknown Property',
+      booking: {
+        type: bar.type,
+        guestName: bar.guestName,
+        bookingId: bar.bookingId,
+        color: bar.color,
+        checkInDate: bar.checkInDate,
+        checkOutDate: bar.checkOutDate,
+        guestDetails: bar.guestDetails
+      }
+    };
+
+    this.dialog.open(BookingDetailsDialogComponent, {
+      width: '600px',
+      data: dialogData,
+      panelClass: 'booking-details-dialog'
+    });
+  }
+
+  /**
+   * Confirm and cancel booking
+   */
+  private confirmCancelBooking(bar: BookingBar, roomId: number): void {
+    const room = this.rooms.find(r => r.id === roomId);
+    if (!room) return;
+
+    this.notificationService.confirm(
+      'Cancel Booking?',
+      `Are you sure you want to cancel the booking for ${bar.guestName} in Room ${room.roomNumber}? This action cannot be undone.`,
+      'Cancel Booking',
+      'Keep Booking',
+      'cancel',
+      '#f44336',
+      'warn'
+    ).subscribe(confirmed => {
+      if (confirmed) {
+        this.performBookingCancellation(bar, roomId);
+      }
+    });
+  }
+
+  /**
+   * Perform booking cancellation
+   */
+  private performBookingCancellation(bar: BookingBar, roomId: number): void {
+    console.log('🚀 Cancelling booking:', bar.bookingId);
+
+    // Remove from room booking bars
+    const bars = this.roomBookingBars.get(roomId) || [];
+    const updatedBars = bars.filter(b => b.bookingId !== bar.bookingId);
+    this.roomBookingBars.set(roomId, updatedBars);
+
+    // Remove from room bookings map
+    let currentDate = new Date(bar.startDate);
+    const endDate = new Date(bar.endDate);
+    while (currentDate <= endDate) {
+      const key = `${roomId}-${currentDate.toISOString().split('T')[0]}`;
+      this.roomBookings.delete(key);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    this.cdr.detectChanges();
+    this.notificationService.success(`Booking for ${bar.guestName} cancelled successfully!`);
+
+    // TODO: Call actual backend API
+    // this.dashboardService.cancelBooking(bar.bookingId).subscribe(...)
   }
 }
 

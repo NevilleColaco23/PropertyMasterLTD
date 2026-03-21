@@ -341,7 +341,11 @@
                   </div>
 
                   <!-- Timeline Grid (Days) -->
-                  <div class="gantt-timeline">
+                  <div class="gantt-timeline"
+                       [class.drop-target]="dropTargetRoomId === room.id"
+                       (dragover)="onRoomDragOver(room.id, $event)"
+                       (dragleave)="onRoomDragLeave(room.id, $event)"
+                       (drop)="onRoomDrop(room.id, $event)">
                     <div class="day-column" 
                          *ngFor="let day of plannerDays" 
                          [class.today]="isToday(day.date)"
@@ -351,7 +355,7 @@
 
                     <!-- Booking Bars Overlay -->
                     <div class="booking-bars-layer" [style.grid-template-columns]="'repeat(' + plannerDays.length + ', 51px)'">
-                      <div class="booking-bar"
+                      <div class="booking-bar draggable resizable"
                            *ngFor="let bar of getBookingBars(room.id)"
                            [style.grid-column]="bar.startCol + ' / span ' + bar.span"
                            [class.occupied]="bar.type === 'occupied' || bar.type === 'confirmed'"
@@ -360,6 +364,11 @@
                            [class.maintenance]="bar.type === 'maintenance'"
                            [class.continues-from-previous-month]="bar.continuesFromPreviousMonth"
                            [class.continues-next-month]="bar.continuesNextMonth"
+                           [class.selected]="draggedBooking?.bookingId === bar.bookingId"
+                           [attr.draggable]="true"
+                           (dragstart)="onBookingDragStart(bar, room.id, $event)"
+                           (dragend)="onBookingDragEnd($event)"
+                           (contextmenu)="onBookingRightClick(bar, room.id, $event)"
                            [matTooltip]="(bar.continuesFromPreviousMonth && bar.continuesNextMonth) ? 
                                          bar.guestName + ' (Started ' + (bar.startDate | date:'MMM d, y') + ', Continues to ' + (bar.endDate | date:'MMM d, y') + ')' :
                                          bar.continuesFromPreviousMonth ? 
@@ -368,7 +377,23 @@
                                          bar.guestName + ' (Continues to ' + (bar.endDate | date:'MMM d, y') + ')' : 
                                          bar.guestName + ' (' + (bar.startDate | date:'MMM d') + ' - ' + (bar.endDate | date:'MMM d') + ')'"
                            (click)="onBookingBarClick(room, bar, $event)">
+
+                        <!-- Resize Handle - Left (Start Date) -->
+                        <div class="resize-handle resize-handle-left"
+                             (mousedown)="onResizeStart(bar, room.id, 'left', $event)"
+                             *ngIf="!bar.continuesFromPreviousMonth"></div>
+
+                        <!-- Booking Label -->
                         <span class="bar-label">{{ bar.guestName }}</span>
+
+                        <!-- Action Hint (shows on hover) -->
+                        <span class="action-hint">Drag to move • Right-click for options</span>
+
+                        <!-- Resize Handle - Right (End Date) -->
+                        <div class="resize-handle resize-handle-right"
+                             (mousedown)="onResizeStart(bar, room.id, 'right', $event)"
+                             *ngIf="!bar.continuesNextMonth"></div>
+
                         <div class="bar-marker start"></div>
                         <div class="bar-marker end"></div>
                       </div>
