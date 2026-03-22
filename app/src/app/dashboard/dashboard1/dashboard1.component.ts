@@ -2142,10 +2142,15 @@ export class Dashboard1Component implements OnInit {
       return;
     }
 
+    // ⚠️ IMPORTANT: Store booking data locally before dialog opens
+    // Because dragend event will clear this.draggedBooking before user confirms
+    const bookingToMove = { ...this.draggedBooking }; // Create a copy
+    const fromRoomId = this.draggedFromRoomId;
+
     // Confirm move
     this.notificationService.confirm(
       'Move Booking?',
-      `Move ${this.draggedBooking.guestName}'s booking from Room ${sourceRoom.roomNumber} to Room ${targetRoom.roomNumber}?`,
+      `Move ${bookingToMove.guestName}'s booking from Room ${sourceRoom.roomNumber} to Room ${targetRoom.roomNumber}?`,
       'Move',
       'Cancel',
       'swap_horiz',
@@ -2153,8 +2158,10 @@ export class Dashboard1Component implements OnInit {
       'primary'
     ).subscribe(confirmed => {
       if (confirmed) {
-        this.performBookingMove(this.draggedBooking!, roomId);
+        // Use local copy instead of this.draggedBooking (which may be null by now)
+        this.performBookingMoveWithData(bookingToMove, fromRoomId, roomId);
       }
+      // Always clear state after dialog closes
       this.clearDragState();
     });
   }
@@ -2212,35 +2219,78 @@ export class Dashboard1Component implements OnInit {
   }
 
   /**
-   * Perform booking move to another room
+   * Perform booking move to another room (with explicitly passed data to avoid race conditions)
    */
-  private performBookingMove(booking: BookingBar, newRoomId: number): void {
-    console.log('🚀 Moving booking:', booking.bookingId, 'to room:', newRoomId);
+  private performBookingMoveWithData(booking: BookingBar, fromRoomId: number, toRoomId: number): void {
+    console.log('🚀 Moving booking:', booking.bookingId, 'to room:', toRoomId);
 
-    // TODO: Call backend API to move booking
-    // For now, just update the UI optimistically
-    const sourceRoom = this.rooms.find(r => r.id === this.draggedFromRoomId);
-    const targetRoom = this.rooms.find(r => r.id === newRoomId);
+    const sourceRoom = this.rooms.find(r => r.id === fromRoomId);
+    const targetRoom = this.rooms.find(r => r.id === toRoomId);
 
-    if (!sourceRoom || !targetRoom) return;
+    if (!sourceRoom || !targetRoom) {
+      console.error('❌ Source or target room not found');
+      this.notificationService.error('Room not found');
+      return;
+    }
 
+    console.log('🔍 Source Room:', sourceRoom);
+    console.log('🔍 Target Room:', targetRoom);
+    console.log('🔍 Target Room Number:', targetRoom.roomNumber);
+
+    // Show loading state (using setTimeout to avoid change detection error)
+    setTimeout(() => {
+      this.loadingRoomPlanner = true;
+      this.cdr.detectChanges();
+
+      // Call backend API
+      const userId = this.getCurrentUserId();
+      this.dashboardService.moveBooking(booking.bookingId, targetRoom.roomNumber, userId).subscribe({
+        next: (response) => {
+          console.log('✅ Backend confirmed booking move:', response);
+
+          // Update UI on success
+          this.updateBookingInUIAfterMove(booking, fromRoomId, toRoomId);
+
+          this.notificationService.success(
+            `Booking moved from Room ${sourceRoom.roomNumber} to Room ${targetRoom.roomNumber}!`
+          );
+          this.loadingRoomPlanner = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('❌ Failed to move booking:', error);
+          const errorMessage = error?.error?.message || 'Failed to move booking. Please try again.';
+          this.notificationService.error(errorMessage, 'Close');
+
+          // Reload data to revert UI changes
+          this.loadingRoomPlanner = false;
+          this.loadRoomPlannerData();
+        }
+      });
+    }, 0);
+  }
+
+  /**
+   * Update booking in UI after successful move
+   */
+  private updateBookingInUIAfterMove(booking: BookingBar, fromRoomId: number, toRoomId: number): void {
     // Remove from source room
-    const sourceBars = this.roomBookingBars.get(this.draggedFromRoomId!) || [];
+    const sourceBars = this.roomBookingBars.get(fromRoomId) || [];
     const updatedSourceBars = sourceBars.filter(b => b.bookingId !== booking.bookingId);
-    this.roomBookingBars.set(this.draggedFromRoomId!, updatedSourceBars);
+    this.roomBookingBars.set(fromRoomId, updatedSourceBars);
 
     // Add to target room
-    if (!this.roomBookingBars.has(newRoomId)) {
-      this.roomBookingBars.set(newRoomId, []);
+    if (!this.roomBookingBars.has(toRoomId)) {
+      this.roomBookingBars.set(toRoomId, []);
     }
-    this.roomBookingBars.get(newRoomId)!.push({ ...booking });
+    this.roomBookingBars.get(toRoomId)!.push({ ...booking });
 
     // Update room bookings map
     let currentDate = new Date(booking.startDate);
     const endDate = new Date(booking.endDate);
     while (currentDate <= endDate) {
-      const sourceKey = `${this.draggedFromRoomId}-${currentDate.toISOString().split('T')[0]}`;
-      const targetKey = `${newRoomId}-${currentDate.toISOString().split('T')[0]}`;
+      const sourceKey = `${fromRoomId}-${currentDate.toISOString().split('T')[0]}`;
+      const targetKey = `${toRoomId}-${currentDate.toISOString().split('T')[0]}`;
 
       const bookingData = this.roomBookings.get(sourceKey);
       if (bookingData) {
@@ -2252,12 +2302,6 @@ export class Dashboard1Component implements OnInit {
     }
 
     this.cdr.detectChanges();
-    this.notificationService.success(
-      `Booking moved from Room ${sourceRoom.roomNumber} to Room ${targetRoom.roomNumber}!`
-    );
-
-    // TODO: Call actual backend API
-    // this.dashboardService.moveBooking(booking.bookingId, newRoomId).subscribe(...)
   }
 
   // ========================================
@@ -2454,14 +2498,53 @@ export class Dashboard1Component implements OnInit {
   ): void {
     console.log('🚀 Resizing booking:', booking.bookingId, action);
 
+    // Show loading state
+    this.loadingRoomPlanner = true;
+
+    // Call backend API
+    const userId = this.getCurrentUserId();
+    this.dashboardService.updateBookingDates(
+      booking.bookingId, 
+      newStartDate, 
+      newEndDate,
+      userId
+    ).subscribe({
+      next: (response) => {
+        console.log('✅ Backend confirmed booking resize:', response);
+
+        // Update UI on success
+        this.updateBookingDatesInUI(booking, roomId, newStartDate, newEndDate);
+
+        const actionText = action === 'extend' ? 'extended' : 'shortened';
+        this.notificationService.success(`Booking ${actionText} successfully!`);
+        this.loadingRoomPlanner = false;
+      },
+      error: (error) => {
+        console.error('❌ Failed to resize booking:', error);
+        const errorMessage = error?.error?.message || 'Failed to update booking dates. Please try again.';
+        this.notificationService.error(errorMessage, 'Close');
+
+        // Revert UI changes
+        booking.span = this.resizeOriginalSpan;
+        booking.startCol = this.resizeOriginalStartCol;
+        this.cdr.detectChanges();
+        this.loadingRoomPlanner = false;
+      }
+    });
+  }
+
+  /**
+   * Update booking dates in UI after successful resize
+   */
+  private updateBookingDatesInUI(
+    booking: BookingBar,
+    roomId: number,
+    newStartDate: Date,
+    newEndDate: Date
+  ): void {
     // Update booking dates
     booking.startDate = newStartDate;
     booking.endDate = newEndDate;
-
-    // Recalculate room bookings map
-    // First, remove old entries
-    let currentDate = new Date(booking.startDate);
-    const endDate = new Date(booking.endDate);
 
     // Clear old entries for this booking
     this.roomBookings.forEach((value, key) => {
@@ -2471,7 +2554,7 @@ export class Dashboard1Component implements OnInit {
     });
 
     // Add new entries
-    currentDate = new Date(newStartDate);
+    let currentDate = new Date(newStartDate);
     while (currentDate <= newEndDate) {
       const key = `${roomId}-${currentDate.toISOString().split('T')[0]}`;
       this.roomBookings.set(key, {
@@ -2484,12 +2567,6 @@ export class Dashboard1Component implements OnInit {
     }
 
     this.cdr.detectChanges();
-
-    const actionText = action === 'extend' ? 'extended' : 'shortened';
-    this.notificationService.success(`Booking ${actionText} successfully!`);
-
-    // TODO: Call actual backend API
-    // this.dashboardService.resizeBooking(booking.bookingId, newStartDate, newEndDate).subscribe(...)
   }
 
   /**
@@ -2666,6 +2743,34 @@ export class Dashboard1Component implements OnInit {
   private performBookingCancellation(bar: BookingBar, roomId: number): void {
     console.log('🚀 Cancelling booking:', bar.bookingId);
 
+    // Show loading state
+    this.loadingRoomPlanner = true;
+
+    // Call backend API
+    const userId = this.getCurrentUserId();
+    this.dashboardService.cancelBooking(bar.bookingId, userId, 'Cancelled by user').subscribe({
+      next: (response) => {
+        console.log('✅ Backend confirmed booking cancellation:', response);
+
+        // Update UI on success
+        this.removeBookingFromUI(bar, roomId);
+
+        this.notificationService.success(`Booking for ${bar.guestName} cancelled successfully!`);
+        this.loadingRoomPlanner = false;
+      },
+      error: (error) => {
+        console.error('❌ Failed to cancel booking:', error);
+        const errorMessage = error?.error?.message || 'Failed to cancel booking. Please try again.';
+        this.notificationService.error(errorMessage, 'Close');
+        this.loadingRoomPlanner = false;
+      }
+    });
+  }
+
+  /**
+   * Remove booking from UI after successful cancellation
+   */
+  private removeBookingFromUI(bar: BookingBar, roomId: number): void {
     // Remove from room booking bars
     const bars = this.roomBookingBars.get(roomId) || [];
     const updatedBars = bars.filter(b => b.bookingId !== bar.bookingId);
@@ -2681,10 +2786,6 @@ export class Dashboard1Component implements OnInit {
     }
 
     this.cdr.detectChanges();
-    this.notificationService.success(`Booking for ${bar.guestName} cancelled successfully!`);
-
-    // TODO: Call actual backend API
-    // this.dashboardService.cancelBooking(bar.bookingId).subscribe(...)
   }
 }
 

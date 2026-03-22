@@ -4,9 +4,10 @@ using MyWarehouse.Domain.Common;
 
 namespace MyWarehouse.Domain.Bookings
 {
-    public class Bookings : IEntity<int>
+    public class Bookings : IEntity<long>
     {
-        public int Id { get; set; } // Represents MongoDB's default _id
+        [BsonId]
+        public long Id { get; set; } // MongoDB's _id field (stored as Int64)
 
         // The custom booking ID, which is alphanumeric string
         [BsonElement("bookingId")]
@@ -43,12 +44,12 @@ namespace MyWarehouse.Domain.Bookings
         [BsonElement("totalPrice")]
         public double TotalPrice { get; set; } // Use double for floating point numbers
 
-        // References to master collections (UUID strings for _id in master collections)
+        // References to master collections (Int64 in MongoDB)
         [BsonElement("paymentStatusId")]
-        public string PaymentStatusId { get; set; }
+        public long PaymentStatusId { get; set; }
 
         [BsonElement("bookingSourceId")]
-        public string BookingSourceId { get; set; }
+        public long BookingSourceId { get; set; }
 
         // Array of strings for special requests
         [BsonElement("specialRequests")]

@@ -8,7 +8,7 @@ using MongoDB.Bson;
 
 namespace MyWarehouse.Infrastructure.ApplicationDependencies.DataAccess.Repositories.Mongo
 {
-    public class BookingsRepositoryMongo : RepositoryBaseMongo<Bookings, int>, IBookingsRepository
+    public class BookingsRepositoryMongo : RepositoryBaseMongo<Bookings, long>, IBookingsRepository
     {
         public BookingsRepositoryMongo(IMongoDatabase database, IMapper mapper, ICounterService counterService)
             : base(database, mapper, MongoCollections.BookingsCollection, counterService)

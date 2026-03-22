@@ -298,4 +298,106 @@ export class DashboardService {
 
     return this.http.get<BookingWithGuestData[]>(`${this.apiUrl}/bookings-with-guests`, { params });
   }
+
+  // ========================================
+  // ROOM PLANNER INTERACTIVE FEATURES
+  // ========================================
+
+  /**
+   * Move a booking to a different room
+   * @param bookingId The booking ID to move
+   * @param newRoomNumber The new room number
+   * @param userId User ID performing the action
+   * @returns Observable with updated booking data
+   */
+  moveBooking(bookingId: string, newRoomNumber: string, userId: number): Observable<any> {
+    const url = `${environment.apiUrl}/bookings/${bookingId}/move-room`;
+    const body = {
+      newRoomNumber,
+      userId
+    };
+
+    console.log(`📤 API Call: Move Booking ${bookingId} to Room ${newRoomNumber}`);
+
+    return this.http.put(url, body).pipe(
+      map((response: any) => {
+        console.log('✅ Move Booking Response:', response);
+        return response;
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('❌ Move Booking Error:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Update booking check-in and check-out dates
+   * @param bookingId The booking ID to update
+   * @param newCheckInDate New check-in date
+   * @param newCheckOutDate New check-out date
+   * @param userId User ID performing the action
+   * @param reason Optional reason for date change
+   * @returns Observable with updated booking data
+   */
+  updateBookingDates(
+    bookingId: string,
+    newCheckInDate: Date,
+    newCheckOutDate: Date,
+    userId: number,
+    reason?: string
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/bookings/${bookingId}/update-dates`;
+    const body = {
+      newCheckInDate: newCheckInDate.toISOString(),
+      newCheckOutDate: newCheckOutDate.toISOString(),
+      userId,
+      reason
+    };
+
+    console.log(`📤 API Call: Update Booking ${bookingId} Dates`, {
+      checkIn: newCheckInDate.toDateString(),
+      checkOut: newCheckOutDate.toDateString()
+    });
+
+    return this.http.put(url, body).pipe(
+      map((response: any) => {
+        console.log('✅ Update Booking Dates Response:', response);
+        return response;
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('❌ Update Booking Dates Error:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Cancel a booking
+   * @param bookingId The booking ID to cancel
+   * @param userId User ID performing the cancellation
+   * @param cancellationReason Optional reason for cancellation
+   * @returns Observable with cancelled booking data
+   */
+  cancelBooking(bookingId: string, userId: number, cancellationReason?: string): Observable<any> {
+    const url = `${environment.apiUrl}/bookings/${bookingId}/cancel`;
+    const body = {
+      userId,
+      cancellationReason
+    };
+
+    console.log(`📤 API Call: Cancel Booking ${bookingId}`);
+
+    return this.http.put(url, body).pipe(
+      map((response: any) => {
+        console.log('✅ Cancel Booking Response:', response);
+        return response;
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('❌ Cancel Booking Error:', error);
+        throw error;
+      })
+    );
+  }
 }
+

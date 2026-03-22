@@ -12,6 +12,7 @@ using MyWarehouse.Application.Services;
 using MyWarehouse.Infrastructure.Services;
 using MyWarehouse.Application.Common.Audit;
 using MyWarehouse.Application.UserActivity.Services;
+using MyWarehouse.Application.Bookings.Services;
 
 namespace MyWarehouse.Infrastructure.ApplicationDependencies;
 
@@ -44,5 +45,6 @@ internal static class Startup
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<UserActivityService>();
         services.AddScoped<ActivityDisplayMessageBuilder>();  // ⭐ Centralized message builder
+        services.AddScoped<BookingActivityLogger>();  // ⭐ Booking operations activity logger
     }
 }
