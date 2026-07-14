@@ -86,6 +86,17 @@ public class Startup
             var client = sp.GetRequiredService<IMongoClient>();
             return client.GetDatabase("ListingDB");
         });
+        // Register Email Queue Service for sending emails via RabbitMQ
+        services.AddScoped<MyWarehouse.Infrastructure.Services.IEmailQueueService, MyWarehouse.Infrastructure.Services.EmailQueueService>();
+
+        // Register Demo Property Services for new user onboarding
+        services.AddScoped<MyWarehouse.Infrastructure.Services.DemoPropertySeeder>();
+        services.AddScoped<MyWarehouse.Infrastructure.Services.IDemoPropertyService, MyWarehouse.Infrastructure.Services.DemoPropertyService>();
+
+        // Register RabbitMQ configuration and publisher
+        services.Configure<global::Messaging.Shared.RabbitMqOptions>(Configuration.GetSection("RabbitMq"));
+        services.AddSingleton<global::Messaging.Shared.IRabbitMqPublisher, testAngularAPI.Server.Infrastructure.Messaging.RabbitMqPublisher>();
+
         services.AddMyInfrastructureDependencies(Configuration, Environment);
         services.AddMyApplicationDependencies();
         services.AddSignalR();
