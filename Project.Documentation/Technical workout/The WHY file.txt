@@ -1,0 +1,25 @@
+1) 24.07.12.26 -------   why web config file is added
+IIS Acts as the Reverse Proxy in Azure (Windows)
+Azure App Service for Windows uses IIS (Internet Information Services) as the front-facing web server to handle all incoming HTTP/HTTPS traffic.
+Without a web.config, IIS doesn't know how to handle incoming requests for an ASP.NET Core application, often leading to generic IIS errors (like 404 Not Found for API routes or default IIS welcome pages).
+Tells IIS to Pass Control to AspNetCoreModuleV2
+ASP.NET Core apps don't run natively inside IIS by default without an intermediary module.
+The web.config explicitly instructs IIS to map all incoming traffic (path="*" verb="*") to AspNetCoreModuleV2. This native IIS module acts as the bridge that passes requests directly to your .NET application code (MyWarehouse.WebApi.dll).
+Defines Process Execution & Startup Parameters
+The <aspNetCore> section inside web.config provides the exact startup instruction:
+processPath="dotnet" and arguments=".\MyWarehouse.WebApi.dll" tell IIS how to execute your app binary.
+hostingModel="inprocess" configures IIS to host the .NET runtime directly inside the IIS worker process (w3wp.exe) for optimal performance.
+stdoutLogFile tells IIS where to direct console output logs on the Azure file system when troubleshooting startup issues.
+
+
+
+2) 24.06.13.00 ----------------  why this section is needed
+The `CorsSettings:AllowedOrigins` section is strictly required because modern web browsers enforce the **Same-Origin Policy (SOP)** by default, 
+which blocks a frontend application hosted on one domain (such as your Vercel client) from reading API responses from a backend hosted on a 
+different domain (like Azure App Service). When your web client or Swagger interface attempts to make a request, the browser first sends an 
+automated preflight `OPTIONS` request to verify whether the backend explicitly allows interactions from that external origin. 
+Without `CorsSettings:AllowedOrigins` properly populated in your configuration, your API will not send the required `Access-Control-Allow-Origin` 
+HTTP headers back in its response. Consequently, the browser will reject the request client-side before it can complete, resulting in CORS errors 
+in the console. By explicitly configuring this list of trusted domains, you both satisfy browser cross-origin security requirements and 
+ensure your API remains securely restricted to authorized frontend clients.
+
