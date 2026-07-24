@@ -1,0 +1,48 @@
+name: 🅰️ Build & Deploy Angular Frontend
+
+on:
+  push:
+    branches:
+      - Azure_web_App_Deployment
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - Azure_web_App_Deployment
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-frontend:
+    name: 🌐 Angular Frontend
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Build and Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BRAVE_ROCK_0DB8C8503 }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          
+          ###### Angular Build Settings ######
+          app_location: "app"
+          api_location: ""
+          output_location: "dist/propertyMasterV3.0/browser"
+          ####################################
+
+  close-pull-request:
+    name: 🧹 Cleanup PR Deployment
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Close Azure Static Web App Pull Request
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BRAVE_ROCK_0DB8C8503 }}
+          action: "close"
