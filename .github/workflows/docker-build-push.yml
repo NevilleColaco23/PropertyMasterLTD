@@ -2,9 +2,9 @@ name: Build & Push Docker Images to ghcr.io
 
 # Triggers on every push to the deployment branch
 on:
-  #push:
-    #branches:
-      #- Azure_web_App_Deployment
+  push:
+    branches:
+      - Azure_web_App_Deployment
   # Allow manual trigger from GitHub Actions tab
   workflow_dispatch:
 
