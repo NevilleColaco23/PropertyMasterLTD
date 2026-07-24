@@ -2,9 +2,9 @@ name: Build & Push Docker Images to ghcr.io
 
 # Triggers on every push to the deployment branch
 on:
-  #push:
-    #branches:
-      #- Azure_web_App_Deployment
+  push:
+    branches:
+      - Azure_web_App_Deployment
   # Allow manual trigger from GitHub Actions tab
   workflow_dispatch:
 
@@ -104,15 +104,12 @@ jobs:
     environment: production
 
     steps:
-      # TODO: Configure AZURE_CREDENTIALS in GitHub Secrets for automatic deployment
       - name: Log in to Azure
-        continue-on-error: true # <--- Prevents missing credentials from failing the workflow
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy EmailWorker to Azure Container Apps
-        continue-on-error: true # <--- Prevents missing credentials from failing the workflow
         uses: azure/container-apps-deploy-action@v1
         with:
           containerAppName: propertymaster-emailworker
@@ -129,15 +126,12 @@ jobs:
     environment: production
 
     steps:
-      # TODO: Configure AZURE_CREDENTIALS in GitHub Secrets for automatic deployment
       - name: Log in to Azure
-        continue-on-error: true # <--- Prevents missing credentials from failing the workflow
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy AccessLogWorker to Azure Container Apps
-        continue-on-error: true # <--- Prevents missing credentials from failing the workflow
         uses: azure/container-apps-deploy-action@v1
         with:
           containerAppName: propertymaster-accesslogworker
