@@ -38,7 +38,7 @@ Property Master V4.0 is a full-stack property management application designed wi
 - **Authentication**: JWT-based authentication with Google OAuth2 support
 - **API Versioning**: RESTful API with Swagger/OpenAPI documentation
 - **Containerization**: Full Docker support with docker-compose orchestration
-- **Cloud Deployment**: Configured for Railway.app and Vercel deployment
+- **Cloud Deployment**: Deployed on Microsoft Azure (Azure App Service + Azure Static Web Apps)
 
 ## 🏗️ Architecture
 
@@ -128,7 +128,7 @@ The application follows a **Clean Architecture** pattern with clear separation o
 - **MongoDB 2.19.1 / 3.6.0** - Primary NoSQL database
   - Used for: Properties, Partners, Products, Bookings, Transactions, Users, Access Logs
   - Custom repository pattern with Unit of Work
-  - Connection string: Railway.app hosted MongoDB
+  - Connection string: MongoDB Atlas or Azure Cosmos DB for MongoDB
 - **Entity Framework Core 6.0.6** - ORM (for SQL Server support)
 - **AspNetCore.Identity.MongoDbCore 3.1.2** - Identity management with MongoDB
 - **Redis** - Caching layer (configured, connection: `machost:6379`)
@@ -227,16 +227,17 @@ The application follows a **Clean Architecture** pattern with clear separation o
 #### Cloud Services & Hosting
 
 ##### Production Deployment
-- **Railway.app** - Backend hosting
-  - WebAPI: `https://theretreatapp.up.railway.app`
-  - MongoDB hosting (Gondola proxy)
-  - Environment variable management
-  - Custom railway.json configurations
-  
-- **Vercel** - Frontend hosting
-  - Angular SPA deployment: `https://property-master-silk.vercel.app`
-  - CDN distribution
-  - Automatic deployments
+- **Azure App Service** - Backend hosting
+  - Resource Group: `rg-propertymaster-dev`
+  - Region: France Central
+  - WebAPI: `https://propertymaster-api-de09-h0hqbzgsc4arfvez.francecentral-01.azurewebsites.net`
+  - Environment variable management via Azure App Service Configuration
+  - Published via Web Deploy
+
+- **Azure Static Web Apps** - Frontend hosting
+  - Angular SPA deployment: `https://brave-rock-0db8c8503.7.azurestaticapps.net`
+  - Global CDN distribution
+  - SPA navigation fallback via `staticwebapp.config.json`
 
 ##### External Services
 - **CloudAMQP** - Managed RabbitMQ service
@@ -504,7 +505,7 @@ PropertyMasterV4.0/
 - **Email templates** for user activation, notifications
 - **Delivery tracking** with status persistence (Pending, Sent, Failed)
 - **High deliverability** with SPF, DKIM, and DMARC configuration
-- **Production-ready** deployment on Railway.app
+- **Production-ready** deployment on Azure App Service
 - Email templates (Razor templates)
 - Bid invite notifications
 - Transactional emails via Resend
@@ -582,7 +583,7 @@ PropertyMasterV4.0/
 
 4. **MongoDB**
    - MongoDB 6.0 or higher
-   - Local installation or cloud service (MongoDB Atlas, Railway)
+   - Local installation or cloud service (MongoDB Atlas, Azure Cosmos DB for MongoDB)
    - Download: https://www.mongodb.com/try/download/community
 
 5. **RabbitMQ**
@@ -606,8 +607,8 @@ PropertyMasterV4.0/
 
 ### Cloud Services (Production)
 
-9. **Railway.app Account** (for backend hosting)
-10. **Vercel Account** (for frontend hosting)
+9. **Azure Account** (for App Service + Static Web Apps hosting)
+   - [Create a free Azure account](https://azure.microsoft.com/free/)
 11. **CloudAMQP Account** (for managed RabbitMQ)
 12. **Resend Account** (for email delivery)
 
@@ -911,14 +912,14 @@ dotnet user-secrets set "Resend:ApiKey" "re_your_api_key_here"
 dotnet user-secrets set "Email:From" "noreply@masterproperty.site"
 ```
 
-##### Production (Railway.app)
+##### Production (Azure App Service)
 
-Set environment variables in Railway dashboard:
+Set environment variables in the Azure Portal under **App Service → Configuration → Application Settings**:
 
 ```bash
 RESEND_API_KEY=re_your_api_key_here
 EMAIL_FROM=noreply@masterproperty.site
-ConnectionStrings__MongoDb=mongodb://your-railway-mongo-url
+ConnectionStrings__MongoDb=mongodb://your-atlas-or-cosmos-url
 AppSettings__MongoDbDatabaseName=ListingDB
 ASPNETCORE_ENVIRONMENT=Production
 ```
@@ -1002,12 +1003,12 @@ info: EmailWorker.Worker[0]
 
 5. Check your email inbox!
 
-##### Test on Railway
+##### Test on Azure
 
-1. Deploy EmailWorker to Railway (see Deployment section)
-2. Verify environment variables are set
-3. Test via deployed WebAPI URL
-4. Monitor logs in Railway dashboard
+1. Deploy EmailWorker to Azure (see Deployment section)
+2. Verify environment variables are set in Azure App Service Configuration
+3. Test via the deployed WebAPI URL
+4. Monitor logs via **Azure Portal → App Service → Log stream** or Application Insights
 
 #### 7. Monitoring & Troubleshooting
 
@@ -1038,8 +1039,8 @@ db.EmailOutbox.aggregate([
 |-------|-------|----------|
 | **Domain not verified** | DNS records not propagated | Wait 30 minutes, check DNSChecker.org |
 | **"You can only send to your own email"** | Using test mode | Verify domain in Resend |
-| **Emails not sending** | EmailWorker not running | Check Railway logs, restart service |
-| **Missing API key error** | Environment variable not set | Set `RESEND_API_KEY` in Railway |
+| **Emails not sending** | EmailWorker not running | Check Azure Log Stream, restart App Service |
+| **Missing API key error** | Environment variable not set | Set `RESEND_API_KEY` in Azure App Service Configuration |
 | **MongoDB connection failed** | Wrong connection string | Verify `ConnectionStrings__MongoDb` |
 
 ##### Email Retry Logic
@@ -1055,7 +1056,7 @@ The EmailWorker has built-in retry logic:
 
 | Feature | Resend | SMTP (Gmail) | SendGrid |
 |---------|--------|--------------|----------|
-| **Railway Compatible** | ✅ Yes | ❌ Blocked | ✅ Yes |
+| **Azure Compatible** | ✅ Yes | ✅ Yes | ✅ Yes |
 | **Setup Complexity** | ⭐⭐ Easy | ⭐⭐⭐⭐ Hard | ⭐⭐⭐ Medium |
 | **Custom Domain** | ✅ Yes (Namecheap) | ❌ Complex | ✅ Yes |
 | **Deliverability** | ⭐⭐⭐⭐⭐ Excellent | ⭐⭐⭐ Good | ⭐⭐⭐⭐ Very Good |
@@ -1064,7 +1065,7 @@ The EmailWorker has built-in retry logic:
 | **Our Choice** | ✅ **Selected** | ❌ Not compatible | ⚠️ Alternative |
 
 **Why we chose Resend:**
-- ✅ Works perfectly on Railway (no SMTP port blocking)
+- ✅ Works perfectly on Azure App Service
 - ✅ Simple API integration
 - ✅ Excellent deliverability with verified domains
 - ✅ Easy domain setup with Namecheap
@@ -1244,109 +1245,105 @@ docker run email-worker
 
 ## 🌐 Deployment
 
-### Railway.app (Backend)
+### Azure App Service (Backend)
 
 #### Prerequisites
-- Railway.app account
-- Railway CLI installed
+- [Azure Account](https://azure.microsoft.com/free/)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) installed
+- Visual Studio 2022 / 2026 with Azure workload (recommended)
+
+#### Deployment via Visual Studio (Recommended)
+
+1. **Right-click** `WebApi` project → **Publish**
+2. Select **Azure** → **Azure App Service (Windows)**
+3. Sign in to your Azure account and select or create an App Service
+4. Click **Publish** — Visual Studio handles the rest
+
+The included publish profile (`propertymaster-api-de09 - Web Deploy.pubxml`) deploys to:
+```
+https://propertymaster-api-de09-h0hqbzgsc4arfvez.francecentral-01.azurewebsites.net
+```
+
+#### Deployment via Azure CLI
+
+```bash
+# Login to Azure
+az login
+
+# Deploy WebAPI (from WebApi directory)
+az webapp deploy --resource-group rg-propertymaster-dev \
+  --name propertymaster-api-de09 \
+  --src-path ./publish
+```
+
+#### Configure App Service Application Settings
+
+In **Azure Portal → App Service → Configuration → Application Settings**, add:
+
+| Key | Value |
+|---|---|
+| `ASPNETCORE_ENVIRONMENT` | `Production` |
+| `ConnectionStrings__MongoDb` | Your MongoDB Atlas / Cosmos DB URI |
+| `ConnectionStrings__DefaultConnection` | Your Azure SQL connection string |
+| `AuthenticationSettings__JwtSigningKeyBase64` | Your base64 JWT key |
+| `RabbitMq__Host` | CloudAMQP host |
+| `RabbitMq__Username` | CloudAMQP username |
+| `RabbitMq__Password` | CloudAMQP password |
+
+#### Deploy Workers as Azure Container Apps (or App Service)
+
+```bash
+# Build and push worker images
+docker build -f EmailWorker/Dockerfile -t propertymaster-emailworker .
+docker build -f AccessLogWorker/Dockerfile -t propertymaster-accesslogworker .
+
+# Push to Azure Container Registry, then deploy via Azure Portal or CLI
+```
+
+---
+
+### Azure Static Web Apps (Frontend)
+
+#### Prerequisites
+- Azure Account
+- [Azure Static Web Apps CLI](https://azure.github.io/static-web-apps-cli/) (optional)
 
 #### Deployment Steps
 
-1. **Install Railway CLI:**
-   ```bash
-   npm install -g @railway/cli
-   ```
+1. **Update Production Environment:**
 
-2. **Login to Railway:**
-   ```bash
-   railway login
-   ```
-
-3. **Create New Project:**
-   ```bash
-   railway init
-   ```
-
-4. **Deploy WebAPI:**
-   ```bash
-   cd WebApi
-   railway up
-   ```
-
-5. **Configure Environment Variables in Railway Dashboard:**
-   - `PORT`: 5000
-   - `MONGODB_URI`: Your Railway MongoDB connection string
-   - `RabbitMq__Host`: CloudAMQP host
-   - `RabbitMq__Port`: 5671
-   - `RabbitMq__Username`: CloudAMQP username
-   - `RabbitMq__Password`: CloudAMQP password
-   - `RabbitMq__UseSsl`: true
-   - `JWT_SIGNING_KEY`: Your secret key
-
-6. **Deploy Workers (Separate Services):**
-   ```bash
-   # AccessLog Worker
-   cd ../AccessLogWorker
-   railway up
-   
-   # Email Worker
-   cd ../EmailWorker
-   railway up
-   ```
-
-7. **Get Deployment URL:**
-   ```bash
-   railway domain
-   # Example: https://theretreatapp.up.railway.app
-   ```
-
-### Vercel (Frontend)
-
-#### Prerequisites
-- Vercel account
-- Vercel CLI installed
-
-#### Deployment Steps
-
-1. **Install Vercel CLI:**
-   ```bash
-   npm install -g vercel
-   ```
-
-2. **Login to Vercel:**
-   ```bash
-   vercel login
-   ```
-
-3. **Navigate to Angular App:**
-   ```bash
-   cd app
-   ```
-
-4. **Update Production Environment:**
-   
-   Edit `src/app/environments/environment.prod.ts`:
+   Edit `app/src/app/environments/environment.prod.ts`:
    ```typescript
    export const environment = {
      production: true,
-     apiUrl: 'https://your-railway-api-url.railway.app/api/v1'
+     apiUrl: 'https://propertymaster-api-de09-h0hqbzgsc4arfvez.francecentral-01.azurewebsites.net/api/v1'
    };
    ```
 
-5. **Build for Production:**
+2. **Build for Production:**
    ```bash
+   cd app
    ng build --configuration production
    ```
 
-6. **Deploy to Vercel:**
+3. **Deploy to Azure Static Web Apps:**
+   - In the **Azure Portal**, create a new **Static Web App**
+   - Connect it to your GitHub repository for CI/CD, **or** use the SWA CLI:
    ```bash
-   vercel --prod
+   npm install -g @azure/static-web-apps-cli
+   swa deploy ./dist/propertyMasterV3.0/browser --env production
    ```
 
-7. **Configure Custom Domain (Optional):**
-   ```bash
-   vercel domains add yourdomain.com
+4. **SPA Routing is pre-configured** via `app/public/staticwebapp.config.json`:
+   ```json
+   {
+     "navigationFallback": {
+       "rewrite": "/index.html"
+     }
+   }
    ```
+
+Deployed at: `https://brave-rock-0db8c8503.7.azurestaticapps.net`
 
 ### CloudAMQP Setup (RabbitMQ)
 
@@ -1356,7 +1353,7 @@ docker run email-worker
 
 2. **Create Instance:**
    - Select plan (Free tier available)
-   - Choose region closest to Railway deployment
+   - Choose region closest to your Azure App Service region
    - Note connection details
 
 3. **Get Connection Information:**
@@ -1378,8 +1375,8 @@ docker run email-worker
 # Local backup
 mongodump --uri="mongodb://localhost:27017/ListingDB" --out=./backup
 
-# Railway MongoDB backup
-mongodump --uri="your-railway-mongodb-uri" --out=./backup
+# Remote MongoDB backup (Atlas / Cosmos DB)
+mongodump --uri="your-production-mongodb-uri" --out=./backup
 ```
 
 #### Restore MongoDB
@@ -1397,13 +1394,13 @@ mongorestore --uri="your-production-mongodb-uri" ./backup/ListingDB
 ### API Base URL
 
 - **Local Development:** `https://localhost:44346/api/v1`
-- **Production:** `https://theretreatapp.up.railway.app/api/v1`
+- **Production:** `https://propertymaster-api-de09-h0hqbzgsc4arfvez.francecentral-01.azurewebsites.net/api/v1`
 
 ### Swagger Documentation
 
 Access interactive API documentation:
 - **Local:** `https://localhost:44346/swagger`
-- **Production:** `https://theretreatapp.up.railway.app/swagger`
+- **Production:** `https://propertymaster-api-de09-h0hqbzgsc4arfvez.francecentral-01.azurewebsites.net/swagger`
 
 ### Authentication
 
@@ -1697,8 +1694,7 @@ This project is proprietary and confidential. All rights reserved.
 - RabbitMQ team for messaging
 
 ### Services
-- Railway.app for backend hosting
-- Vercel for frontend hosting
+- Microsoft Azure for App Service and Static Web Apps hosting
 - CloudAMQP for managed RabbitMQ
 - Resend for email delivery
 - GitHub for source control
@@ -1720,7 +1716,7 @@ For issues, questions, or contributions:
 - MongoDB as primary database
 - Angular 21 frontend upgrade
 - Docker containerization
-- Railway.app deployment
+- Azure App Service + Static Web Apps deployment
 
 ### Version 3.0
 - Angular Material integration

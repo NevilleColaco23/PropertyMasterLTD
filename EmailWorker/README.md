@@ -1,6 +1,6 @@
 # Email System with Resend Integration
 
-This document explains how the EmailWorker project is configured to send emails using Resend API, which works better than SMTP on Railway.
+This document explains how the EmailWorker project is configured to send emails using Resend API, deployed as a containerised service on **Microsoft Azure**.
 
 ## Architecture Overview
 
@@ -107,18 +107,24 @@ cd EmailWorker
 dotnet run
 ```
 
-### Railway Deployment
+### Azure Deployment
 
-1. Create a new service in Railway
-2. Link to your GitHub repository
-3. Set the root directory to `EmailWorker`
-4. Add environment variables:
+1. Build the Docker image:
+   ```bash
+   docker build -f Dockerfile -t propertymaster-emailworker .
+   ```
+2. Push to Azure Container Registry:
+   ```bash
+   az acr build --registry <your-registry> --image propertymaster-emailworker .
+   ```
+3. Deploy to **Azure Container Apps** or **Azure App Service (Linux container)**
+4. Add Application Settings (environment variables):
    ```
    RESEND_API_KEY=your_actual_resend_api_key
    EMAIL_FROM=your_verified_domain@example.com
-   MONGODB_CONNECTION_STRING=your_mongodb_connection_string
+   ConnectionStrings__MongoDb=your_mongodb_connection_string
    ```
-5. Railway will automatically detect it's a .NET Worker Service and deploy it
+5. Azure will start the .NET Worker Service container automatically
 
 ## Configuration for Production
 
@@ -139,7 +145,7 @@ For production:
 
 ### MongoDB Connection
 
-Update `ConnectionStrings:MongoDb` in `appsettings.json` or use Railway's MongoDB service.
+Update `ConnectionStrings:MongoDb` in `appsettings.json` or use your Azure Cosmos DB for MongoDB / Atlas connection string.
 
 ## Example: Sending Activation Email
 
@@ -213,7 +219,7 @@ db.EmailOutbox.find({ status: 0 }) // Find pending emails
 
 ## Next Steps
 
-1. **Deploy EmailWorker to Railway** as a separate service
+1. **Deploy EmailWorker to Azure** as a separate container service
 2. **Update activation link** to your actual frontend URL
 3. **Create email templates** for different email types (welcome, password reset, etc.)
 4. **Verify your domain** in Resend for production emails
