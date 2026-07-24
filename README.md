@@ -1319,15 +1319,18 @@ In **Azure Portal → App Service → Configuration → Application Settings**, 
 | `RabbitMq__Username` | CloudAMQP username |
 | `RabbitMq__Password` | CloudAMQP password |
 
-#### Deploy Workers as Azure Container Apps (or App Service)
+#### Deploy Workers as Azure Container Apps
+
+Images are built and pushed automatically to **GitHub Container Registry (ghcr.io)** via the GitHub Actions workflow (`.github/workflows/docker-build-push.yml`) on every push — no ACR needed.
 
 ```bash
-# Build and push worker images
-docker build -f EmailWorker/Dockerfile -t propertymaster-emailworker .
-docker build -f AccessLogWorker/Dockerfile -t propertymaster-accesslogworker .
-
-# Push to Azure Container Registry, then deploy via Azure Portal or CLI
+# Images are available at:
+ghcr.io/nevillecolaco23/propertymaster-api:latest
+ghcr.io/nevillecolaco23/propertymaster-emailworker:latest
+ghcr.io/nevillecolaco23/propertymaster-accesslogworker:latest
 ```
+
+Use these image URLs when deploying to Azure Container Apps (see Deployment section).
 
 ---
 

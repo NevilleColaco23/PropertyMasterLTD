@@ -27,37 +27,40 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.Documentation", "Pr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataBackup", "DataBackup", "{E05F1733-58F2-4924-84DC-7C9FD5EEF6B5}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\..\..\..\Downloads\ListingDB\allergies.bson.gz = ..\..\..\..\..\Downloads\ListingDB\allergies.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\allergies.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\allergies.metadata.json.gz
-		..\..\..\..\..\Downloads\ListingDB\bookings.bson.gz = ..\..\..\..\..\Downloads\ListingDB\bookings.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\bookings.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\bookings.metadata.json.gz
-		..\..\..\..\..\Downloads\ListingDB\booking_sources.bson.gz = ..\..\..\..\..\Downloads\ListingDB\booking_sources.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\booking_sources.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\booking_sources.metadata.json.gz
-		..\..\..\..\..\Downloads\ListingDB\guests.bson.gz = ..\..\..\..\..\Downloads\ListingDB\guests.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\guests.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\guests.metadata.json.gz
-		..\..\..\..\..\Downloads\ListingDB\KeyCounter.bson.gz = ..\..\..\..\..\Downloads\ListingDB\KeyCounter.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\KeyCounter.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\KeyCounter.metadata.json.gz
-		..\..\..\..\..\Downloads\ListingDB\MenuPermissions.bson.gz = ..\..\..\..\..\Downloads\ListingDB\MenuPermissions.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\MenuPermissions.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\MenuPermissions.metadata.json.gz
-		..\..\..\..\..\Downloads\ListingDB\Menus.bson.gz = ..\..\..\..\..\Downloads\ListingDB\Menus.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\Menus.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\Menus.metadata.json.gz
-		..\..\..\..\..\Downloads\ListingDB\payment_statuses.bson.gz = ..\..\..\..\..\Downloads\ListingDB\payment_statuses.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\payment_statuses.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\payment_statuses.metadata.json.gz
-		..\..\..\..\..\Downloads\ListingDB\preferred_contact_methods.bson.gz = ..\..\..\..\..\Downloads\ListingDB\preferred_contact_methods.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\preferred_contact_methods.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\preferred_contact_methods.metadata.json.gz
-		..\..\..\..\..\Downloads\ListingDB\Property.bson.gz = ..\..\..\..\..\Downloads\ListingDB\Property.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\Property.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\Property.metadata.json.gz
-		..\..\..\..\..\Downloads\ListingDB\rooms.bson.gz = ..\..\..\..\..\Downloads\ListingDB\rooms.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\rooms.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\rooms.metadata.json.gz
-		..\..\..\..\..\Downloads\ListingDB\staff.bson.gz = ..\..\..\..\..\Downloads\ListingDB\staff.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\staff.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\staff.metadata.json.gz
-		..\..\..\..\..\Downloads\ListingDB\Users.bson.gz = ..\..\..\..\..\Downloads\ListingDB\Users.bson.gz
-		..\..\..\..\..\Downloads\ListingDB\Users.metadata.json.gz = ..\..\..\..\..\Downloads\ListingDB\Users.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\allergies.bson.gz = ..\..\..\..\Downloads\ListingDB\allergies.bson.gz
+		..\..\..\..\Downloads\ListingDB\allergies.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\allergies.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\bookings.bson.gz = ..\..\..\..\Downloads\ListingDB\bookings.bson.gz
+		..\..\..\..\Downloads\ListingDB\bookings.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\bookings.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\booking_sources.bson.gz = ..\..\..\..\Downloads\ListingDB\booking_sources.bson.gz
+		..\..\..\..\Downloads\ListingDB\booking_sources.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\booking_sources.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\guests.bson.gz = ..\..\..\..\Downloads\ListingDB\guests.bson.gz
+		..\..\..\..\Downloads\ListingDB\guests.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\guests.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\KeyCounter.bson.gz = ..\..\..\..\Downloads\ListingDB\KeyCounter.bson.gz
+		..\..\..\..\Downloads\ListingDB\KeyCounter.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\KeyCounter.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\MenuPermissions.bson.gz = ..\..\..\..\Downloads\ListingDB\MenuPermissions.bson.gz
+		..\..\..\..\Downloads\ListingDB\MenuPermissions.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\MenuPermissions.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\Menus.bson.gz = ..\..\..\..\Downloads\ListingDB\Menus.bson.gz
+		..\..\..\..\Downloads\ListingDB\Menus.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\Menus.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\payment_statuses.bson.gz = ..\..\..\..\Downloads\ListingDB\payment_statuses.bson.gz
+		..\..\..\..\Downloads\ListingDB\payment_statuses.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\payment_statuses.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\preferred_contact_methods.bson.gz = ..\..\..\..\Downloads\ListingDB\preferred_contact_methods.bson.gz
+		..\..\..\..\Downloads\ListingDB\preferred_contact_methods.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\preferred_contact_methods.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\Property.bson.gz = ..\..\..\..\Downloads\ListingDB\Property.bson.gz
+		..\..\..\..\Downloads\ListingDB\Property.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\Property.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\rooms.bson.gz = ..\..\..\..\Downloads\ListingDB\rooms.bson.gz
+		..\..\..\..\Downloads\ListingDB\rooms.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\rooms.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\staff.bson.gz = ..\..\..\..\Downloads\ListingDB\staff.bson.gz
+		..\..\..\..\Downloads\ListingDB\staff.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\staff.metadata.json.gz
+		..\..\..\..\Downloads\ListingDB\Users.bson.gz = ..\..\..\..\Downloads\ListingDB\Users.bson.gz
+		..\..\..\..\Downloads\ListingDB\Users.metadata.json.gz = ..\..\..\..\Downloads\ListingDB\Users.metadata.json.gz
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APIUnitProject.Tests", "APIUnitProject.Tests\APIUnitProject.Tests.csproj", "{72FAD0C2-922C-464D-8405-4D2829D613A7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{E594FF6F-9BBC-481D-9395-D8C3AD6F5D6D}"
+	ProjectSection(SolutionItems) = preProject
+		create-Git-Image.yml = create-Git-Image.yml
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmailWorker", "EmailWorker\EmailWorker.csproj", "{686FC06F-FA97-4F34-A3A1-FFB684D1DFE8}"
 EndProject
@@ -67,7 +70,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging.Shared", "Messagi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Help", "Help", "{7246EEE8-E22B-456E-89B2-8C60B6F812C0}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\..\..\..\Downloads\Setting up Resend with namecheap.md = ..\..\..\..\..\Downloads\Setting up Resend with namecheap.md
+		..\..\..\..\Downloads\Setting up Resend with namecheap.md = ..\..\..\..\Downloads\Setting up Resend with namecheap.md
 	EndProjectSection
 EndProject
 Global

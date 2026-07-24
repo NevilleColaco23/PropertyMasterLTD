@@ -1,0 +1,189 @@
+name: Build & Push Docker Images to ghcr.io
+
+# Triggers on every push to the deployment branch
+on:
+  push:
+    branches:
+      - Azure_web_App_Deployment
+  # Allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  # Must be lowercase - GitHub username
+  IMAGE_OWNER: nevillecolaco23
+
+jobs:
+  # ──────────────────────────────────────────────
+  # JOB 1: Build & Push WebApi
+  # ──────────────────────────────────────────────
+  build-webapi:
+    name: 🏗️ WebApi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write   # Required to push to ghcr.io
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags & labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/propertymaster-api
+          tags: |
+            # Tag with branch name
+            type=ref,event=branch
+            # Tag with short commit SHA
+            type=sha,prefix=sha-
+            # Always tag latest on default branch
+            type=raw,value=latest
+
+      - name: Build and push WebApi image
+        uses: docker/build-push-action@v5
+        with:
+          # Build context is repo root (Dockerfile COPYs from multiple projects)
+          context: .
+          file: WebApi/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # ──────────────────────────────────────────────
+  # JOB 2: Build & Push EmailWorker
+  # ──────────────────────────────────────────────
+  build-emailworker:
+    name: 📧 EmailWorker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags & labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/propertymaster-emailworker
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=raw,value=latest
+
+      - name: Build and push EmailWorker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: EmailWorker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # ──────────────────────────────────────────────
+  # JOB 3: Build & Push AccessLogWorker
+  # ──────────────────────────────────────────────
+  build-accesslogworker:
+    name: 📋 AccessLogWorker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags & labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/propertymaster-accesslogworker
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=raw,value=latest
+
+      - name: Build and push AccessLogWorker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: AccessLogWorker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # ──────────────────────────────────────────────
+  # JOB 4: Deploy EmailWorker → Azure Container Apps
+  # Runs only after the image is successfully built & pushed
+  # ──────────────────────────────────────────────
+  deploy-emailworker:
+    name: 🚀 Deploy EmailWorker → Azure Container Apps
+    runs-on: ubuntu-latest
+    needs: build-emailworker          # Wait for image to be pushed first
+    environment: production           # Optional: adds a manual approval gate in GitHub
+
+    steps:
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          # Service principal JSON stored as a GitHub secret
+          # See docs/azure-container-apps-setup.md for how to create this
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy EmailWorker to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          # The Container App must already exist (created via setup guide)
+          containerAppName: propertymaster-emailworker
+          resourceGroup: rg-propertymaster-dev
+          # Always pull the latest image from ghcr.io
+          imageToDeploy: ghcr.io/${{ env.IMAGE_OWNER }}/propertymaster-emailworker:latest
+
+  # ──────────────────────────────────────────────
+  # JOB 5: Deploy AccessLogWorker → Azure Container Apps
+  # Runs only after the image is successfully built & pushed
+  # ──────────────────────────────────────────────
+  deploy-accesslogworker:
+    name: 🚀 Deploy AccessLogWorker → Azure Container Apps
+    runs-on: ubuntu-latest
+    needs: build-accesslogworker      # Wait for image to be pushed first
+    environment: production
+
+    steps:
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy AccessLogWorker to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          containerAppName: propertymaster-accesslogworker
+          resourceGroup: rg-propertymaster-dev
+          imageToDeploy: ghcr.io/${{ env.IMAGE_OWNER }}/propertymaster-accesslogworker:latest

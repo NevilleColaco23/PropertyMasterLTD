@@ -109,22 +109,20 @@ dotnet run
 
 ### Azure Deployment
 
-1. Build the Docker image:
-   ```bash
-   docker build -f Dockerfile -t propertymaster-emailworker .
+Images are built and pushed automatically to **GitHub Container Registry (ghcr.io)** via GitHub Actions on every push — no Azure Container Registry (ACR) needed.
+
+1. The GitHub Actions workflow (`.github/workflows/docker-build-push.yml`) builds and pushes the image automatically:
    ```
-2. Push to Azure Container Registry:
-   ```bash
-   az acr build --registry <your-registry> --image propertymaster-emailworker .
+   ghcr.io/nevillecolaco23/propertymaster-emailworker:latest
    ```
-3. Deploy to **Azure Container Apps** or **Azure App Service (Linux container)**
-4. Add Application Settings (environment variables):
+2. Deploy to **Azure Container Apps** using that image URL
+3. Add Application Settings (environment variables):
    ```
    RESEND_API_KEY=your_actual_resend_api_key
    EMAIL_FROM=your_verified_domain@example.com
    ConnectionStrings__MongoDb=your_mongodb_connection_string
    ```
-5. Azure will start the .NET Worker Service container automatically
+4. Azure Container Apps will pull the image from ghcr.io and start the worker automatically
 
 ## Configuration for Production
 
