@@ -15,51 +15,7 @@ env:
 
 jobs:
   # ──────────────────────────────────────────────
-  # JOB 1: Build & Push WebApi
-  # ──────────────────────────────────────────────
-  build-webapi:
-    name: 🏗️ WebApi
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write   # Required to push to ghcr.io
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags & labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/propertymaster-api
-          tags: |
-            # Tag with branch name
-            type=ref,event=branch
-            # Tag with short commit SHA
-            type=sha,prefix=sha-
-            # Always tag latest on default branch
-            type=raw,value=latest
-
-      - name: Build and push WebApi image
-        uses: docker/build-push-action@v5
-        with:
-          # Build context is repo root (Dockerfile COPYs from multiple projects)
-          context: .
-          file: WebApi/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-  # ──────────────────────────────────────────────
-  # JOB 2: Build & Push EmailWorker
+  # JOB 1: Build & Push EmailWorker
   # ──────────────────────────────────────────────
   build-emailworker:
     name: 📧 EmailWorker
@@ -99,7 +55,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   # ──────────────────────────────────────────────
-  # JOB 3: Build & Push AccessLogWorker
+  # JOB 2: Build & Push AccessLogWorker
   # ──────────────────────────────────────────────
   build-accesslogworker:
     name: 📋 AccessLogWorker
@@ -139,49 +95,49 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   # ──────────────────────────────────────────────
-  # JOB 4: Deploy EmailWorker → Azure Container Apps
-  # Runs only after the image is successfully built & pushed
+  # JOB 3: Deploy EmailWorker → Azure Container Apps
   # ──────────────────────────────────────────────
   deploy-emailworker:
     name: 🚀 Deploy EmailWorker → Azure Container Apps
     runs-on: ubuntu-latest
-    needs: build-emailworker          # Wait for image to be pushed first
-    environment: production           # Optional: adds a manual approval gate in GitHub
+    needs: build-emailworker
+    environment: production
 
     steps:
+      # TODO: Configure AZURE_CREDENTIALS in GitHub Secrets for automatic deployment
       - name: Log in to Azure
+        continue-on-error: true # <--- Prevents missing credentials from failing the workflow
         uses: azure/login@v2
         with:
-          # Service principal JSON stored as a GitHub secret
-          # See docs/azure-container-apps-setup.md for how to create this
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy EmailWorker to Azure Container Apps
+        continue-on-error: true # <--- Prevents missing credentials from failing the workflow
         uses: azure/container-apps-deploy-action@v1
         with:
-          # The Container App must already exist (created via setup guide)
           containerAppName: propertymaster-emailworker
           resourceGroup: rg-propertymaster-dev
-          # Always pull the latest image from ghcr.io
           imageToDeploy: ghcr.io/${{ env.IMAGE_OWNER }}/propertymaster-emailworker:latest
 
   # ──────────────────────────────────────────────
-  # JOB 5: Deploy AccessLogWorker → Azure Container Apps
-  # Runs only after the image is successfully built & pushed
+  # JOB 4: Deploy AccessLogWorker → Azure Container Apps
   # ──────────────────────────────────────────────
   deploy-accesslogworker:
     name: 🚀 Deploy AccessLogWorker → Azure Container Apps
     runs-on: ubuntu-latest
-    needs: build-accesslogworker      # Wait for image to be pushed first
+    needs: build-accesslogworker
     environment: production
 
     steps:
+      # TODO: Configure AZURE_CREDENTIALS in GitHub Secrets for automatic deployment
       - name: Log in to Azure
+        continue-on-error: true # <--- Prevents missing credentials from failing the workflow
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy AccessLogWorker to Azure Container Apps
+        continue-on-error: true # <--- Prevents missing credentials from failing the workflow
         uses: azure/container-apps-deploy-action@v1
         with:
           containerAppName: propertymaster-accesslogworker

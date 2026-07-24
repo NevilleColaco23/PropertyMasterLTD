@@ -59,7 +59,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APIUnitProject.Tests", "API
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utilities", "Utilities", "{E594FF6F-9BBC-481D-9395-D8C3AD6F5D6D}"
 	ProjectSection(SolutionItems) = preProject
-		create-Git-Image.yml = create-Git-Image.yml
+		.github\workflows\deploy-angular-frontend.yml = .github\workflows\deploy-angular-frontend.yml
+		.github\workflows\docker-build-push.yml = .github\workflows\docker-build-push.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmailWorker", "EmailWorker\EmailWorker.csproj", "{686FC06F-FA97-4F34-A3A1-FFB684D1DFE8}"
