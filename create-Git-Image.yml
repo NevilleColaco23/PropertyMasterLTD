@@ -1,7 +1,7 @@
 # Name of the workflow as it appears in the GitHub Actions tab
 name: Build and Push Email Worker
 
-# Trigger: Run this workflow automatically every time code is pushed to the 'master' branch
+# Trigger: Run this workflow automatically every time code is pushed to the 'Azure_web_App_Deployment' branch
 on:
   push:
     branches: [ "Azure_web_App_Deployment" ]
@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       # Step 2: Log in to GitHub Container Registry (ghcr.io)
-      # Uses the built-in GITHUB_TOKEN automatically provided by GitHub Actions (no custom PAT required here)
+      # Uses the built-in GITHUB_TOKEN automatically provided by GitHub Actions
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -29,11 +29,10 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          # Context defines the build root folder (typically '.' for repository root)
+          # Context defines the build root folder (repository root)
           context: .
-          # Path to your Dockerfile relative to the repository root.
-          # UPDATE THIS if your Dockerfile is inside a subfolder (e.g., ./src/EmailWorker/Dockerfile)
-          file: ./Dockerfile
+          # Relative path to your EmailWorker Dockerfile
+          file: ./Utilities/EmailWorker/Dockerfile
           # Set push to true to publish the built image directly to GitHub Packages
           push: true
           # Tags the image with 'latest' under your GHCR package namespace
