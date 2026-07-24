@@ -1,6 +1,5 @@
 name: 🅰️ Build & Deploy Angular Frontend
 
-# Triggers on every push or PR to the deployment branch
 on:
   push:
     branches:
@@ -9,13 +8,9 @@ on:
     types: [opened, synchronize, reopened, closed]
     branches:
       - Azure_web_App_Deployment
-  # Allow manual trigger from GitHub Actions tab
   workflow_dispatch:
 
 jobs:
-  # ──────────────────────────────────────────────
-  # JOB 1: Build & Deploy Angular App to Azure
-  # ──────────────────────────────────────────────
   build-and-deploy-frontend:
     name: 🌐 Angular Frontend
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
@@ -30,20 +25,16 @@ jobs:
       - name: Build and Deploy to Azure Static Web Apps
         uses: Azure/static-web-apps-deploy@v1
         with:
-          # Uses the deployment token stored in GitHub Secrets by Azure
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BRAVE_ROCK_0DB8C8503 }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           
-          ###### Angular Build Settings ######
-          app_location: "/app"                              # Path to Angular root directory
-          api_location: ""                                  # Empty (backend is separate)
-          output_location: "dist/test-angular-api/browser"  # Angular build output path
-          ####################################
+          ###### Corrected Project Locations ######
+          app_location: "testangularapi.client"                      # Path to your Angular project folder
+          api_location: ""                                           # Leave empty
+          output_location: "dist/testangularapi.client/browser"      # Build output folder
+          #########################################
 
-  # ──────────────────────────────────────────────
-  # JOB 2: Cleanup Preview Environments on PR Close
-  # ──────────────────────────────────────────────
   close-pull-request:
     name: 🧹 Cleanup PR Deployment
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
