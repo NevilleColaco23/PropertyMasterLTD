@@ -1,23 +1,24 @@
-# Name of the workflow as it appears in the GitHub Actions tab
+#This file is to create a git workflow to create image and upload to ghcr
 name: Build and Push Email Worker
 
-# Trigger: Run this workflow automatically every time code is pushed to the 'Azure_web_App_Deployment' branch
 on:
   push:
     branches: [ "Azure_web_App_Deployment" ]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build-and-push:
-    # Use the latest Ubuntu virtual machine hosted by GitHub to run the build steps
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the source code from your repository into the runner environment
+      # Step 1: Checkout the source code from your repository
       - name: Checkout Code
         uses: actions/checkout@v4
 
       # Step 2: Log in to GitHub Container Registry (ghcr.io)
-      # Uses the built-in GITHUB_TOKEN automatically provided by GitHub Actions
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -29,11 +30,21 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          # Context defines the build root folder (repository root)
           context: .
-          # Relative path to your EmailWorker Dockerfile
           file: ./Utilities/EmailWorker/Dockerfile
-          # Set push to true to publish the built image directly to GitHub Packages
           push: true
-          # Tags the image with 'latest' under your GHCR package namespace
           tags: ghcr.io/${{ github.repository_owner }}/propertymaster-emailworker:latest
+
+      # =========================================================================
+      # TODO: Automate Azure Container App deployment in the future.
+      # Prerequisites to fully automate this step:
+      # 1. Run `az ad sp create-for-rbac` in Azure CLI to get credentials.
+      # 2. Add AZURE_CREDENTIALS under Repo Settings -> Secrets and variables -> Actions.
+      # =========================================================================
+      - name: Deploy EmailWorker to Azure Container Apps
+        continue-on-error: true # <--- Prevents Azure login errors from marking the workflow run as failed
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          containerAppName: propertymaster-emailworker
+          resourceGroup: PropertyMaster-RG
+          imageToDeploy: ghcr.io/${{ github.repository_owner }}/propertymaster-emailworker:latest
