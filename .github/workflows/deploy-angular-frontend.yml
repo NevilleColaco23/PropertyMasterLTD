@@ -1,9 +1,9 @@
 name: 🅰️ Build & Deploy Angular Frontend
 
 on:
-  #push:
-    #branches:
-      #- Azure_web_App_Deployment
+  push:
+    branches:
+      - Azure_web_App_Deployment
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
