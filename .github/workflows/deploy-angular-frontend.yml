@@ -29,11 +29,11 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           
-          ###### Corrected Project Locations ######
-          app_location: "testangularapi.client"                      # Path to your Angular project folder
-          api_location: ""                                           # Leave empty
-          output_location: "dist/testangularapi.client/browser"      # Build output folder
-          #########################################
+          ###### Angular Build Settings ######
+          app_location: "testangularapi.client"
+          api_location: ""
+          output_location: "dist/propertyMasterV3.0/browser"
+          ####################################
 
   close-pull-request:
     name: 🧹 Cleanup PR Deployment
