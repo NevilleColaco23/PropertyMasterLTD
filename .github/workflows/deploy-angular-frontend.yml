@@ -30,7 +30,7 @@ jobs:
           action: "upload"
           
           ###### Angular Build Settings ######
-          app_location: "testangularapi.client"
+          app_location: "app"
           api_location: ""
           output_location: "dist/propertyMasterV3.0/browser"
           ####################################
