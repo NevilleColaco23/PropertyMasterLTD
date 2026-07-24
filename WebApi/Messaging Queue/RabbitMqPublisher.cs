@@ -3,7 +3,6 @@ using Azure.Core;
 using Messaging.Shared;
 using Microsoft.Extensions.Options;
 using MyWarehouse.Application.Common.Dependencies.DataAccess;
-// using MyWarehouse.Domain.AccessLog;  // ⚠️ TEMPORARILY COMMENTED OUT - Will be replaced with UserActivity RabbitMQ implementation
 using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
@@ -70,21 +69,26 @@ namespace MyWarehouse.WebApi.Messaging_Queue
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to initialize RabbitMQ connection");
-                throw;
+                // Log warning/error but DO NOT rethrow, so HTTP requests (like login) can continue uninterrupted.
+                _logger.LogError(ex, "Failed to initialize RabbitMQ connection. Application will proceed without message publishing.");
             }
         }
 
         public void Publish<T>(T message, string exchange, string routingKey)
         {
-            if (_channel == null) throw new InvalidOperationException("RabbitMQ channel is not initialized.");
+            // Safety guard: If RabbitMQ failed to connect during constructor startup, log warning and exit cleanly
+            if (_channel == null)
+            {
+                _logger.LogWarning("Skipping message publishing to {Exchange}/{RoutingKey} because RabbitMQ channel is not initialized.", exchange, routingKey);
+                return;
+            }
 
             try
             {
                 var json = JsonSerializer.Serialize(message);
                 var body = Encoding.UTF8.GetBytes(json);
 
-                _logger.LogInformation("Publishing message to exchange: {Exchange}, routingKey: {RoutingKey}, size: {Size} bytes", 
+                _logger.LogInformation("Publishing message to exchange: {Exchange}, routingKey: {RoutingKey}, size: {Size} bytes",
                     exchange, routingKey, body.Length);
 
                 _channel.BasicPublishAsync(exchange, routingKey, body).GetAwaiter().GetResult();
@@ -93,54 +97,10 @@ namespace MyWarehouse.WebApi.Messaging_Queue
             }
             catch (Exception ex)
             {
+                // Catch publishing errors as well so they don't break the primary workflow
                 _logger.LogError(ex, "Failed to publish message to {Exchange}/{RoutingKey}", exchange, routingKey);
-                throw;
             }
         }
-
-        // ⚠️ TEMPORARILY COMMENTED OUT - Old AccessLog implementation
-        // TODO: Implement new PublishUserActivityEvent() method for RabbitMQ architecture
-        // This will publish UserActivity events instead of AccessLog events
-
-        /*
-        public void PublishAccessLogEvent(AccessLog accessLog)
-        {
-            if (_channel == null) throw new InvalidOperationException("RabbitMQ channel is not initialized.");
-
-            try
-            {
-                var evt = new Messaging.Shared.Models.AccessLogEvent
-                {
-                    TimestampUtc = accessLog.TimeStamp,
-                    Method = accessLog.Details,
-                    Path = accessLog.Log,
-                    StatusCode = 200,
-                    DurationMs = 0,
-                    UserId = accessLog.UserID.ToString(),
-                    Username = null,
-                    TraceId = null,
-                    ClientIp = accessLog.IpAddress,
-                    UserAgent = accessLog.UserAgent,
-                    Action = accessLog.Action
-                };
-
-                var json = JsonSerializer.Serialize(evt);
-                var body = Encoding.UTF8.GetBytes(json);
-
-                _logger.LogInformation("Publishing AccessLog event to {Exchange}/{RoutingKey}: LogId={LogId}, User={UserId}, Action={Action}",
-                    _options.Exchange, _options.RoutingKey, accessLog.Id, accessLog.UserID, accessLog.Action);
-
-                _channel.BasicPublishAsync(_options.Exchange, _options.RoutingKey, body).GetAwaiter().GetResult();
-
-                _logger.LogInformation("AccessLog event published successfully: LogId={LogId}", accessLog.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to publish AccessLog event: LogId={LogId}", accessLog.Id);
-                throw;
-            }
-        }
-        */
 
         public void Dispose()
         {
