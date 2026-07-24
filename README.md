@@ -1,16 +1,18 @@
-# Property Master V4.0 (MyWarehouse)
+# 🏨 Property Master
 
 [![.NET 6.0](https://img.shields.io/badge/.NET-6.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![Angular 21](https://img.shields.io/badge/Angular-21-DD0031?logo=angular)](https://angular.io/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-6.0-47A248?logo=mongodb)](https://www.mongodb.com/)
 [![RabbitMQ](https://img.shields.io/badge/RabbitMQ-7.2-FF6600?logo=rabbitmq)](https://www.rabbitmq.com/)
 [![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker)](https://www.docker.com/)
+[![Azure](https://img.shields.io/badge/Azure-Deployed-0078D4?logo=microsoftazure)](https://azure.microsoft.com/)
 
 A comprehensive property management system built with .NET 6 backend, Angular 21 frontend, and microservices architecture featuring real-time messaging, email notifications, and access logging capabilities.
 
 ## 📋 Table of Contents
 
 - [Overview](#overview)
+- [Screenshots](#screenshots)
 - [Architecture](#architecture)
 - [Technology Stack](#technology-stack)
 - [Project Structure](#project-structure)
@@ -39,6 +41,33 @@ Property Master V4.0 is a full-stack property management application designed wi
 - **API Versioning**: RESTful API with Swagger/OpenAPI documentation
 - **Containerization**: Full Docker support with docker-compose orchestration
 - **Cloud Deployment**: Deployed on Microsoft Azure (Azure App Service + Azure Static Web Apps)
+
+## 📸 Screenshots
+
+> **To add screenshots:** Create a `docs/screenshots/` folder in the repo root, place your `.png` images there, commit them, and they will display here automatically.
+
+### Login Page
+![Login Page](docs/screenshots/login.png)
+
+### Property Selection
+![Property Selection](docs/screenshots/property-selection.png)
+
+### Dashboard — Room Planner (Gantt)
+![Dashboard Gantt](docs/screenshots/dashboard-gantt.png)
+
+### Dashboard — Widgets (KPI Cards & Analytics)
+![Dashboard Widgets](docs/screenshots/dashboard-widgets.png)
+
+### Property Management
+![Property Management](docs/screenshots/property-management.png)
+
+### Bookings
+![Bookings](docs/screenshots/bookings.png)
+
+### Swagger API Docs
+![Swagger](docs/screenshots/swagger.png)
+
+---
 
 ## 🏗️ Architecture
 
@@ -652,8 +681,8 @@ Edit `WebApi/appsettings.json`:
     "UseSsl": false
   },
   "AuthenticationSettings": {
-    "JwtIssuer": "MyWarehouse",
-    "JwtAudience": "MyWarehouse",
+    "JwtIssuer": "PropertyMaster",
+    "JwtAudience": "PropertyMaster",
     "TokenExpirationSeconds": 86400,
     "JwtSigningKeyBase64": "your-secret-key-here-min-32-chars"
   },
@@ -1147,7 +1176,7 @@ Configure allowed origins in `WebApi/appsettings.json`:
 ```json
 {
   "SwaggerSettings": {
-    "ApiName": "MyWarehouse",
+    "ApiName": "PropertyMaster",
     "UseSwagger": true,
     "LoginPath": "/account/oauth2/access_token"
   }
@@ -1205,7 +1234,7 @@ docker-compose -f WebApi/docker-compose.yml up --build
 
 ```bash
 # Build WebAPI image
-docker build -t mywarehouse-api -f WebApi/Dockerfile .
+docker build -t propertymaster-api -f WebApi/Dockerfile .
 
 # Build AccessLog Worker image
 docker build -t accesslog-worker -f AccessLogWorker/Dockerfile .
@@ -1214,7 +1243,7 @@ docker build -t accesslog-worker -f AccessLogWorker/Dockerfile .
 docker build -t email-worker -f EmailWorker/Dockerfile .
 
 # Run containers (after starting MongoDB and RabbitMQ)
-docker run -p 8080:80 mywarehouse-api
+docker run -p 8080:80 propertymaster-api
 docker run accesslog-worker
 docker run email-worker
 ```
