@@ -65,6 +65,18 @@ export class AuthService {
       );
   }
   
+public guestLogin(): Observable<HttpResponse<AuthenticationSuccessData>> {
+    return this._http.post<AuthenticationSuccessData>(`${environment.apiUrl}/account/guest-login`, {}, { observe: 'response' })
+      .pipe(
+        tap(res => {
+          if (res.body) {
+            this.signIn(res.body);
+          }
+        }),
+        shareReplay()
+      );
+  }
+
 public signUp(data: SignUpDto){
   const signUpmodel = {
     username: data.username,
@@ -164,6 +176,18 @@ public signUp(data: SignUpDto){
   public getValidityDays() {
     const expiresAt = localStorage.getItem('auth_tokenExpiresAt');
     return expiresAt ? (+expiresAt - Date.now()) / 1000 / (3600 * 24) : 0;
+  }
+
+  public isGuestUser(): boolean {
+    const token = this.getUserToken();
+    if (!token) return false;
+    try {
+      const jwt = token.replace('Bearer ', '');
+      const payload = JSON.parse(atob(jwt.split('.')[1]));
+      return payload?.role === 'Guest';
+    } catch {
+      return false;
+    }
   }
 
   public getUserId(): number | null {

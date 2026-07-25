@@ -115,6 +115,14 @@ jobs:
           containerAppName: propertymaster-emailworker
           resourceGroup: rg-propertymaster-dev
           imageToDeploy: ghcr.io/${{ env.IMAGE_OWNER }}/propertymaster-emailworker:latest
+          environmentVariables: |
+            ConnectionStrings__MongoDb=${{ secrets.MONGODB_CONNECTION_STRING }}
+            ServiceBus__ConnectionString=${{ secrets.AZURE_SERVICE_BUS_CONNECTION_STRING }}
+            ServiceBus__EmailQueueName=email-queue
+            Resend__ApiKey=${{ secrets.RESEND_API_KEY }}
+            Email__From=${{ secrets.EMAIL_FROM }}
+            AppSettings__MongoDbDatabaseName=ListingDB
+            ASPNETCORE_ENVIRONMENT=Production
 
   # ──────────────────────────────────────────────
   # JOB 4: Deploy AccessLogWorker → Azure Container Apps

@@ -18,7 +18,7 @@ public class JwtTokenService : ITokenService
     public TokenModel CreateAuthenticationToken(string userId, string uniqueName,
         IEnumerable<(string claimType, string claimValue)>? customClaims = null)
     {
-        var expiration = DateTime.UtcNow.AddMinutes(5);
+        var expiration = DateTime.UtcNow.AddSeconds(_authSettings.TokenExpirationSeconds);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new Claim[]

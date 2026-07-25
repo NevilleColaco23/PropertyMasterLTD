@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MyWarehouse.Application.Users.CreateUser;
 using MyWarehouse.Infrastructure.Authentication.Core.Model;
@@ -20,6 +22,7 @@ public class UserService : IUserService
     private readonly IEmailQueueService _emailQueueService;
     private readonly IMongoDatabase _mongoDatabase;
     private readonly IDemoPropertyService _demoPropertyService;
+    private readonly IConfiguration _configuration;
 
     public UserService(
         UserManager<ApplicationUserIdentity> userManager, 
@@ -29,7 +32,8 @@ public class UserService : IUserService
         ILogger<UserService> logger, 
         IEmailQueueService emailQueueService,
         IMongoDatabase mongoDatabase,
-        IDemoPropertyService demoPropertyService)
+        IDemoPropertyService demoPropertyService,
+        IConfiguration configuration)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -39,7 +43,11 @@ public class UserService : IUserService
         _emailQueueService = emailQueueService;
         _mongoDatabase = mongoDatabase;
         _demoPropertyService = demoPropertyService;
+        _configuration = configuration;
     }
+
+    private string FrontendBaseUrl =>
+        (_configuration["FrontendSettings:BaseUrl"] ?? "https://property-master-silk.vercel.app").TrimEnd('/');
 
     public async Task<(MySignInResult result, SignInData? data)> SignIn(string username, string password)
     {
@@ -143,7 +151,15 @@ public class UserService : IUserService
             }
 
             // ⭐ Still use YOUR custom JWT tokens (not Identity cookies)
-            var token = _tokenService.CreateAuthenticationToken(user.Id.ToString(), user.Email ?? user.UserName ?? "");
+            var guestEmail = _configuration["GuestSettings:Username"];
+            var isGuest = !string.IsNullOrWhiteSpace(guestEmail) &&
+                          string.Equals(user.Email, guestEmail, StringComparison.OrdinalIgnoreCase);
+
+            var customClaims = isGuest
+                ? new[] { ("role", "Guest") }
+                : (IEnumerable<(string, string)>)Array.Empty<(string, string)>();
+
+            var token = _tokenService.CreateAuthenticationToken(user.Id.ToString(), user.Email ?? user.UserName ?? "", customClaims);
 
             return (
                 MySignInResult.Success,
@@ -212,7 +228,7 @@ public class UserService : IUserService
             // Queue activation email
             try
             {
-                var activationLink = $"https://property-master-silk.vercel.app/activate?userId={user.Id}&token={urlSafeToken}";
+                var activationLink = $"{FrontendBaseUrl}/activate?userId={user.Id}&token={urlSafeToken}";
                 var htmlBody = $@"<!DOCTYPE html>
 <html>
 <head>
@@ -280,37 +296,47 @@ public class UserService : IUserService
                 // Don't fail signup if email fails
             }
 
-            // ✅ Assign property access (demo or real property)
+            // ✅ Assign property access based on comma-separated property codes
+            // Blank = no property assigned (user will see empty property selector)
             try
             {
-                var shouldAssignDemo = await _demoPropertyService.ShouldAssignDemoPropertyAsync(propertyCode);
-
-                if (shouldAssignDemo)
+                if (string.IsNullOrWhiteSpace(propertyCode))
                 {
-                    var demoAccessGranted = await _demoPropertyService.GrantUserAccessToDemoPropertyAsync(user.Id);
-                    if (demoAccessGranted)
-                    {
-                        _logger.LogInformation("Demo property access granted to user {UserId}", user.Id);
-                    }
+                    _logger.LogInformation("No property code provided for user {UserId} — PropertyAccessList will be empty.", user.Id);
                 }
                 else
                 {
-                    var validPropertyId = await _demoPropertyService.ValidateAndGetPropertyIdAsync(propertyCode!);
-                    if (validPropertyId.HasValue)
+                    var codes = propertyCode
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+
+                    _logger.LogInformation("Processing {Count} property code(s) for user {UserId}: {Codes}",
+                        codes.Count, user.Id, string.Join(", ", codes));
+
+                    foreach (var code in codes)
                     {
-                        var propertyAccessGranted = await _demoPropertyService.GrantUserAccessToPropertyAsync(user.Id, validPropertyId.Value);
-                        if (propertyAccessGranted)
+                        var validPropertyId = await _demoPropertyService.ValidateAndGetPropertyIdAsync(code);
+                        if (validPropertyId.HasValue)
                         {
-                            _logger.LogInformation("Property access granted to user {UserId} for property {PropertyId}", user.Id, validPropertyId.Value);
+                            var granted = await _demoPropertyService.GrantUserAccessToPropertyAsync(user.Id, validPropertyId.Value);
+                            if (granted)
+                                _logger.LogInformation("Property access granted to user {UserId} for code '{Code}' (ID: {PropertyId})",
+                                    user.Id, code, validPropertyId.Value);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Property code '{Code}' not found or inactive — skipping for user {UserId}", code, user.Id);
                         }
                     }
                 }
-            }
-            catch (Exception propertyEx)
-            {
-                _logger.LogError(propertyEx, "Error granting property access to user {UserId}", user.Id);
-                // Don't fail signup if property access fails
-            }
+
+                }
+                catch (Exception propertyEx)
+                {
+                    _logger.LogError(propertyEx, "Error granting property access to user {UserId}", user.Id);
+                    // Don't fail signup if property access fails
+                }
 
             return (
                 SignUpResult.Success,
@@ -326,6 +352,108 @@ public class UserService : IUserService
             _logger.LogError(ex, "Error during sign-up for email: {Email}", email);
             return (SignUpResult.Failed, null);
         }
+    }
+
+    public async Task EnsureGuestUserAsync(string email, string password, int demoPropertyId)
+    {
+        try
+        {
+            var existing = await _userManager.FindByEmailAsync(email);
+            if (existing == null)
+            {
+                _logger.LogInformation("Auto-provisioning guest user {Email} for demo property {PropertyId}.", email, demoPropertyId);
+
+                var username = email.Split('@')[0];
+                var user = new ApplicationUserIdentity
+                {
+                    UserName       = username,
+                    Email          = email,
+                    EmailConfirmed = true,
+                    PropertyAccessList = new List<PropertyAccess>
+                    {
+                        new PropertyAccess
+                        {
+                            Id          = demoPropertyId,
+                            IsActive    = true,
+                            From        = DateTime.UtcNow,
+                            To          = DateTime.UtcNow.AddYears(10),
+                            CreatedDate = DateTime.UtcNow,
+                            CreatedBy   = 0
+                        }
+                    }
+                };
+
+                var result = await _userManager.CreateAsync(user, password);
+
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    _logger.LogError("Failed to auto-provision guest user {Email}: {Errors}", email, errors);
+                    throw new InvalidOperationException($"Guest user provisioning failed: {errors}");
+                }
+
+                _logger.LogInformation("Guest user {Email} created successfully (id: {UserId}).", email, user.Id);
+            }
+            else
+            {
+                _logger.LogDebug("Guest user {Email} already exists.", email);
+            }
+
+            // Always check the demo property — runs whether user is new or existing.
+            // This handles the case where the property was deleted from MongoDB manually.
+            await EnsureDemoPropertyAsync(demoPropertyId);
+        }
+        catch (InvalidOperationException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while provisioning guest user {Email}.", email);
+            throw;
+        }
+    }
+
+    private async Task EnsureDemoPropertyAsync(int demoPropertyId)
+    {
+        var propertyCollection = _mongoDatabase.GetCollection<BsonDocument>("Property");
+        var filter = Builders<BsonDocument>.Filter.Eq("_id", demoPropertyId);
+
+        var exists = await propertyCollection.Find(filter).AnyAsync();
+        if (exists)
+        {
+            _logger.LogDebug("Demo property {PropertyId} already exists — skipping.", demoPropertyId);
+            return;
+        }
+
+        _logger.LogInformation("Auto-provisioning demo property {PropertyId}.", demoPropertyId);
+
+        var now = DateTime.UtcNow;
+        var propertyDoc = new BsonDocument
+        {
+            { "_id",            demoPropertyId },
+            { "Name",           "The Grand Hotel - Demo" },
+            { "Active",         true },
+            { "PropertyCode",   "DEMO0001" },
+            { "CompanyLogoURL", "https://placehold.co/200x200/4CAF50/white?text=DEMO" },
+            { "Rooms", new BsonArray
+                {
+                    new BsonDocument { { "_id", 101 }, { "RoomCode", "R101" }, { "RoomName", "Standard Single" },    { "Active", true }, { "CompanyLogoURL", "" } },
+                    new BsonDocument { { "_id", 102 }, { "RoomCode", "R102" }, { "RoomName", "Standard Double" },    { "Active", true }, { "CompanyLogoURL", "" } },
+                    new BsonDocument { { "_id", 201 }, { "RoomCode", "R201" }, { "RoomName", "Deluxe King" },        { "Active", true }, { "CompanyLogoURL", "" } },
+                    new BsonDocument { { "_id", 202 }, { "RoomCode", "R202" }, { "RoomName", "Deluxe Twin" },        { "Active", true }, { "CompanyLogoURL", "" } },
+                    new BsonDocument { { "_id", 301 }, { "RoomCode", "R301" }, { "RoomName", "Junior Suite" },       { "Active", true }, { "CompanyLogoURL", "" } },
+                    new BsonDocument { { "_id", 401 }, { "RoomCode", "R401" }, { "RoomName", "Presidential Suite" }, { "Active", true }, { "CompanyLogoURL", "" } },
+                }
+            },
+            { "IsDemo",    true },
+            { "IsDeleted", false },
+            { "CreatedAt", now },
+            { "CreatedBy", 0 }
+        };
+
+        await propertyCollection.InsertOneAsync(propertyDoc);
+        _logger.LogInformation("Demo property {PropertyId} inserted successfully.", demoPropertyId);
     }
 
     public async Task<(bool success, string message)> ConfirmEmail(int userId, string token)
@@ -350,11 +478,13 @@ public class UserService : IUserService
                 return (true, "Email already confirmed. You can log in now.");
             }
 
-            // Decode URL-safe token back to Identity token
-            var decodedToken = System.Text.Encoding.UTF8.GetString(
-                Convert.FromBase64String(
-                    token.Replace("-", "+").Replace("_", "/")
-                ));
+            // Decode URL-safe token back to Identity token.
+            // Restore the Base64 padding that was stripped during encoding.
+            var padded = token.Replace("-", "+").Replace("_", "/");
+            var paddingNeeded = padded.Length % 4;
+            if (paddingNeeded > 0) padded += new string('=', 4 - paddingNeeded);
+
+            var decodedToken = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(padded));
 
             // ⭐ HYBRID: Use Identity's built-in token verification
             var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
@@ -408,7 +538,7 @@ public class UserService : IUserService
                 .Replace("=", "");
 
             // Queue activation email
-            var activationLink = $"https://property-master-silk.vercel.app/activate?userId={user.Id}&token={urlSafeToken}";
+            var activationLink = $"{FrontendBaseUrl}/activate?userId={user.Id}&token={urlSafeToken}";
             var htmlBody = $@"<!DOCTYPE html>
 <html>
 <head>

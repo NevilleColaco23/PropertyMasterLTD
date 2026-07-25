@@ -89,9 +89,9 @@ private errorHandling = inject(ErrorHandlingService);
 
         // Show success popup with property-specific message
         const hasPropertyCode = this.f.propertyCode.value && this.f.propertyCode.value.trim() !== '';
-        const message = hasPropertyCode 
-          ? '✅ Signup successful!\n\nYou will be added to your property once your account is activated.\n\nPlease check your email inbox for the activation link.'
-          : '✅ Signup successful!\n\nYou will have access to our demo hotel to explore all features.\n\nPlease check your email inbox for the activation link to activate your account.';
+        const message = hasPropertyCode
+          ? '✅ Signup successful!\n\nYour account will be linked to the provided property code(s) once activated.\n\nPlease check your email inbox for the activation link.'
+          : '✅ Signup successful!\n\nNo property code was provided — you can be added to a property later by an administrator.\n\nPlease check your email inbox for the activation link to activate your account.';
 
         alert(message);
 

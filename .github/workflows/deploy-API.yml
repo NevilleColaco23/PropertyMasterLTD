@@ -74,6 +74,20 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_6E24F35AF622455FB1E9F2E1A8752EEC }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D7C7FCC03F9840EE90600538A0C755D5 }}
 
+      - name: Set App Service configuration secrets
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: 'propertymaster-api-de09'
+          app-settings-json: |
+            [
+              { "name": "AuthenticationSettings__JwtSigningKeyBase64",  "value": "${{ secrets.JWT_SIGNING_KEY }}",                    "slotSetting": false },
+              { "name": "ConnectionStrings__MongoDb",                   "value": "${{ secrets.MONGODB_CONNECTION_STRING }}",           "slotSetting": false },
+              { "name": "ServiceBus__ConnectionString",                  "value": "${{ secrets.AZURE_SERVICE_BUS_CONNECTION_STRING }}", "slotSetting": false },
+              { "name": "ServiceBus__EmailQueueName",                    "value": "email-queue",                                       "slotSetting": false },
+              { "name": "GuestSettings__Password",                      "value": "${{ secrets.GUEST_PASSWORD }}",                     "slotSetting": false },
+              { "name": "Resend__ApiKey",                               "value": "${{ secrets.RESEND_API_KEY }}",                     "slotSetting": false }
+            ]
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
