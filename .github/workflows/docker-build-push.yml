@@ -55,47 +55,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   # ──────────────────────────────────────────────
-  # JOB 2: Build & Push AccessLogWorker
-  # ──────────────────────────────────────────────
-  build-accesslogworker:
-    name: 📋 AccessLogWorker
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags & labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/propertymaster-accesslogworker
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix=sha-
-            type=raw,value=latest
-
-      - name: Build and push AccessLogWorker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: AccessLogWorker/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-  # ──────────────────────────────────────────────
-  # JOB 3: Deploy EmailWorker → Azure Container Apps
+  # JOB 2: Deploy EmailWorker → Azure Container Apps
   # ──────────────────────────────────────────────
   deploy-emailworker:
     name: 🚀 Deploy EmailWorker → Azure Container Apps
@@ -126,28 +86,3 @@ jobs:
               "Email__From=${{ secrets.EMAIL_FROM }}" \
               "AppSettings__MongoDbDatabaseName=ListingDB" \
               "ASPNETCORE_ENVIRONMENT=Production"
-
-  # ──────────────────────────────────────────────
-  # JOB 4: Deploy AccessLogWorker → Azure Container Apps
-  # ──────────────────────────────────────────────
-  deploy-accesslogworker:
-    name: 🚀 Deploy AccessLogWorker → Azure Container Apps
-    runs-on: ubuntu-latest
-    needs: build-accesslogworker
-    environment: production
-
-    steps:
-      - name: Log in to Azure
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Install containerapp extension
-        run: az extension add --name containerapp --upgrade -y
-
-      - name: Deploy AccessLogWorker to Azure Container Apps
-        run: |
-          az containerapp update \
-            --name propertymaster-accesslogworker \
-            --resource-group rg-propertymaster-dev \
-            --image ghcr.io/${{ env.IMAGE_OWNER }}/propertymaster-accesslogworker:latest
