@@ -1,5 +1,5 @@
 # Activity Logging with Azure Service Bus — Simple Guide (25 Jul)
-
+###THIS IS OUTDATED. NEED TO UPDATE AS BACKGROUND APP IS NOW REMOVED AND REPLACED BY AZURE FUNCTION.
 ## What Does This Do?
 
 Whenever a user does something in the app (like login, create a listing, etc.), we want to **record that activity**.

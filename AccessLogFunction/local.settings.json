@@ -1,0 +1,10 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "ServiceBusConnection": "<YOUR_AZURE_SERVICE_BUS_CONNECTION_STRING>",
+    "AccessLogQueueName": "accesslog-queue",
+    "MONGODB_URI": "<YOUR_MONGODB_CONNECTION_STRING>"
+  }
+}
