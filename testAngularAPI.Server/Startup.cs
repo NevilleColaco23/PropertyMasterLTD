@@ -93,9 +93,9 @@ public class Startup
         services.AddScoped<MyWarehouse.Infrastructure.Services.DemoPropertySeeder>();
         services.AddScoped<MyWarehouse.Infrastructure.Services.IDemoPropertyService, MyWarehouse.Infrastructure.Services.DemoPropertyService>();
 
-        // Register RabbitMQ configuration and publisher
-        services.Configure<global::Messaging.Shared.RabbitMqOptions>(Configuration.GetSection("RabbitMq"));
-        services.AddSingleton<global::Messaging.Shared.IRabbitMqPublisher, testAngularAPI.Server.Infrastructure.Messaging.RabbitMqPublisher>();
+        // Register Azure Service Bus configuration and publisher
+        services.Configure<global::Messaging.Shared.ServiceBusOptions>(Configuration.GetSection("ServiceBus"));
+        services.AddSingleton<global::Messaging.Shared.IServiceBusPublisher, testAngularAPI.Server.Infrastructure.Messaging.ServiceBusPublisher>();
 
         services.AddMyInfrastructureDependencies(Configuration, Environment);
         services.AddMyApplicationDependencies();

@@ -4,7 +4,7 @@
       "commandName": "Project",
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development",
-        "MONGODB_URI": "mongodb+srv://nevillecolaco19_db_user:CKNG0DjvPa1jTXvR@pmcluster0.yegbwxt.mongodb.net/PropertyMasterDB?retryWrites=true&w=majority"
+        "MONGODB_URI": "mongodb+srv://nevillecolaco19_db_user:CKNG0DjvPa1jTXvR@pmcluster0.yegbwxt.mongodb.net/ListingDB?retryWrites=true&w=majority"
       },
       "dotnetRunMessages": true
     },

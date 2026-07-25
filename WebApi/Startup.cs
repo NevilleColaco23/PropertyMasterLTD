@@ -89,10 +89,6 @@ public class Startup
         // Register Azure Service Bus configuration and publisher
         services.Configure<Messaging.Shared.ServiceBusOptions>(Configuration.GetSection("ServiceBus"));
         services.AddSingleton<Messaging.Shared.IServiceBusPublisher, MyWarehouse.WebApi.Messaging_Queue.ServiceBusPublisher>();
-
-        // Keep RabbitMQ registration for EmailQueueService backward compatibility (no-ops gracefully if not configured)
-        services.Configure<Messaging.Shared.RabbitMqOptions>(Configuration.GetSection("RabbitMq"));
-        services.AddSingleton<Messaging.Shared.IRabbitMqPublisher, MyWarehouse.WebApi.Messaging_Queue.RabbitMqPublisher>();
     }
 
     public void Configure(IApplicationBuilder app)

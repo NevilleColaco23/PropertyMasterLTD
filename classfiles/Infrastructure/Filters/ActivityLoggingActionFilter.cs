@@ -6,26 +6,37 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Options;
 using MyWarehouse.Application.UserActivity.Attributes;
 using MyWarehouse.Application.UserActivity.Services;
 using MyWarehouse.Domain.UserActivity;
+using Messaging.Shared;
+using Messaging.Shared.Models;
 
 namespace MyWarehouse.Infrastructure.Filters
 {
     /// <summary>
-    /// Action filter that automatically logs user activities based on ActivityLog attributes
+    /// Action filter that automatically logs user activities based on ActivityLog attributes.
+    /// Publishes a UserActivityEvent to Azure Service Bus when configured.
+    /// Falls back to direct MongoDB write via UserActivityService when Service Bus is not configured.
     /// </summary>
     public class ActivityLoggingActionFilter : IAsyncActionFilter
     {
         private readonly UserActivityService _activityService;
         private readonly ActivityDisplayMessageBuilder _messageBuilder;
+        private readonly IServiceBusPublisher _serviceBusPublisher;
+        private readonly ServiceBusOptions _serviceBusOptions;
 
         public ActivityLoggingActionFilter(
             UserActivityService activityService,
-            ActivityDisplayMessageBuilder messageBuilder)
+            ActivityDisplayMessageBuilder messageBuilder,
+            IServiceBusPublisher serviceBusPublisher,
+            IOptions<ServiceBusOptions> serviceBusOptions)
         {
             _activityService = activityService;
             _messageBuilder = messageBuilder;
+            _serviceBusPublisher = serviceBusPublisher;
+            _serviceBusOptions = serviceBusOptions.Value;
         }
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -102,27 +113,56 @@ namespace MyWarehouse.Infrastructure.Filters
                             metadata);
                     }
 
-                    // Log the activity with metadata and display message
-                    await _activityService.LogActivityAsync(
-                        userId: userId,
-                        username: username,
-                        activityType: activityType,
-                        entityType: entityType,
-                        entityId: entityId,
-                        action: action,
-                        module: module,
-                        ipAddress: ipAddress,
-                        userAgent: userAgent,
-                        sessionId: sessionId,
-                        isSuccess: isSuccess,
-                        errorMessage: errorMessage,
-                        stackTrace: stackTrace,
-                        durationMs: (int)stopwatch.ElapsedMilliseconds,
-                        metadata: metadata,
-                        displayMessage: displayMessage,
-                        propertyId: propertyId,
-                        origin: origin
-                    );
+                    // Publish to Azure Service Bus if configured; otherwise fall back to direct DB write.
+                    var isServiceBusConfigured = !string.IsNullOrWhiteSpace(_serviceBusOptions.ConnectionString)
+                        && !_serviceBusOptions.ConnectionString.StartsWith("<");
+
+                    if (isServiceBusConfigured)
+                    {
+                        var activityEvent = new UserActivityEvent
+                        {
+                            UserId       = userId,
+                            Username     = username,
+                            ActivityType = (int)activityType,
+                            EntityType   = entityType,
+                            EntityId     = entityId,
+                            Action       = action,
+                            DisplayMessage = displayMessage,
+                            IPAddress    = ipAddress,
+                            Timestamp    = DateTime.UtcNow,
+                            Metadata     = metadata?
+                                .Where(kv => kv.Value != null)
+                                .ToDictionary(kv => kv.Key, kv => kv.Value?.ToString() ?? string.Empty)
+                        };
+
+                        await _serviceBusPublisher.SendAsync(
+                            activityEvent,
+                            _serviceBusOptions.AccessLogQueueName);
+                    }
+                    else
+                    {
+                        // Fallback: write directly to MongoDB (local dev without Service Bus)
+                        await _activityService.LogActivityAsync(
+                            userId: userId,
+                            username: username,
+                            activityType: activityType,
+                            entityType: entityType,
+                            entityId: entityId,
+                            action: action,
+                            module: module,
+                            ipAddress: ipAddress,
+                            userAgent: userAgent,
+                            sessionId: sessionId,
+                            isSuccess: isSuccess,
+                            errorMessage: errorMessage,
+                            stackTrace: stackTrace,
+                            durationMs: (int)stopwatch.ElapsedMilliseconds,
+                            metadata: metadata,
+                            displayMessage: displayMessage,
+                            propertyId: propertyId,
+                            origin: origin
+                        );
+                    }
                 }
                 catch (Exception ex)
                 {
