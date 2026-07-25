@@ -1,4 +1,4 @@
-name: Build & Push Docker Images to ghcr.io
+﻿name: Build & Push Docker Images to ghcr.io
 
 # Triggers on every push to the deployment branch
 on:
@@ -109,20 +109,23 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Install containerapp extension
+        run: az extension add --name containerapp --upgrade -y
+
       - name: Deploy EmailWorker to Azure Container Apps
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          containerAppName: propertymaster-emailworker
-          resourceGroup: rg-propertymaster-dev
-          imageToDeploy: ghcr.io/${{ env.IMAGE_OWNER }}/propertymaster-emailworker:latest
-          environmentVariables: |
-            ConnectionStrings__MongoDb=${{ secrets.MONGODB_CONNECTION_STRING }}
-            ServiceBus__ConnectionString=${{ secrets.AZURE_SERVICE_BUS_CONNECTION_STRING }}
-            ServiceBus__EmailQueueName=email-queue
-            Resend__ApiKey=${{ secrets.RESEND_API_KEY }}
-            Email__From=${{ secrets.EMAIL_FROM }}
-            AppSettings__MongoDbDatabaseName=ListingDB
-            ASPNETCORE_ENVIRONMENT=Production
+        run: |
+          az containerapp update \
+            --name propertymaster-emailworker \
+            --resource-group rg-propertymaster-dev \
+            --image ghcr.io/${{ env.IMAGE_OWNER }}/propertymaster-emailworker:latest \
+            --set-env-vars \
+              "ConnectionStrings__MongoDb=${{ secrets.MONGODB_CONNECTION_STRING }}" \
+              "ServiceBus__ConnectionString=${{ secrets.AZURE_SERVICE_BUS_CONNECTION_STRING }}" \
+              "ServiceBus__EmailQueueName=email-queue" \
+              "Resend__ApiKey=${{ secrets.RESEND_API_KEY }}" \
+              "Email__From=${{ secrets.EMAIL_FROM }}" \
+              "AppSettings__MongoDbDatabaseName=ListingDB" \
+              "ASPNETCORE_ENVIRONMENT=Production"
 
   # ──────────────────────────────────────────────
   # JOB 4: Deploy AccessLogWorker → Azure Container Apps
@@ -139,9 +142,12 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Install containerapp extension
+        run: az extension add --name containerapp --upgrade -y
+
       - name: Deploy AccessLogWorker to Azure Container Apps
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          containerAppName: propertymaster-accesslogworker
-          resourceGroup: rg-propertymaster-dev
-          imageToDeploy: ghcr.io/${{ env.IMAGE_OWNER }}/propertymaster-accesslogworker:latest
+        run: |
+          az containerapp update \
+            --name propertymaster-accesslogworker \
+            --resource-group rg-propertymaster-dev \
+            --image ghcr.io/${{ env.IMAGE_OWNER }}/propertymaster-accesslogworker:latest
