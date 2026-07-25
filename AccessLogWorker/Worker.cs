@@ -1,23 +1,24 @@
-using System.Text;
 using System.Text.Json;
-// using AccessLogWorker.Services;  // ⚠️ TEMPORARILY COMMENTED OUT
+using Azure.Messaging.ServiceBus;
+using AccessLogWorker.Services;
 using Messaging.Shared;
-using Microsoft.Extensions.DependencyInjection;
+using Messaging.Shared.Models;
 using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 namespace AccessLogWorker
 {
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        private readonly Messaging.Shared.RabbitMqOptions _options;
+        private readonly ServiceBusOptions _options;
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private IConnection? _connection;
-        private IChannel? _channel;
+        private ServiceBusClient? _client;
+        private ServiceBusProcessor? _processor;
 
-        public Worker(ILogger<Worker> logger, IOptions<Messaging.Shared.RabbitMqOptions> options, IServiceScopeFactory serviceScopeFactory)
+        public Worker(
+            ILogger<Worker> logger,
+            IOptions<ServiceBusOptions> options,
+            IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _options = options.Value;
@@ -26,125 +27,89 @@ namespace AccessLogWorker
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            try
+            _logger.LogInformation("Starting AccessLogWorker - connecting to Azure Service Bus queue: {Queue}",
+                _options.AccessLogQueueName);
+
+            _client = new ServiceBusClient(_options.ConnectionString);
+
+            _processor = _client.CreateProcessor(_options.AccessLogQueueName, new ServiceBusProcessorOptions
             {
-                _logger.LogInformation("Starting AccessLogWorker - connecting to RabbitMQ at {Host}:{Port} (SSL: {UseSsl})", _options.Host, _options.Port, _options.UseSsl);
+                AutoCompleteMessages = false,
+                MaxConcurrentCalls = 1
+            });
 
-                var factory = new ConnectionFactory
-                {
-                    HostName = _options.Host,
-                    Port = _options.Port,
-                    UserName = _options.Username,
-                    Password = _options.Password,
-                    VirtualHost = _options.VirtualHost
-                };
+            _processor.ProcessMessageAsync += OnMessageReceivedAsync;
+            _processor.ProcessErrorAsync  += OnErrorAsync;
 
-                // Configure SSL for CloudAMQP
-                if (_options.UseSsl)
-                {
-                    factory.Ssl = new RabbitMQ.Client.SslOption
-                    {
-                        Enabled = true,
-                        ServerName = _options.Host,
-                        AcceptablePolicyErrors = System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch |
-                                                  System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors
-                    };
-                }
+            await _processor.StartProcessingAsync(cancellationToken);
 
-                _connection = await factory.CreateConnectionAsync(cancellationToken);
-                _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
-                await _channel.ExchangeDeclareAsync(_options.Exchange, ExchangeType.Direct, durable: true, cancellationToken: cancellationToken);
-                await _channel.QueueDeclareAsync(_options.Queue, durable: true, exclusive: false, autoDelete: false, cancellationToken: cancellationToken);
-                await _channel.QueueBindAsync(_options.Queue, _options.Exchange, _options.RoutingKey, cancellationToken: cancellationToken);
-                await base.StartAsync(cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to start AccessLogWorker. Make sure RabbitMQ is running at {Host}:{Port} with credentials User={Username}",
-                    _options.Host, _options.Port, _options.Username);
-                throw;
-            }
+            _logger.LogInformation("AccessLogWorker started. Listening on queue: {Queue}", _options.AccessLogQueueName);
+
+            await base.StartAsync(cancellationToken);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (_channel == null) throw new InvalidOperationException("RabbitMQ channel not initialized");
+            // Keep the worker alive — the processor runs on its own background threads
+            await Task.Delay(Timeout.Infinite, stoppingToken);
+        }
 
+        private async Task OnMessageReceivedAsync(ProcessMessageEventArgs args)
+        {
             try
             {
-                _logger.LogInformation("Setting up RabbitMQ consumer for queue: {Queue}", _options.Queue);
+                var body = args.Message.Body.ToString();
 
-                var consumer = new AsyncEventingBasicConsumer(_channel);
-                consumer.ReceivedAsync += async (_, ea) =>
+                _logger.LogInformation("=== SERVICE BUS MESSAGE RECEIVED ===");
+                _logger.LogInformation("MessageId: {Id}", args.Message.MessageId);
+                _logger.LogInformation("Body: {Body}", body);
+
+                var activityEvent = JsonSerializer.Deserialize<UserActivityEvent>(body, new JsonSerializerOptions
                 {
-                    try
-                    {
-                        var body = ea.Body.ToArray();
-                        var json = Encoding.UTF8.GetString(body);
+                    PropertyNameCaseInsensitive = true
+                });
 
-                        _logger.LogInformation("=== MESSAGE RECEIVED ===");
-                        _logger.LogInformation("Raw JSON: {Json}", json);
+                if (activityEvent is null)
+                {
+                    _logger.LogWarning("Message body could not be deserialized. Completing (dead-letter via retry policy).");
+                    await args.CompleteMessageAsync(args.Message);
+                    return;
+                }
 
-                        // ⚠️ TEMPORARILY DISABLED - Will be replaced with UserActivity processing
-                        // TODO: Deserialize UserActivityEvent and process with IUserActivityMessageProcessor
+                using var scope = _serviceScopeFactory.CreateScope();
+                var processor = scope.ServiceProvider.GetRequiredService<IAccessLogMessageProcessor>();
+                await processor.ProcessAsync(activityEvent, args.CancellationToken);
 
-                        /*
-                        var logEvent = JsonSerializer.Deserialize<Messaging.Shared.Models.AccessLogEvent>(json);
-                        _logger.LogInformation("Deserialized log event: {@LogEvent}", logEvent);
-
-                        if (logEvent != null)
-                        {
-                            // Create a scope and use the message processor service (proper DI pattern)
-                            using (var scope = _serviceScopeFactory.CreateScope())
-                            {
-                                var messageProcessor = scope.ServiceProvider.GetRequiredService<IAccessLogMessageProcessor>();
-                                await messageProcessor.ProcessMessageAsync(logEvent, stoppingToken);
-                            }
-                        }
-                        else
-                        {
-                            _logger.LogWarning("Deserialized log event is null!");
-                        }
-                        */
-
-                        _logger.LogWarning("⚠️ AccessLogWorker is temporarily disabled. RabbitMQ messages will be acknowledged but not processed.");
-
-                        await _channel.BasicAckAsync(ea.DeliveryTag, false);
-                        _logger.LogInformation("✅ Message acknowledged successfully");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "❌ Error processing message, rejecting and requeueing");
-                        await _channel.BasicNackAsync(ea.DeliveryTag, false, requeue: true);
-                    }
-                };
-
-                await _channel.BasicConsumeAsync(_options.Queue, false, consumer, cancellationToken: stoppingToken);
-
-                await Task.Delay(Timeout.Infinite, stoppingToken);
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogInformation("Worker is stopping");
+                _logger.LogInformation("Message processed successfully. Completing...");
+                await args.CompleteMessageAsync(args.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in ExecuteAsync");
-                throw;
+                _logger.LogError(ex, "Error processing Service Bus message. Abandoning for retry.");
+                await args.AbandonMessageAsync(args.Message);
             }
         }
 
-        public override void Dispose()
+        private Task OnErrorAsync(ProcessErrorEventArgs args)
         {
-            if (_channel is not null)
+            _logger.LogError(args.Exception,
+                "Azure Service Bus error. Source: {Source}, EntityPath: {EntityPath}",
+                args.ErrorSource, args.EntityPath);
+            return Task.CompletedTask;
+        }
+
+        public override async Task StopAsync(CancellationToken cancellationToken)
+        {
+            if (_processor is not null)
             {
-                try { _channel.CloseAsync().GetAwaiter().GetResult(); } catch { }
+                await _processor.StopProcessingAsync(cancellationToken);
+                await _processor.DisposeAsync();
             }
-            if (_connection is not null)
+            if (_client is not null)
             {
-                try { _connection.CloseAsync().GetAwaiter().GetResult(); } catch { }
+                await _client.DisposeAsync();
             }
-            base.Dispose();
+            await base.StopAsync(cancellationToken);
         }
     }
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace MyWarehouse.Infrastructure.ApplicationDependencies.DataAccess.Repositories.Mongo
 {
@@ -16,14 +17,33 @@ namespace MyWarehouse.Infrastructure.ApplicationDependencies.DataAccess.Reposito
     {
         private readonly IMongoCollection<UserActivityLog> _collection;
         private readonly ICounterService _counterService;
+        private readonly ILogger<UserActivityRepositoryMongo>? _logger;
 
-        public UserActivityRepositoryMongo(IMongoDatabase database, ICounterService counterService)
+        public UserActivityRepositoryMongo(IMongoDatabase database, ICounterService counterService,
+            ILogger<UserActivityRepositoryMongo>? logger = null)
         {
             _collection = database.GetCollection<UserActivityLog>(Application.MongoCollections.UserActivityLogsCollection);
             _counterService = counterService;
+            _logger = logger;
 
-            // Create indexes for performance
-            CreateIndexes();
+            // Index creation is best-effort — a failure here must never crash the application.
+            // Indexes are a performance optimization; their absence only affects query speed.
+            TryCreateIndexes();
+        }
+
+        private void TryCreateIndexes()
+        {
+            try
+            {
+                CreateIndexes();
+            }
+            catch (Exception ex)
+            {
+                // Log and continue — the app is fully functional without indexes.
+                _logger?.LogWarning(ex,
+                    "UserActivityRepositoryMongo: index creation failed (MongoDB may be temporarily unreachable). " +
+                    "Indexes will be created on the next successful startup.");
+            }
         }
 
         private void CreateIndexes()

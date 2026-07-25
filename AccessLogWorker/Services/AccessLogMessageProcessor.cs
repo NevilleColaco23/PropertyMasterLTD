@@ -1,49 +1,47 @@
-// ⚠️ TEMPORARILY DISABLED - Will be replaced with UserActivity RabbitMQ implementation
-// This file is part of the old AccessLog system that has been replaced by UserActivity
-// TODO: Create UserActivityMessageProcessor to consume UserActivity events from RabbitMQ
-
-/*
 using Messaging.Shared.Models;
 using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories;
-using MyWarehouse.Domain.AccessLog;
+using MyWarehouse.Domain.UserActivity;
 
 namespace AccessLogWorker.Services
 {
     public class AccessLogMessageProcessor : IAccessLogMessageProcessor
     {
         private readonly ILogger<AccessLogMessageProcessor> _logger;
-        private readonly IAccessLogRepository _accessLogRepository;
+        private readonly IUserActivityRepository _userActivityRepository;
 
-        public AccessLogMessageProcessor(ILogger<AccessLogMessageProcessor> logger, IAccessLogRepository accessLogRepository)
+        public AccessLogMessageProcessor(
+            ILogger<AccessLogMessageProcessor> logger,
+            IUserActivityRepository userActivityRepository)
         {
             _logger = logger;
-            _accessLogRepository = accessLogRepository;
+            _userActivityRepository = userActivityRepository;
         }
 
-        public async Task ProcessMessageAsync(AccessLogEvent logEvent, CancellationToken cancellationToken)
+        public async Task ProcessAsync(UserActivityEvent activityEvent, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Processing log event: {Path}", logEvent.Path);
+            _logger.LogInformation(
+                "Processing activity event: UserId={UserId}, Action={Action}",
+                activityEvent.UserId, activityEvent.Action);
 
-            // Parse UserId from string to int
-            int.TryParse(logEvent.UserId, out int userId);
+            var log = new UserActivityLog
+            {
+                UserId       = activityEvent.UserId,
+                Username     = activityEvent.Username,
+                ActivityType = (ActivityType)activityEvent.ActivityType,
+                EntityType   = activityEvent.EntityType,
+                EntityId     = activityEvent.EntityId,
+                Action       = activityEvent.Action,
+                DisplayMessage = activityEvent.DisplayMessage,
+                IPAddress    = activityEvent.IPAddress,
+                Timestamp    = activityEvent.Timestamp,
+                Metadata     = activityEvent.Metadata?
+                                   .ToDictionary(kv => kv.Key, kv => (object)kv.Value)
+            };
 
-            // Create AccessLog domain entity (same as CreateLogCommand)
-            var logEntry = new AccessLog(
-                id: 0, // Repository.Add() will auto-generate using CounterService
-                log: logEvent.Path ?? "",
-                user: userId,
-                time: logEvent.TimestampUtc,
-                action: logEvent.Method ?? "N/A",
-                details: $"Status: {logEvent.StatusCode}, Duration: {logEvent.DurationMs}ms, TraceId: {logEvent.TraceId}, IP: {logEvent.ClientIp}, Agent: {logEvent.UserAgent}",
-                source: "RabbitMQ",
-                ipAddress: logEvent.ClientIp
-            );
+            var id = await _userActivityRepository.LogActivityAsync(log);
 
-            // Use repository.Add() - same as CreateLogCommand via UnitOfWork (no code duplication!)
-            await _accessLogRepository.Add(logEntry, cancellationToken);
-
-            _logger.LogInformation("✅ Successfully saved log event to MongoDB with ID: {Id}", logEntry.Id);
+            _logger.LogInformation(
+                "UserActivityLog saved to MongoDB with Id={Id}", id);
         }
     }
 }
-*/

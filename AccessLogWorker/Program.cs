@@ -2,7 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 using AccessLogWorker;
-// using AccessLogWorker.Services;  // ⚠️ TEMPORARILY COMMENTED OUT
+using AccessLogWorker.Services;
 using Messaging.Shared;
 using MyWarehouse.Application.Services;
 using MyWarehouse.Application.Common.Dependencies.DataAccess.Repositories;
@@ -11,8 +11,8 @@ using AutoMapper;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// Bind RabbitMQ options from configuration (appsettings or environment).
-builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection("RabbitMq"));
+// Bind Azure Service Bus options from configuration
+builder.Services.Configure<Messaging.Shared.ServiceBusOptions>(builder.Configuration.GetSection("ServiceBus"));
 
 // Register MongoDB client using environment variable for URI.
 builder.Services.AddSingleton<IMongoClient>(_ =>
@@ -65,12 +65,11 @@ builder.Services.AddSingleton<IMapper>(sp =>
 // Register CounterService (for auto-incrementing IDs)
 builder.Services.AddSingleton<ICounterService, CounterService>();
 
-// ⚠️ TEMPORARILY COMMENTED OUT - Old AccessLog dependencies
-// TODO: Replace with IUserActivityRepository when RabbitMQ is re-implemented
-// builder.Services.AddScoped<IAccessLogRepository, AccessLogRepositoryMongo>();
-// builder.Services.AddScoped<IAccessLogMessageProcessor, AccessLogMessageProcessor>();
+// Register UserActivity repository and message processor (scoped — created per message)
+builder.Services.AddScoped<IUserActivityRepository, UserActivityRepositoryMongo>();
+builder.Services.AddScoped<IAccessLogMessageProcessor, AccessLogMessageProcessor>();
 
-// Register the RabbitMQ consumer worker service.
+// Register the Azure Service Bus consumer worker.
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();

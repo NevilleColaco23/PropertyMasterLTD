@@ -28,6 +28,9 @@ public static class Program
             });
             Console.WriteLine($"✅ Configured to listen on port: {port}");
 
+            builder.Services.Configure<ServiceBusOptions>(builder.Configuration.GetSection("ServiceBus"));
+            builder.Services.AddSingleton<IServiceBusPublisher, ServiceBusPublisher>();
+            // Keep RabbitMQ for EmailQueueService backward compat (fails gracefully if not configured)
             builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection("RabbitMq"));
             builder.Services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
             builder.Services.AddControllers();
