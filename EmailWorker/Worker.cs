@@ -1,313 +1,161 @@
-using MongoDB.Driver;
-using System.Text;
-using System.Text.Json;
-using Messaging.Shared;
+using Azure.Messaging.ServiceBus;
 using Messaging.Shared.Models;
-using Microsoft.Extensions.Options;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
+using MongoDB.Driver;
+using System.Text.Json;
 
 namespace EmailWorker
 {
+    /// <summary>
+    /// Listens on the Azure Service Bus email-queue and sends emails via Resend.
+    /// MongoDB outbox is the persistent record; Service Bus is the trigger.
+    /// </summary>
     public class Worker : BackgroundService
     {
         private readonly IMongoCollection<EmailOutboxMessage> _collection;
         private readonly IEmailSender _sender;
         private readonly ILogger<Worker> _logger;
-        private readonly RabbitMqOptions? _rabbitMqOptions;
-        private IConnection? _connection;
-        private IChannel? _channel;
-        private bool _useRabbitMq = false;
+        private readonly ServiceBusProcessor _processor;
 
         private const int MaxAttempts = 5;
 
         public Worker(
-            IMongoDatabase db, 
-            IEmailSender sender, 
+            IMongoDatabase db,
+            IEmailSender sender,
             ILogger<Worker> logger,
-            IOptions<RabbitMqOptions>? rabbitMqOptions = null)
+            ServiceBusProcessor processor)
         {
             _collection = db.GetCollection<EmailOutboxMessage>(EmailOutboxCollection.Name);
-            _sender = sender;
-            _logger = logger;
-            _rabbitMqOptions = rabbitMqOptions?.Value;
-        }
-
-        public override async Task StartAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("EmailWorker starting...");
-
-            // Try to connect to RabbitMQ if configured
-            if (_rabbitMqOptions != null)
-            {
-                try
-                {
-                    _logger.LogInformation("Attempting to connect to RabbitMQ at {Host}:{Port}", 
-                        _rabbitMqOptions.Host, _rabbitMqOptions.Port);
-
-                    var factory = new ConnectionFactory
-                    {
-                        HostName = _rabbitMqOptions.Host,
-                        Port = _rabbitMqOptions.Port,
-                        UserName = _rabbitMqOptions.Username,
-                        Password = _rabbitMqOptions.Password,
-                        VirtualHost = _rabbitMqOptions.VirtualHost
-                    };
-
-                    if (_rabbitMqOptions.UseSsl)
-                    {
-                        factory.Ssl = new RabbitMQ.Client.SslOption
-                        {
-                            Enabled = true,
-                            ServerName = _rabbitMqOptions.Host,
-                            AcceptablePolicyErrors = System.Net.Security.SslPolicyErrors.RemoteCertificateNameMismatch |
-                                                      System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors
-                        };
-                    }
-
-                    _connection = await factory.CreateConnectionAsync(cancellationToken);
-                    _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
-
-                    await _channel.ExchangeDeclareAsync("email.exchange", ExchangeType.Direct, durable: true, cancellationToken: cancellationToken);
-                    await _channel.QueueDeclareAsync("email.queue", durable: true, exclusive: false, autoDelete: false, cancellationToken: cancellationToken);
-                    await _channel.QueueBindAsync("email.queue", "email.exchange", "email", cancellationToken: cancellationToken);
-
-                    _useRabbitMq = true;
-                    _logger.LogInformation("✅ RabbitMQ connected successfully. Using event-driven email processing.");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "⚠️  Failed to connect to RabbitMQ. Falling back to MongoDB polling.");
-                    _useRabbitMq = false;
-                }
-            }
-            else
-            {
-                _logger.LogInformation("ℹ️  RabbitMQ not configured. Using MongoDB polling.");
-            }
-
-            try
-            {
-                var count = await _collection.CountDocumentsAsync(FilterDefinition<EmailOutboxMessage>.Empty, cancellationToken: cancellationToken);
-                _logger.LogInformation("MongoDB connected. EmailOutbox collection has {Count} documents.", count);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to connect to MongoDB. Check connection string.");
-            }
-
-            await base.StartAsync(cancellationToken);
+            _sender     = sender;
+            _logger     = logger;
+            _processor  = processor;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("EmailWorker started.");
+            _logger.LogInformation("EmailWorker starting — listening on Service Bus queue.");
 
-            if (_useRabbitMq && _channel != null)
+            _processor.ProcessMessageAsync += OnMessageAsync;
+            _processor.ProcessErrorAsync   += OnErrorAsync;
+
+            await _processor.StartProcessingAsync(stoppingToken);
+
+            // Keep the worker alive until shutdown is requested
+            try { await Task.Delay(Timeout.Infinite, stoppingToken); }
+            catch (OperationCanceledException) { /* normal shutdown */ }
+
+            await _processor.StopProcessingAsync();
+            _logger.LogInformation("EmailWorker stopped.");
+        }
+
+        private async Task OnMessageAsync(ProcessMessageEventArgs args)
+        {
+            EmailQueuedEvent? emailEvent = null;
+            try
             {
-                await ExecuteRabbitMqMode(stoppingToken);
+                emailEvent = JsonSerializer.Deserialize<EmailQueuedEvent>(args.Message.Body.ToString());
             }
-            else
+            catch (Exception ex)
             {
-                await ExecutePollingMode(stoppingToken);
+                _logger.LogError(ex, "Failed to deserialise Service Bus message. Dead-lettering.");
+                await args.DeadLetterMessageAsync(args.Message, "DeserializationFailed", ex.Message);
+                return;
             }
-        }
 
-        private async Task ExecuteRabbitMqMode(CancellationToken stoppingToken)
-        {
-            if (_channel == null) throw new InvalidOperationException("RabbitMQ channel not initialized");
-
-            _logger.LogInformation("🐰 Starting RabbitMQ consumer for email.queue");
-
-            var consumer = new AsyncEventingBasicConsumer(_channel);
-            consumer.ReceivedAsync += async (_, ea) =>
+            if (emailEvent == null)
             {
-                try
-                {
-                    var body = ea.Body.ToArray();
-                    var json = Encoding.UTF8.GetString(body);
-                    var emailEvent = JsonSerializer.Deserialize<EmailQueuedEvent>(json);
-
-                    if (emailEvent != null)
-                    {
-                        _logger.LogInformation("📧 Received email event: EmailId={EmailId}, To={To}", 
-                            emailEvent.EmailId, emailEvent.To);
-
-                        var msg = await _collection.Find(x => x.Id == emailEvent.EmailId).FirstOrDefaultAsync(stoppingToken);
-
-                        if (msg != null && msg.Status != EmailOutboxStatus.Sent)
-                        {
-                            await _collection.UpdateOneAsync(
-                                x => x.Id == msg.Id,
-                                Builders<EmailOutboxMessage>.Update.Set(x => x.Status, EmailOutboxStatus.Processing),
-                                cancellationToken: stoppingToken);
-
-                            await ProcessOneAsync(msg, stoppingToken);
-                            await _channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("Email {EmailId} not found or already sent.", emailEvent.EmailId);
-                            await _channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error processing RabbitMQ message");
-                    await _channel.BasicNackAsync(ea.DeliveryTag, false, true, stoppingToken);
-                }
-            };
-
-            await _channel.BasicConsumeAsync("email.queue", false, consumer, stoppingToken);
-            _logger.LogInformation("✅ RabbitMQ consumer started. Waiting for email events...");
-
-            _ = Task.Run(async () => await ExecuteFallbackPolling(stoppingToken), stoppingToken);
-
-            await Task.Delay(Timeout.Infinite, stoppingToken);
-        }
-
-        private async Task ExecutePollingMode(CancellationToken stoppingToken)
-        {
-            _logger.LogInformation("📊 Starting MongoDB polling mode (every 2 seconds)");
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                try
-                {
-                    var msg = await ClaimOneAsync(stoppingToken);
-                    if (msg is null)
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
-                        continue;
-                    }
-
-                    await ProcessOneAsync(msg, stoppingToken);
-                }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Polling loop error");
-                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
-                }
+                _logger.LogWarning("Null email event received. Dead-lettering.");
+                await args.DeadLetterMessageAsync(args.Message, "NullEvent", "Deserialized to null");
+                return;
             }
-        }
 
-        private async Task ExecuteFallbackPolling(CancellationToken stoppingToken)
-        {
-            _logger.LogInformation("🔄 Starting fallback polling (every 30 seconds)");
+            _logger.LogInformation("Received email event EmailId={Id} To={To}", emailEvent.EmailId, emailEvent.To);
 
-            while (!stoppingToken.IsCancellationRequested)
+            // Look up the outbox record — single source of truth
+            var msg = await _collection.Find(x => x.Id == emailEvent.EmailId).FirstOrDefaultAsync();
+
+            if (msg == null)
             {
-                try
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
-
-                    var missedEmails = await _collection.Find(x => 
-                        (x.Status == EmailOutboxStatus.Queued || x.Status == EmailOutboxStatus.Pending) &&
-                        x.NextRunAtUtc <= DateTime.UtcNow)
-                        .Limit(5)
-                        .ToListAsync(stoppingToken);
-
-                    if (missedEmails.Any())
-                    {
-                        _logger.LogWarning("⚠️  Found {Count} missed emails. Processing via fallback.", missedEmails.Count);
-
-                        foreach (var msg in missedEmails)
-                        {
-                            try
-                            {
-                                await _collection.UpdateOneAsync(
-                                    x => x.Id == msg.Id && x.Status != EmailOutboxStatus.Sent,
-                                    Builders<EmailOutboxMessage>.Update.Set(x => x.Status, EmailOutboxStatus.Processing),
-                                    cancellationToken: stoppingToken);
-
-                                await ProcessOneAsync(msg, stoppingToken);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, "Fallback processing error for email {EmailId}", msg.Id);
-                            }
-                        }
-                    }
-                }
-                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Fallback polling error");
-                }
+                _logger.LogWarning("EmailOutbox record {Id} not found. Dead-lettering.", emailEvent.EmailId);
+                await args.DeadLetterMessageAsync(args.Message, "RecordNotFound",
+                    $"EmailOutbox record {emailEvent.EmailId} not found");
+                return;
             }
+
+            if (msg.Status == EmailOutboxStatus.Sent)
+            {
+                _logger.LogInformation("Email {Id} already sent — completing message.", msg.Id);
+                await args.CompleteMessageAsync(args.Message);
+                return;
+            }
+
+            await ProcessOneAsync(msg, args, args.CancellationToken);
         }
 
-        private Task<EmailOutboxMessage?> ClaimOneAsync(CancellationToken ct)
+        private async Task ProcessOneAsync(
+            EmailOutboxMessage msg,
+            ProcessMessageEventArgs args,
+            CancellationToken ct)
         {
-            var now = DateTime.UtcNow;
-            var lockUntil = now.AddMinutes(2);
+            // Mark as processing
+            await _collection.UpdateOneAsync(
+                x => x.Id == msg.Id,
+                Builders<EmailOutboxMessage>.Update
+                    .Set(x => x.Status, EmailOutboxStatus.Processing)
+                    .Inc(x => x.Attempts, 1),
+                cancellationToken: ct);
 
-            // Claim:
-            // 1) Pending OR Queued and due to run
-            // 2) OR previously claimed (Processing) but lock expired (worker crashed / timeout)
-            var filter = Builders<EmailOutboxMessage>.Filter.Or(
-                Builders<EmailOutboxMessage>.Filter.And(
-                    Builders<EmailOutboxMessage>.Filter.In(x => x.Status, new[] { EmailOutboxStatus.Pending, EmailOutboxStatus.Queued }),
-                    Builders<EmailOutboxMessage>.Filter.Lte(x => x.NextRunAtUtc, now)
-                ),
-                Builders<EmailOutboxMessage>.Filter.And(
-                    Builders<EmailOutboxMessage>.Filter.Eq(x => x.Status, EmailOutboxStatus.Processing),
-                    Builders<EmailOutboxMessage>.Filter.Lte(x => x.LockedUntilUtc, now)
-                )
-            );
-
-            var update = Builders<EmailOutboxMessage>.Update
-                .Set(x => x.Status, EmailOutboxStatus.Processing)
-                .Set(x => x.LockedUntilUtc, lockUntil)
-                .Inc(x => x.Attempts, 1);
-
-            return _collection.FindOneAndUpdateAsync(
-                filter,
-                update,
-                new FindOneAndUpdateOptions<EmailOutboxMessage>
-                {
-                    ReturnDocument = ReturnDocument.After,
-                    Sort = Builders<EmailOutboxMessage>.Sort.Ascending(x => x.CreatedAtUtc)
-                },
-                ct
-            );
-        }
-
-        private async Task ProcessOneAsync(EmailOutboxMessage msg, CancellationToken ct)
-        {
             try
             {
                 await _sender.SendHtmlAsync(msg.To, msg.Subject, msg.BodyHtml, ct);
 
-                var update = Builders<EmailOutboxMessage>.Update
-                    .Set(x => x.Status, EmailOutboxStatus.Sent)
-                    .Set(x => x.SentAtUtc, DateTime.UtcNow)
-                    .Set(x => x.LockedUntilUtc, null)
-                    .Set(x => x.LastError, null);
+                await _collection.UpdateOneAsync(
+                    x => x.Id == msg.Id,
+                    Builders<EmailOutboxMessage>.Update
+                        .Set(x => x.Status, EmailOutboxStatus.Sent)
+                        .Set(x => x.SentAtUtc, DateTime.UtcNow),
+                    cancellationToken: ct);
 
-                await _collection.UpdateOneAsync(x => x.Id == msg.Id, update, cancellationToken: ct);
-                _logger.LogInformation("Sent outbox email {Id} -> {To}", msg.Id, msg.To);
+                _logger.LogInformation("Email {Id} sent successfully to {To}", msg.Id, msg.To);
+                await args.CompleteMessageAsync(args.Message);
             }
             catch (Exception ex)
             {
-                var attempts = msg.Attempts;
-                var terminal = attempts >= MaxAttempts;
+                _logger.LogError(ex, "Failed to send email {Id} to {To} (attempt {Attempts})",
+                    msg.Id, msg.To, msg.Attempts + 1);
 
-                var delayMinutes = Math.Min(Math.Pow(2, attempts), 60);
-                var nextRun = DateTime.UtcNow.AddMinutes(delayMinutes);
+                if (msg.Attempts + 1 >= MaxAttempts)
+                {
+                    await _collection.UpdateOneAsync(
+                        x => x.Id == msg.Id,
+                        Builders<EmailOutboxMessage>.Update
+                            .Set(x => x.Status, EmailOutboxStatus.Failed)
+                            .Set(x => x.LastError, ex.Message),
+                        cancellationToken: ct);
 
-                var update = Builders<EmailOutboxMessage>.Update
-                    .Set(x => x.Status, terminal ? EmailOutboxStatus.Failed : EmailOutboxStatus.Pending)
-                    .Set(x => x.LockedUntilUtc, null)
-                    .Set(x => x.NextRunAtUtc, nextRun)
-                    .Set(x => x.LastError, ex.Message.Length > 1000 ? ex.Message[..1000] : ex.Message);
-
-                await _collection.UpdateOneAsync(x => x.Id == msg.Id, update, cancellationToken: ct);
-
-                _logger.LogError(ex, "Failed outbox email {Id} attempt {Attempt}/{Max}", msg.Id, attempts, MaxAttempts);
+                    _logger.LogError("Email {Id} exceeded max attempts — dead-lettering.", msg.Id);
+                    await args.DeadLetterMessageAsync(args.Message, "MaxAttemptsExceeded", ex.Message);
+                }
+                else
+                {
+                    // Abandon so Service Bus retries with its built-in backoff
+                    await args.AbandonMessageAsync(args.Message);
+                }
             }
         }
+
+        private Task OnErrorAsync(ProcessErrorEventArgs args)
+        {
+            _logger.LogError(args.Exception,
+                "Service Bus processor error. Source={Source} EntityPath={EntityPath}",
+                args.ErrorSource, args.EntityPath);
+            return Task.CompletedTask;
+        }
+
+        public override async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await _processor.StopProcessingAsync(cancellationToken);
+            await _processor.DisposeAsync();
+            await base.StopAsync(cancellationToken);
+        }
     }
-}
+}

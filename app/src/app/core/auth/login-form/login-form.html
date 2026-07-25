@@ -44,10 +44,15 @@
   </div>
 
   <mat-card-actions class="guest-section">
-    <button mat-stroked-button color="primary" type="button" class="guest-button" (click)="onGuestLogin()">
+    <button mat-stroked-button color="primary" type="button" class="guest-button"
+            (click)="onGuestLogin()"
+            [disabled]="localLoginState === localLoginStates.Waiting">
       <mat-icon>visibility</mat-icon>
-      Continue as Guest
+      {{ localLoginState === localLoginStates.Waiting ? 'Please wait…' : 'Continue as Guest' }}
     </button>
     <p class="guest-hint">Explore with demo data — no sign-up needed</p>
+    @if (localLoginState === localLoginStates.ErrorOther) {
+      <p class="guest-error">Guest login is temporarily unavailable. Please try again.</p>
+    }
   </mat-card-actions>
 </mat-card>

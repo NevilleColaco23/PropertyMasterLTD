@@ -2,6 +2,7 @@ using MongoDB.Driver;
 using Microsoft.Extensions.Logging;
 using Messaging.Shared;
 using Messaging.Shared.Models;
+using MongoDB.Bson;
 
 namespace MyWarehouse.Infrastructure.Services
 {
@@ -13,41 +14,74 @@ namespace MyWarehouse.Infrastructure.Services
     public class EmailQueueService : IEmailQueueService
     {
         private readonly IMongoCollection<EmailOutboxMessage> _collection;
+        private readonly IMongoCollection<BsonDocument> _keyCounters;
+        private readonly IServiceBusPublisher _serviceBusPublisher;
         private readonly ILogger<EmailQueueService> _logger;
+        private const string EmailOutboxCounterKey = "EmailOutbox";
 
         public EmailQueueService(
             IMongoDatabase database,
+            IServiceBusPublisher serviceBusPublisher,
             ILogger<EmailQueueService> logger)
         {
-            _collection = database.GetCollection<EmailOutboxMessage>("EmailOutbox");
-            _logger = logger;
+            _collection     = database.GetCollection<EmailOutboxMessage>("EmailOutbox");
+            _keyCounters    = database.GetCollection<BsonDocument>("KeyCounter");
+            _serviceBusPublisher = serviceBusPublisher;
+            _logger         = logger;
         }
 
         public async Task QueueEmailAsync(string to, string subject, string bodyHtml, string type = "activation")
         {
-            var maxId = await _collection
-                .Find(FilterDefinition<EmailOutboxMessage>.Empty)
-                .SortByDescending(x => x.Id)
-                .Limit(1)
-                .Project(x => x.Id)
-                .FirstOrDefaultAsync();
+            // Atomically increment the counter — safe under concurrent requests
+            var filter = Builders<BsonDocument>.Filter.Eq("_id", EmailOutboxCounterKey);
+            var update = Builders<BsonDocument>.Update.Inc("seq", 1);
+            var options = new FindOneAndUpdateOptions<BsonDocument>
+            {
+                IsUpsert    = true,
+                ReturnDocument = ReturnDocument.After
+            };
+
+            var counterDoc = await _keyCounters.FindOneAndUpdateAsync(filter, update, options);
+            var nextId = counterDoc["seq"].AsInt32;
 
             var message = new EmailOutboxMessage
             {
-                Id = maxId + 1,
-                Type = type,
-                To = to,
-                Subject = subject,
-                BodyHtml = bodyHtml,
-                Status = EmailOutboxStatus.Queued,
+                Id           = nextId,
+                Type         = type,
+                To           = to,
+                Subject      = subject,
+                BodyHtml     = bodyHtml,
+                Status       = EmailOutboxStatus.Queued,
                 NextRunAtUtc = DateTime.UtcNow,
                 CreatedAtUtc = DateTime.UtcNow
             };
 
-            // Persist to MongoDB — EmailWorker polls this collection and sends the email
             await _collection.InsertOneAsync(message);
             _logger.LogInformation("Queued email {Id} to MongoDB outbox: To={To}, Subject='{Subject}'",
                 message.Id, to, subject);
+
+            // Publish to Azure Service Bus so EmailWorker picks it up immediately (no polling)
+            try
+            {
+                var emailEvent = new EmailQueuedEvent
+                {
+                    EmailId      = message.Id,
+                    Type         = message.Type,
+                    To           = message.To,
+                    Subject      = message.Subject,
+                    BodyHtml     = message.BodyHtml,
+                    QueuedAtUtc  = message.CreatedAtUtc
+                };
+
+                await _serviceBusPublisher.SendAsync(emailEvent, ServiceBusQueueNames.Email);
+                _logger.LogInformation("Published EmailQueuedEvent {Id} to Service Bus", message.Id);
+            }
+            catch (Exception ex)
+            {
+                // Service Bus publish failure is non-fatal — the EmailWorker can still
+                // pick it up on its fallback polling pass if needed.
+                _logger.LogError(ex, "Failed to publish EmailQueuedEvent {Id} to Service Bus", message.Id);
+            }
         }
     }
 

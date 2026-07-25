@@ -46,7 +46,9 @@ export class ActivateAccountComponent implements OnInit {
   }
 
   private activateAccount(): void {
-    const apiUrl = `${environment.apiUrl}/account/ConfirmEmail?userId=${this.userId}&token=${encodeURIComponent(this.token!)}`;
+    // Token is already URL-safe (+ → -, / → _, = stripped during encoding).
+    // Do NOT encodeURIComponent — that would double-encode and break decoding on the server.
+    const apiUrl = `${environment.apiUrl}/account/ConfirmEmail?userId=${this.userId}&token=${this.token}`;
 
     this.http.post<any>(apiUrl, {}).subscribe({
       next: (response) => {

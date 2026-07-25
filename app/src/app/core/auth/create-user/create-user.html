@@ -94,14 +94,13 @@
       <mat-divider></mat-divider>
 
       <div class="section">
-        <div class="section-title">Contact</div>
-        <div class="section-subtitle">Used for account recovery and notifications.</div>
+        <div class="section-title">Property access</div>
+        <div class="section-subtitle">Enter one or more property codes separated by commas. Leave blank if you have no code.</div>
 
         <mat-form-field class="full" appearance="outline">
-          <mat-label>Property code</mat-label>
-          <input matInput formControlName="propertyCode" />
-          <mat-hint>123A</mat-hint>
-          <mat-error *ngIf="f.propertyCode.touched && f.propertyCode.hasError('required')">Property code is required</mat-error>
+          <mat-label>Property code(s)</mat-label>
+          <input matInput formControlName="propertyCode" placeholder="e.g. ABC123, XYZ456" />
+          <mat-hint>Comma-separated codes — leave blank for no property access</mat-hint>
         </mat-form-field>
       </div>
 

@@ -122,6 +122,11 @@ export class LoginFormComponent  {
       error: err => {
         this.localLoginState = LocalLoginState.ErrorOther;
         console.error('Guest login failed', err);
+        // Auto-clear the error after 6 s so the user can retry
+        timer(6000).subscribe(() => {
+          if (this.localLoginState === LocalLoginState.ErrorOther)
+            this.localLoginState = LocalLoginState.None;
+        });
       }
     });
   }

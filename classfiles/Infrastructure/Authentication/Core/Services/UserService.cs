@@ -46,6 +46,9 @@ public class UserService : IUserService
         _configuration = configuration;
     }
 
+    private string FrontendBaseUrl =>
+        (_configuration["FrontendSettings:BaseUrl"] ?? "https://property-master-silk.vercel.app").TrimEnd('/');
+
     public async Task<(MySignInResult result, SignInData? data)> SignIn(string username, string password)
     {
         try
@@ -225,7 +228,7 @@ public class UserService : IUserService
             // Queue activation email
             try
             {
-                var activationLink = $"https://property-master-silk.vercel.app/activate?userId={user.Id}&token={urlSafeToken}";
+                var activationLink = $"{FrontendBaseUrl}/activate?userId={user.Id}&token={urlSafeToken}";
                 var htmlBody = $@"<!DOCTYPE html>
 <html>
 <head>
@@ -293,37 +296,47 @@ public class UserService : IUserService
                 // Don't fail signup if email fails
             }
 
-            // ✅ Assign property access (demo or real property)
+            // ✅ Assign property access based on comma-separated property codes
+            // Blank = no property assigned (user will see empty property selector)
             try
             {
-                var shouldAssignDemo = await _demoPropertyService.ShouldAssignDemoPropertyAsync(propertyCode);
-
-                if (shouldAssignDemo)
+                if (string.IsNullOrWhiteSpace(propertyCode))
                 {
-                    var demoAccessGranted = await _demoPropertyService.GrantUserAccessToDemoPropertyAsync(user.Id);
-                    if (demoAccessGranted)
-                    {
-                        _logger.LogInformation("Demo property access granted to user {UserId}", user.Id);
-                    }
+                    _logger.LogInformation("No property code provided for user {UserId} — PropertyAccessList will be empty.", user.Id);
                 }
                 else
                 {
-                    var validPropertyId = await _demoPropertyService.ValidateAndGetPropertyIdAsync(propertyCode!);
-                    if (validPropertyId.HasValue)
+                    var codes = propertyCode
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+
+                    _logger.LogInformation("Processing {Count} property code(s) for user {UserId}: {Codes}",
+                        codes.Count, user.Id, string.Join(", ", codes));
+
+                    foreach (var code in codes)
                     {
-                        var propertyAccessGranted = await _demoPropertyService.GrantUserAccessToPropertyAsync(user.Id, validPropertyId.Value);
-                        if (propertyAccessGranted)
+                        var validPropertyId = await _demoPropertyService.ValidateAndGetPropertyIdAsync(code);
+                        if (validPropertyId.HasValue)
                         {
-                            _logger.LogInformation("Property access granted to user {UserId} for property {PropertyId}", user.Id, validPropertyId.Value);
+                            var granted = await _demoPropertyService.GrantUserAccessToPropertyAsync(user.Id, validPropertyId.Value);
+                            if (granted)
+                                _logger.LogInformation("Property access granted to user {UserId} for code '{Code}' (ID: {PropertyId})",
+                                    user.Id, code, validPropertyId.Value);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Property code '{Code}' not found or inactive — skipping for user {UserId}", code, user.Id);
                         }
                     }
                 }
-            }
-            catch (Exception propertyEx)
-            {
-                _logger.LogError(propertyEx, "Error granting property access to user {UserId}", user.Id);
-                // Don't fail signup if property access fails
-            }
+
+                }
+                catch (Exception propertyEx)
+                {
+                    _logger.LogError(propertyEx, "Error granting property access to user {UserId}", user.Id);
+                    // Don't fail signup if property access fails
+                }
 
             return (
                 SignUpResult.Success,
@@ -345,53 +358,54 @@ public class UserService : IUserService
     {
         try
         {
-            // Idempotent — do nothing if the guest user already exists
             var existing = await _userManager.FindByEmailAsync(email);
-            if (existing != null)
+            if (existing == null)
             {
-                _logger.LogDebug("Guest user {Email} already exists — skipping creation.", email);
-                return;
-            }
+                _logger.LogInformation("Auto-provisioning guest user {Email} for demo property {PropertyId}.", email, demoPropertyId);
 
-            _logger.LogInformation("Auto-provisioning guest user {Email} for demo property {PropertyId}.", email, demoPropertyId);
-
-            var username = email.Split('@')[0]; // e.g. "GuestUser"
-            var user = new ApplicationUserIdentity
-            {
-                UserName     = username,
-                Email        = email,
-                EmailConfirmed = true,          // pre-confirmed — no activation email
-                PropertyAccessList = new List<PropertyAccess>
+                var username = email.Split('@')[0];
+                var user = new ApplicationUserIdentity
                 {
-                    new PropertyAccess
+                    UserName       = username,
+                    Email          = email,
+                    EmailConfirmed = true,
+                    PropertyAccessList = new List<PropertyAccess>
                     {
-                        Id          = demoPropertyId,
-                        IsActive    = true,
-                        From        = DateTime.UtcNow,
-                        To          = DateTime.UtcNow.AddYears(10),
-                        CreatedDate = DateTime.UtcNow,
-                        CreatedBy   = 0
+                        new PropertyAccess
+                        {
+                            Id          = demoPropertyId,
+                            IsActive    = true,
+                            From        = DateTime.UtcNow,
+                            To          = DateTime.UtcNow.AddYears(10),
+                            CreatedDate = DateTime.UtcNow,
+                            CreatedBy   = 0
+                        }
                     }
+                };
+
+                var result = await _userManager.CreateAsync(user, password);
+
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    _logger.LogError("Failed to auto-provision guest user {Email}: {Errors}", email, errors);
+                    throw new InvalidOperationException($"Guest user provisioning failed: {errors}");
                 }
-            };
 
-            var result = await _userManager.CreateAsync(user, password);
-
-            if (!result.Succeeded)
+                _logger.LogInformation("Guest user {Email} created successfully (id: {UserId}).", email, user.Id);
+            }
+            else
             {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                _logger.LogError("Failed to auto-provision guest user {Email}: {Errors}", email, errors);
-                throw new InvalidOperationException($"Guest user provisioning failed: {errors}");
+                _logger.LogDebug("Guest user {Email} already exists.", email);
             }
 
-            _logger.LogInformation("Guest user {Email} created successfully (id: {UserId}).", email, user.Id);
-
-            // Also ensure the demo property document exists so the property selector works
+            // Always check the demo property — runs whether user is new or existing.
+            // This handles the case where the property was deleted from MongoDB manually.
             await EnsureDemoPropertyAsync(demoPropertyId);
         }
         catch (InvalidOperationException)
         {
-            throw; // re-throw provisioning failures so GuestLogin returns 503
+            throw;
         }
         catch (Exception ex)
         {
@@ -464,11 +478,13 @@ public class UserService : IUserService
                 return (true, "Email already confirmed. You can log in now.");
             }
 
-            // Decode URL-safe token back to Identity token
-            var decodedToken = System.Text.Encoding.UTF8.GetString(
-                Convert.FromBase64String(
-                    token.Replace("-", "+").Replace("_", "/")
-                ));
+            // Decode URL-safe token back to Identity token.
+            // Restore the Base64 padding that was stripped during encoding.
+            var padded = token.Replace("-", "+").Replace("_", "/");
+            var paddingNeeded = padded.Length % 4;
+            if (paddingNeeded > 0) padded += new string('=', 4 - paddingNeeded);
+
+            var decodedToken = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(padded));
 
             // ⭐ HYBRID: Use Identity's built-in token verification
             var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
@@ -522,7 +538,7 @@ public class UserService : IUserService
                 .Replace("=", "");
 
             // Queue activation email
-            var activationLink = $"https://property-master-silk.vercel.app/activate?userId={user.Id}&token={urlSafeToken}";
+            var activationLink = $"{FrontendBaseUrl}/activate?userId={user.Id}&token={urlSafeToken}";
             var htmlBody = $@"<!DOCTYPE html>
 <html>
 <head>
