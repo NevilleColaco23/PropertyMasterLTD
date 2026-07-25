@@ -3,6 +3,32 @@
   padding-top: 120px;
 }
 
+/* ---------- GUEST DEMO BANNER ---------- */
+.guest-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #fff3cd;
+  color: #856404;
+  font-size: 13px;
+  padding: 6px 16px;
+  border-bottom: 1px solid #ffc107;
+}
+
+.guest-banner mat-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+}
+
+.guest-banner a {
+  color: #0b2342;
+  font-weight: 600;
+  text-decoration: underline;
+  margin-left: 8px;
+}
+
 .site-header {
   position: fixed;
   inset: 0 0 auto 0;

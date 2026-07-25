@@ -1,4 +1,12 @@
 <header class="site-header">
+  @if (isGuest) {
+    <div class="guest-banner">
+      <mat-icon>visibility</mat-icon>
+      <span>You are browsing in <strong>Guest Demo Mode</strong> — data is for demonstration only. Some features are disabled.</span>
+      <a routerLink="/">Sign in for full access</a>
+    </div>
+  }
+
   <!-- Top blue bar: LOGO + search + profile/signout + email/cta -->
   <div class="topbar">
     <div class="topbar-inner">

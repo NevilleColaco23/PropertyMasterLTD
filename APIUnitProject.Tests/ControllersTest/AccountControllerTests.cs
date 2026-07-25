@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using MyWarehouse.Infrastructure.API.V1;
 using MyWarehouse.Infrastructure.Authentication.Core.Model;
@@ -16,6 +17,7 @@ namespace APIUnitProject.Tests.ControllersTest
     {
         private readonly Mock<IUserService> _mockUserService;
         private readonly Mock<IExternalSignInService> _mockExternalSignInService;
+        private readonly Mock<IConfiguration> _mockConfiguration;
         private readonly AccountController _controller;
 
         public AccountControllerTests()
@@ -23,7 +25,13 @@ namespace APIUnitProject.Tests.ControllersTest
             // Arrange (common setup for all tests in this class)
             _mockUserService = new Mock<IUserService>();
             _mockExternalSignInService = new Mock<IExternalSignInService>();
-            _controller = new AccountController(_mockUserService.Object, _mockExternalSignInService.Object);
+            _mockConfiguration = new Mock<IConfiguration>();
+
+            // Provide guest credentials so GuestLogin endpoint behaves predictably in tests
+            _mockConfiguration.Setup(c => c["GuestSettings:Username"]).Returns("guest@propertymaster.demo");
+            _mockConfiguration.Setup(c => c["GuestSettings:Password"]).Returns("Guest@Demo2024!");
+
+            _controller = new AccountController(_mockUserService.Object, _mockExternalSignInService.Object, _mockConfiguration.Object);
         }
 
         #region Login Endpoint Tests (/v{v:apiVersion}/account/login)
@@ -395,3 +403,4 @@ namespace APIUnitProject.Tests.ControllersTest
         #endregion
     }
 }
+

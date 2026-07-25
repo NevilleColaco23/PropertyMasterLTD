@@ -50,6 +50,8 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
   navItems: any[] = [];
   logoPath: string | null = null;
 
+  get isGuest(): boolean { return this.authService.isGuestUser(); }
+
   private appConfig = inject<AppConfig>(APP_CONFIG);
 
   constructor(

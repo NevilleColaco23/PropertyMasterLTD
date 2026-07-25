@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MyWarehouse.Application.Users.CreateUser;
 using MyWarehouse.Infrastructure.Authentication.Core.Model;
@@ -20,6 +22,7 @@ public class UserService : IUserService
     private readonly IEmailQueueService _emailQueueService;
     private readonly IMongoDatabase _mongoDatabase;
     private readonly IDemoPropertyService _demoPropertyService;
+    private readonly IConfiguration _configuration;
 
     public UserService(
         UserManager<ApplicationUserIdentity> userManager, 
@@ -29,7 +32,8 @@ public class UserService : IUserService
         ILogger<UserService> logger, 
         IEmailQueueService emailQueueService,
         IMongoDatabase mongoDatabase,
-        IDemoPropertyService demoPropertyService)
+        IDemoPropertyService demoPropertyService,
+        IConfiguration configuration)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -39,6 +43,7 @@ public class UserService : IUserService
         _emailQueueService = emailQueueService;
         _mongoDatabase = mongoDatabase;
         _demoPropertyService = demoPropertyService;
+        _configuration = configuration;
     }
 
     public async Task<(MySignInResult result, SignInData? data)> SignIn(string username, string password)
@@ -143,7 +148,15 @@ public class UserService : IUserService
             }
 
             // ⭐ Still use YOUR custom JWT tokens (not Identity cookies)
-            var token = _tokenService.CreateAuthenticationToken(user.Id.ToString(), user.Email ?? user.UserName ?? "");
+            var guestEmail = _configuration["GuestSettings:Username"];
+            var isGuest = !string.IsNullOrWhiteSpace(guestEmail) &&
+                          string.Equals(user.Email, guestEmail, StringComparison.OrdinalIgnoreCase);
+
+            var customClaims = isGuest
+                ? new[] { ("role", "Guest") }
+                : (IEnumerable<(string, string)>)Array.Empty<(string, string)>();
+
+            var token = _tokenService.CreateAuthenticationToken(user.Id.ToString(), user.Email ?? user.UserName ?? "", customClaims);
 
             return (
                 MySignInResult.Success,
@@ -326,6 +339,107 @@ public class UserService : IUserService
             _logger.LogError(ex, "Error during sign-up for email: {Email}", email);
             return (SignUpResult.Failed, null);
         }
+    }
+
+    public async Task EnsureGuestUserAsync(string email, string password, int demoPropertyId)
+    {
+        try
+        {
+            // Idempotent — do nothing if the guest user already exists
+            var existing = await _userManager.FindByEmailAsync(email);
+            if (existing != null)
+            {
+                _logger.LogDebug("Guest user {Email} already exists — skipping creation.", email);
+                return;
+            }
+
+            _logger.LogInformation("Auto-provisioning guest user {Email} for demo property {PropertyId}.", email, demoPropertyId);
+
+            var username = email.Split('@')[0]; // e.g. "GuestUser"
+            var user = new ApplicationUserIdentity
+            {
+                UserName     = username,
+                Email        = email,
+                EmailConfirmed = true,          // pre-confirmed — no activation email
+                PropertyAccessList = new List<PropertyAccess>
+                {
+                    new PropertyAccess
+                    {
+                        Id          = demoPropertyId,
+                        IsActive    = true,
+                        From        = DateTime.UtcNow,
+                        To          = DateTime.UtcNow.AddYears(10),
+                        CreatedDate = DateTime.UtcNow,
+                        CreatedBy   = 0
+                    }
+                }
+            };
+
+            var result = await _userManager.CreateAsync(user, password);
+
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                _logger.LogError("Failed to auto-provision guest user {Email}: {Errors}", email, errors);
+                throw new InvalidOperationException($"Guest user provisioning failed: {errors}");
+            }
+
+            _logger.LogInformation("Guest user {Email} created successfully (id: {UserId}).", email, user.Id);
+
+            // Also ensure the demo property document exists so the property selector works
+            await EnsureDemoPropertyAsync(demoPropertyId);
+        }
+        catch (InvalidOperationException)
+        {
+            throw; // re-throw provisioning failures so GuestLogin returns 503
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error while provisioning guest user {Email}.", email);
+            throw;
+        }
+    }
+
+    private async Task EnsureDemoPropertyAsync(int demoPropertyId)
+    {
+        var propertyCollection = _mongoDatabase.GetCollection<BsonDocument>("Property");
+        var filter = Builders<BsonDocument>.Filter.Eq("_id", demoPropertyId);
+
+        var exists = await propertyCollection.Find(filter).AnyAsync();
+        if (exists)
+        {
+            _logger.LogDebug("Demo property {PropertyId} already exists — skipping.", demoPropertyId);
+            return;
+        }
+
+        _logger.LogInformation("Auto-provisioning demo property {PropertyId}.", demoPropertyId);
+
+        var now = DateTime.UtcNow;
+        var propertyDoc = new BsonDocument
+        {
+            { "_id",            demoPropertyId },
+            { "Name",           "The Grand Hotel - Demo" },
+            { "Active",         true },
+            { "PropertyCode",   "DEMO0001" },
+            { "CompanyLogoURL", "https://placehold.co/200x200/4CAF50/white?text=DEMO" },
+            { "Rooms", new BsonArray
+                {
+                    new BsonDocument { { "_id", 101 }, { "RoomCode", "R101" }, { "RoomName", "Standard Single" },    { "Active", true }, { "CompanyLogoURL", "" } },
+                    new BsonDocument { { "_id", 102 }, { "RoomCode", "R102" }, { "RoomName", "Standard Double" },    { "Active", true }, { "CompanyLogoURL", "" } },
+                    new BsonDocument { { "_id", 201 }, { "RoomCode", "R201" }, { "RoomName", "Deluxe King" },        { "Active", true }, { "CompanyLogoURL", "" } },
+                    new BsonDocument { { "_id", 202 }, { "RoomCode", "R202" }, { "RoomName", "Deluxe Twin" },        { "Active", true }, { "CompanyLogoURL", "" } },
+                    new BsonDocument { { "_id", 301 }, { "RoomCode", "R301" }, { "RoomName", "Junior Suite" },       { "Active", true }, { "CompanyLogoURL", "" } },
+                    new BsonDocument { { "_id", 401 }, { "RoomCode", "R401" }, { "RoomName", "Presidential Suite" }, { "Active", true }, { "CompanyLogoURL", "" } },
+                }
+            },
+            { "IsDemo",    true },
+            { "IsDeleted", false },
+            { "CreatedAt", now },
+            { "CreatedBy", 0 }
+        };
+
+        await propertyCollection.InsertOneAsync(propertyDoc);
+        _logger.LogInformation("Demo property {PropertyId} inserted successfully.", demoPropertyId);
     }
 
     public async Task<(bool success, string message)> ConfirmEmail(int userId, string token)

@@ -17,11 +17,13 @@ public class AccountController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly IExternalSignInService _externalSignInService;
+    private readonly IConfiguration _configuration;
 
-    public AccountController(IUserService userService, IExternalSignInService externalSignInService)
+    public AccountController(IUserService userService, IExternalSignInService externalSignInService, IConfiguration configuration)
     {
         _userService = userService;
         _externalSignInService = externalSignInService;
+        _configuration = configuration;
     }
 
     [AllowAnonymous]
@@ -91,6 +93,25 @@ public class AccountController : ControllerBase
         };
     }
 
+
+    [AllowAnonymous]
+    [HttpPost("guest-login")]
+    [LogCreate("User Session", Description = "Guest user logged in")]
+    public async Task<ActionResult<LoginResponseDto>> GuestLogin()
+    {
+        var username = _configuration["GuestSettings:Username"];
+        var password = _configuration["GuestSettings:Password"];
+        var demoPropertyId = int.TryParse(_configuration["GuestSettings:DemoPropertyId"], out var pid) ? pid : -1;
+
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            return StatusCode(503, "Guest login is not configured. Set GuestSettings in app configuration.");
+
+        // Auto-provision the guest account on first call — idempotent, safe every time
+        await _userService.EnsureGuestUserAsync(username, password, demoPropertyId);
+
+        var result = await _userService.SignIn(username, password);
+        return ProduceLoginResponse(result);
+    }
 
     [AllowAnonymous]
     [HttpPost("SignUp")]

@@ -38,4 +38,16 @@
       New to this website? Create Your Account
     </button>
   </mat-card-actions>
+
+  <div class="guest-divider">
+    <span class="guest-divider-text">or</span>
+  </div>
+
+  <mat-card-actions class="guest-section">
+    <button mat-stroked-button color="primary" type="button" class="guest-button" (click)="onGuestLogin()">
+      <mat-icon>visibility</mat-icon>
+      Continue as Guest
+    </button>
+    <p class="guest-hint">Explore with demo data — no sign-up needed</p>
+  </mat-card-actions>
 </mat-card>

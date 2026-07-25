@@ -107,4 +107,22 @@ export class LoginFormComponent  {
   goToCreateUser() {
     this.router.navigate(['/create-user']);
   }
+
+  onGuestLogin() {
+    this.loaderService.show();
+    this.localLoginState = LocalLoginState.Waiting;
+
+    this.as.guestLogin().pipe(
+      finalize(() => this.loaderService.hide())
+    ).subscribe({
+      next: _ => {
+        this.localLoginState = LocalLoginState.Success;
+        this.router.navigate(['/propertySelector']);
+      },
+      error: err => {
+        this.localLoginState = LocalLoginState.ErrorOther;
+        console.error('Guest login failed', err);
+      }
+    });
+  }
 }
