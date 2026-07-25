@@ -41,7 +41,6 @@
     <ProjectReference Include="..\..\Messaging.Shared\Messaging.Shared.csproj" />
     <ProjectReference Include="..\Domain\Domain.csproj" />
     <ProjectReference Include="..\SampleData\SampleData.csproj" />
-    <ProjectReference Include="..\..\Messaging.Shared\Messaging.Shared.csproj" />
   </ItemGroup>
 
 </Project>
