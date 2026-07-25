@@ -47,5 +47,5 @@ jobs:
         with:
           app-name: 'propertymaster-activitylogfunc'
           slot-name: 'Production'
-          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
+          package: './output'
           
