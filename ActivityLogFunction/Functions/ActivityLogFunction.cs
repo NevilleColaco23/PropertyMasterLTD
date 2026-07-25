@@ -25,7 +25,7 @@ public class ActivityLogFunction
 
     [Function(nameof(ActivityLogFunction))]
     public async Task RunAsync(
-        [ServiceBusTrigger("%ServiceBusQueueName%", Connection = "ServiceBus__ConnectionString")]
+        [ServiceBusTrigger("%ServiceBusQueueName%", Connection = "ServiceBusConnection")]
         string messageBody,
         FunctionContext context)
     {
