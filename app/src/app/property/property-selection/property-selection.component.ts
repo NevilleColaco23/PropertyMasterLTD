@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ActivityMessageService } from '../../services/activity-message.service';
 import { APP_CONFIG, AppConfig } from '../../configuration/app.config.token';
@@ -15,7 +16,7 @@ import { ActivityMessages } from '../../constants/activity-messages';
 @Component({
   selector: 'app-property-selection',
   standalone: true,
-  imports: [MatSelectModule, MatFormFieldModule, ReactiveFormsModule, MatButtonModule, MatIconModule],
+  imports: [MatSelectModule, MatFormFieldModule, ReactiveFormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './property-selection.component.html',
   styleUrls: ['./property-selection.component.css']
 })
@@ -23,6 +24,7 @@ export class PropertySelectionComponent implements OnInit {
 
   toppings = new FormControl<PropertyModel[] | null>([]);
   toppingList: PropertyModel[] = [];
+  isLoading = true;
   private loaderService = inject(UserPropertyAccessService);
   private http = inject(HttpClient);
   private activityMessage = inject(ActivityMessageService);
@@ -34,13 +36,15 @@ export class PropertySelectionComponent implements OnInit {
   this.loaderService.getDropdownOptions().subscribe({
     next: (data) => {
       this.toppingList = data || [];
-      console.log('Loaded properties:', this.toppingList);  // Debug: See what properties were loaded
-
+      this.isLoading = false;
       if (this.toppingList.length > 0 && (this.toppings.value?.length ?? 0) === 0) {
         this.toppings.setValue([this.toppingList[0]]);
       }
     },
-    error: err => console.error(err)
+    error: err => {
+      console.error(err);
+      this.isLoading = false;
+    }
   });
 
   this.toppings.valueChanges.subscribe(v => console.log('selection changed', v));

@@ -54,3 +54,36 @@
   width: clamp(220px, 30vw, 360px);
 }
 }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  gap: 1rem;
+  color: #666;
+}
+
+.empty-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #bbb;
+}
+
+.empty-state h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #444;
+}
+
+.empty-state p {
+  margin: 0;
+  max-width: 380px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+

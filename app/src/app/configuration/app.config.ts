@@ -8,6 +8,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from '../core/auth/services/auth.interceptor';
 import { propertyContextInterceptor } from '../core/interceptors/property-context.interceptor';
 import { activityMessageInterceptor } from '../core/interceptors/activity-message.interceptor';
+import { loadingInterceptor } from '../core/interceptors/loading.interceptor';
 import { environment } from '../environments/environment';
 import { provideNativeDateAdapter } from '@angular/material/core';
 
@@ -18,9 +19,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideHttpClient(withInterceptors([
+      loadingInterceptor,
       authInterceptor,
-      propertyContextInterceptor,  // Add property context tracking
-      activityMessageInterceptor   // ⭐ Allow services to send activity messages
+      propertyContextInterceptor,
+      activityMessageInterceptor
     ])),
     provideNativeDateAdapter(),
     {
