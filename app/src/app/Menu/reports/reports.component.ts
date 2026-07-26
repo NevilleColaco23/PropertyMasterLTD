@@ -14,7 +14,7 @@
   import { MatPaginatorModule } from '@angular/material/paginator';
   import { MatButtonModule } from '@angular/material/button';
   import { DatePipe, CurrencyPipe, CommonModule } from '@angular/common';
-  import { Router, ActivatedRoute } from '@angular/router';
+  import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 
   import { APP_CONFIG, AppConfig } from '../../configuration/app.config.token';
   import { ErrorHandlingService } from '../../core/system/service/error-handling-service.service';
@@ -36,7 +36,7 @@
     selector: 'app-reports',
     standalone: true,
     imports: [MatExpansionModule, MatProgressBarModule, MatFormFieldModule, MatTableModule, MatCheckboxModule, MatIconModule
-      , MatPaginatorModule, MatButtonModule, DatePipe, CurrencyPipe, CommonModule, MatInputModule, MatSortModule],
+      , MatPaginatorModule, MatButtonModule, DatePipe, CurrencyPipe, CommonModule, MatInputModule, MatSortModule, RouterModule],
     templateUrl: './reports.component.html',
     styleUrl: './reports.component.css'
   })
