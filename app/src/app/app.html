@@ -1,7 +1,13 @@
 <router-outlet />
 
-@if (loaderService.isLoading$ | async) {
+@if ((loaderService.isLoading$ | async) && !initialLoadCompleted) {
   <div class="global-loader-overlay">
-    <mat-spinner diameter="48"></mat-spinner>
+    <div class="loader-card">
+      <mat-spinner diameter="48"></mat-spinner>
+      <div class="loader-text">
+        <div class="loader-title">Loading</div>
+        <div class="loader-sub">Preparing the page — this may take a moment</div>
+      </div>
+    </div>
   </div>
 }
