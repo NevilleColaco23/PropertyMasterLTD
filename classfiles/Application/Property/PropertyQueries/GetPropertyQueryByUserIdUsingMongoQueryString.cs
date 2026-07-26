@@ -47,7 +47,7 @@ public class GetPropertyQueryByUserIdUsingMongoQueryString : INamedQuery
                                     {
                                         { "input", new BsonDocument("$ifNull", new BsonArray { "$PropertyAccessList", new BsonArray() }) },
                                         { "as", "pa" },
-                                        { "in", "$$pa._id" }
+                                        { "in", "$$pa.Id" }
                                     })
                                 }) 
                             }
