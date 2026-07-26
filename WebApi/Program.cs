@@ -3,6 +3,7 @@ using MyWarehouse.Infrastructure;
 using MyWarehouse.Infrastructure.Logging;
 using MyWarehouse.WebApi.Messaging_Queue;
 using System.Reflection;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace MyWarehouse.Infrastructure;
 
@@ -31,6 +32,14 @@ public static class Program
             builder.Services.Configure<ServiceBusOptions>(builder.Configuration.GetSection("ServiceBus"));
             builder.Services.AddSingleton<IServiceBusPublisher, ServiceBusPublisher>();
             builder.Services.AddControllers();
+
+            // Persist DataProtection keys so Identity tokens survive app restarts/deployments
+            var keysFolder = Path.Combine(
+                Environment.GetEnvironmentVariable("HOME") ?? AppContext.BaseDirectory,
+                "data-protection-keys");
+            builder.Services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(keysFolder))
+                .SetApplicationName("PropertyMaster");
 
             Console.WriteLine("✅ WebApplication.CreateBuilder completed");
 
