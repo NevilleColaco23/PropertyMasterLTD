@@ -85,7 +85,9 @@ jobs:
               { "name": "ServiceBus__ConnectionString",                  "value": "${{ secrets.AZURE_SERVICE_BUS_CONNECTION_STRING }}", "slotSetting": false },
               { "name": "ServiceBus__EmailQueueName",                    "value": "email-queue",                                       "slotSetting": false },
               { "name": "GuestSettings__Password",                      "value": "${{ secrets.GUEST_PASSWORD }}",                     "slotSetting": false },
-              { "name": "Resend__ApiKey",                               "value": "${{ secrets.RESEND_API_KEY }}",                     "slotSetting": false }
+              { "name": "Resend__ApiKey",                               "value": "${{ secrets.RESEND_API_KEY }}",                     "slotSetting": false },
+              { "name": "FrontendSettings__BaseUrl",                    "value": "${{ secrets.FRONTEND_BASE_URL }}",                  "slotSetting": false },
+              { "name": "ASPNETCORE_ENVIRONMENT",                       "value": "Production",                                        "slotSetting": false }
             ]
 
       - name: Deploy to Azure Web App
