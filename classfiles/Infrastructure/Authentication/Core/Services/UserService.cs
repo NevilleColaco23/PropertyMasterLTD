@@ -47,7 +47,9 @@ public class UserService : IUserService
     }
 
     private string FrontendBaseUrl =>
-        (_configuration["FrontendSettings:BaseUrl"] ?? "https://property-master-silk.vercel.app").TrimEnd('/');
+        (_configuration["FrontendSettings:BaseUrl"]?.Trim('/') is { Length: > 0 } url
+            ? url
+            : "https://brave-rock-0db8c8503.7.azurestaticapps.net");
 
     public async Task<(MySignInResult result, SignInData? data)> SignIn(string username, string password)
     {
