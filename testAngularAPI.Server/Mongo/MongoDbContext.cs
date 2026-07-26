@@ -14,5 +14,7 @@ namespace testAngularAPI.Server.Mongo
         }
 
         public IMongoCollection<Property> Properties => _database.GetCollection<Property>("Property");
+        public IMongoCollection<Guest> Guests => _database.GetCollection<Guest>("Guests");
+        public IMongoCollection<RoomEntity> Rooms => _database.GetCollection<RoomEntity>("Room");
     }
 }

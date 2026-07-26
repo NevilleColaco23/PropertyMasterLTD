@@ -14,6 +14,7 @@ export const routes: Routes = [
   { path: 'create-user', component: CreateUserComponent },
   { path: 'activate', component: ActivateAccountComponent }, // Email activation page
   { path: 'bookings', component: ReportsComponent, canActivate: [authGuard, propertySelectionGuard] },
+  { path: 'bookings/new', loadComponent: () => import('./bookings/booking-entry/booking-entry.component').then(m => m.BookingEntryComponent), canActivate: [authGuard, propertySelectionGuard] },
   {
     path: 'propertyLanding',
     canActivate: [authGuard, propertySelectionGuard], // Protect entire property landing and all child routes - require property selection

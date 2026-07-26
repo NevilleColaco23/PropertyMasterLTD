@@ -1,0 +1,16 @@
+.booking-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(20,40,80,0.06);
+  max-width: 980px;
+  margin: 24px auto;
+}
+.booking-form .row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.booking-form mat-form-field { flex: 1; }
+.full-width { width: 100%; }
+.actions { display:flex; gap:12px; margin-top: 16px; }

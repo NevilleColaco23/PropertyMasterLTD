@@ -1,0 +1,86 @@
+<div class="booking-card">
+  <h2>New Booking</h2>
+  <form [formGroup]="bookingForm" (ngSubmit)="submit()" class="booking-form">
+    <div class="row">
+      <!-- Property id is intentionally hidden from the form UI; property context is applied automatically -->
+
+      <mat-form-field appearance="outline">
+        <mat-label>Guest</mat-label>
+        <input matInput [formControl]="guestSearch" [matAutocomplete]="guestAuto" placeholder="Type at least 2 chars...">
+        <mat-spinner *ngIf="guestLoading" diameter="18" matSuffix></mat-spinner>
+        <mat-autocomplete #guestAuto="matAutocomplete" (optionSelected)="onGuestSelected($event.option.value)">
+          <mat-option *ngFor="let g of guestOptions" [value]="g">{{g.firstName}} {{g.lastName}} — {{g.phoneNumber || g.email}}</mat-option>
+          <mat-option *ngIf="!guestLoading && guestOptions.length === 0 && (guestSearch.value?.length ?? 0) >= 2" disabled>No guests found</mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="f['guestId'].touched && f['guestId'].invalid">Select a guest</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Room</mat-label>
+        <input matInput [formControl]="roomSearch" [matAutocomplete]="roomAuto" placeholder="Start typing room code or name">
+        <mat-autocomplete #roomAuto="matAutocomplete" (optionSelected)="onRoomSelected($event.option.value)">
+          <mat-option *ngFor="let r of roomOptions" [value]="r">{{r.roomCode}} — {{r.roomName}}</mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="f['roomNumber'].touched && f['roomNumber'].invalid">Room number is required</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Check-in</mat-label>
+        <input matInput [matDatepicker]="inPicker" formControlName="checkInDate" />
+        <mat-datepicker-toggle matSuffix [for]="inPicker"></mat-datepicker-toggle>
+        <mat-datepicker #inPicker></mat-datepicker>
+        <mat-error *ngIf="f['checkInDate'].touched && f['checkInDate'].invalid">Check-in date required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Check-out</mat-label>
+        <input matInput [matDatepicker]="outPicker" formControlName="checkOutDate" />
+        <mat-datepicker-toggle matSuffix [for]="outPicker"></mat-datepicker-toggle>
+        <mat-datepicker #outPicker></mat-datepicker>
+        <mat-error *ngIf="bookingForm.errors?.['dateRange']">Check-out must be after check-in</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Guests</mat-label>
+        <input matInput type="number" formControlName="numberOfGuests" />
+        <mat-error *ngIf="f['numberOfGuests'].touched && f['numberOfGuests'].invalid">Enter valid number of guests</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>Total Price</mat-label>
+        <input matInput type="number" formControlName="totalPrice" />
+        <mat-error *ngIf="f['totalPrice'].touched && f['totalPrice'].invalid">Valid price required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Payment Status</mat-label>
+        <mat-select formControlName="paymentStatusId">
+          <mat-option *ngFor="let p of paymentStatuses" [value]="p.id">{{p.label}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Booking Source</mat-label>
+        <mat-select formControlName="bookingSourceId">
+          <mat-option *ngFor="let s of bookingSources" [value]="s.id">{{s.label}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Special Requests</mat-label>
+      <input matInput formControlName="specialRequests" />
+    </mat-form-field>
+
+    <mat-checkbox formControlName="isConfirmed">Confirmed</mat-checkbox>
+
+    <div class="actions">
+      <button mat-raised-button color="primary" type="submit">Save Booking</button>
+      <button mat-button type="button" (click)="router.navigate(['/bookings'])">Cancel</button>
+    </div>
+  </form>
+</div>

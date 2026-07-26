@@ -13,6 +13,7 @@ export interface BookingDTO {
   // Add other booking properties as needed
 }
 
+
 export interface BookingsListResponse {
   results: BookingDTO[];
   pageIndex: number;
@@ -25,9 +26,14 @@ export interface BookingsListResponse {
   providedIn: 'root'
 })
 export class BookingsService {
-  private apiUrl = `${environment.apiUrl}/api/v1/Bookings`;
+  // environment.apiUrl already contains the api base and version (e.g. /api/v1)
+  private apiUrl = `${environment.apiUrl}/Bookings`;
 
   constructor(private http: HttpClient) { }
+
+  createBooking(payload: any) {
+    return this.http.post<any>(`${this.apiUrl}/CreateBooking`, payload);
+  }
 
   getBookings(
     propertyIds?: number[],
