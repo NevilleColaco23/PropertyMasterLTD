@@ -21,8 +21,8 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([
       loadingInterceptor,
       authInterceptor,
-      propertyContextInterceptor,
-      activityMessageInterceptor
+      propertyContextInterceptor,// Add property context tracking
+      activityMessageInterceptor // ⭐ Allow services to send activity messages
     ])),
     provideNativeDateAdapter(),
     {

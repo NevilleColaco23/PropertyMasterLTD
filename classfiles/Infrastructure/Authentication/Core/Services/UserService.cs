@@ -399,6 +399,10 @@ public class UserService : IUserService
             else
             {
                 _logger.LogDebug("Guest user {Email} already exists.", email);
+
+                // Always ensure the existing guest user has access to the demo property.
+                // This handles cases where the PropertyAccessList was lost (DB reset, redeployment, etc.).
+                await _demoPropertyService.GrantUserAccessToPropertyAsync(existing.Id, demoPropertyId);
             }
 
             // Always check the demo property — runs whether user is new or existing.
