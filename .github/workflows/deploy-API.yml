@@ -86,7 +86,7 @@ jobs:
               { "name": "ServiceBus__EmailQueueName",                    "value": "email-queue",                                       "slotSetting": false },
               { "name": "GuestSettings__Password",                      "value": "${{ secrets.GUEST_PASSWORD }}",                     "slotSetting": false },
               { "name": "Resend__ApiKey",                               "value": "${{ secrets.RESEND_API_KEY }}",                     "slotSetting": false },
-              { "name": "FrontendSettings__BaseUrl",                    "value": "${{ secrets.FRONTEND_BASE_URL }}",                  "slotSetting": false },
+              { "name": "FrontendSettings__BaseUrl",                    "value": "https://brave-rock-0db8c8503.7.azurestaticapps.net", "slotSetting": false },
               { "name": "ASPNETCORE_ENVIRONMENT",                       "value": "Production",                                        "slotSetting": false }
             ]
 
