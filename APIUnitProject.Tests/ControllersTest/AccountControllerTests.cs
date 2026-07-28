@@ -93,15 +93,18 @@ namespace APIUnitProject.Tests.ControllersTest
             var result = await _controller.Login(loginDto);
 
             // Assert
-            if (signInResult == MySignInResult.Failed)
+            if (signInResult == MySignInResult.LockedOut)
+            {
+                Assert.IsType<ForbidResult>(result.Result);
+                // ForbidResult does not typically carry a message body by default
+            }
+            else // Failed, NotAllowed
             {
                 var unauthorizedResult = Assert.IsType<UnauthorizedObjectResult>(result.Result);
-                Assert.Equal(expectedMessage, unauthorizedResult.Value);
-            }
-            else // LockedOut, NotAllowed
-            {
-                var forbidResult = Assert.IsType<ForbidResult>(result.Result);
-                // ForbidResult does not typically carry a message body by default
+                if (signInResult == MySignInResult.Failed)
+                {
+                    Assert.Equal(expectedMessage, unauthorizedResult.Value);
+                }
             }
 
             _mockUserService.Verify(s => s.SignIn(loginDto.Username, loginDto.Password), Times.Once);
@@ -225,7 +228,7 @@ namespace APIUnitProject.Tests.ControllersTest
         [Theory]
         [InlineData(MySignInResult.Failed, typeof(UnauthorizedObjectResult))]
         [InlineData(MySignInResult.LockedOut, typeof(ForbidResult))]
-        [InlineData(MySignInResult.NotAllowed, typeof(ForbidResult))]
+        [InlineData(MySignInResult.NotAllowed, typeof(UnauthorizedObjectResult))]
         public async Task ExternalLogin_SignInFailure_ReturnsCorrectActionResult(MySignInResult signInResult, Type expectedType)
         {
             // Arrange
@@ -256,6 +259,7 @@ namespace APIUnitProject.Tests.ControllersTest
                 Username = "newuser",
                 Email = "new@example.com",
                 Password = "SecurePassword123!",
+                Phone = "1234567890",
             };
             // *** CHANGE THIS LINE ***
             // Use SignUpResultData, not SignUpData
@@ -310,18 +314,20 @@ namespace APIUnitProject.Tests.ControllersTest
         }
 
         [Theory]
-        [InlineData("user", "", "pass", "Username, email, and password are required.")] // Changed expectedMessage
-        [InlineData("", "email@test.com", "pass", "Username, email, and password are required.")] // Changed expectedMessage
-        [InlineData("user", "email@test.com", "", "Username, email, and password are required.")] // Changed expectedMessage
-        [InlineData("", "", "", "Username, email, and password are required.")]
-        public async Task SignUp_MissingRequiredFields_ReturnsBadRequest(string username, string email, string password, string expectedMessage)
+        [InlineData("user", "", "pass", "1234567890", "Username, email, and password and phone are required.")]
+        [InlineData("", "email@test.com", "pass", "1234567890", "Username, email, and password and phone are required.")]
+        [InlineData("user", "email@test.com", "", "1234567890", "Username, email, and password and phone are required.")]
+        [InlineData("user", "email@test.com", "pass", "", "Username, email, and password and phone are required.")]
+        [InlineData("", "", "", "", "Username, email, and password and phone are required.")]
+        public async Task SignUp_MissingRequiredFields_ReturnsBadRequest(string username, string email, string password, string phone, string expectedMessage)
         {
             // Arrange
             var signUpDto = new SignUpDto
             {
                 Username = username,
                 Email = email,
-                Password = password
+                Password = password,
+                Phone = phone
             };
 
             // Act
@@ -343,7 +349,8 @@ namespace APIUnitProject.Tests.ControllersTest
             {
                 Username = "existinguser",
                 Email = "existing@example.com",
-                Password = "Password123!"
+                Password = "Password123!",
+                Phone = "1234567890"
             };
 
             _mockUserService.Setup(s => s.SignUp(
@@ -377,7 +384,8 @@ namespace APIUnitProject.Tests.ControllersTest
             {
                 Username = "user",
                 Email = "email@test.com",
-                Password = "pass"
+                Password = "pass",
+                Phone = "1234567890"
             };
             var unknownResult = (SignUpResult)999;
 
