@@ -1,0 +1,75 @@
+.settings-dialog {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  background: linear-gradient(135deg, #3f51b5 0%, #5c6bc0 100%);
+  color: #fff;
+  position: relative;
+}
+
+.header-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.dialog-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.close-btn {
+  color: #fff;
+  margin-right: -8px;
+}
+
+.dialog-content {
+  padding: 24px 20px 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.settings-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #8a8f98;
+  background: #f7f8fc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 4px 0 8px;
+}
+
+.settings-note mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  color: #3f51b5;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px 20px;
+}
+
+.cancel-btn,
+.save-btn {
+  border-radius: 8px;
+  font-weight: 600;
+}

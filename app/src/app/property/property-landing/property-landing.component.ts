@@ -139,8 +139,7 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
   }
 
   goToProfile() {
-    // Change this to your real profile route
-    this.router.navigate(['/profile']);
+    this.router.navigate(['/propertyLanding/profile']);
   }
 
   getMenuItems() {

@@ -1,0 +1,130 @@
+<div class="profile-page">
+  <button mat-button class="back-btn" type="button" (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+    Back
+  </button>
+
+  @if (user$ | async; as user) {
+    <div class="profile-layout">
+      <aside class="profile-sidebar">
+        <mat-card class="profile-header-card">
+          <div class="profile-banner"></div>
+
+          <div class="profile-header-content">
+            <div class="profile-avatar">{{ (displayUsername ?? user.username) | slice:0:1 | uppercase }}</div>
+
+            <div class="profile-header-actions">
+              <button mat-icon-button class="settings-btn" matTooltip="Edit profile" type="button" (click)="openSettings(user)">
+                <mat-icon>settings</mat-icon>
+              </button>
+              <button mat-icon-button class="signout-btn" matTooltip="Sign out" type="button" (click)="signOut()">
+                <mat-icon>logout</mat-icon>
+              </button>
+            </div>
+
+            <div class="profile-heading">
+              <h2 class="profile-title">{{ displayUsername ?? user.username }}</h2>
+              <span class="profile-handle">{{ displayEmail ?? user.email }}</span>
+
+              <div class="profile-chips">
+                @if (isGuest) {
+                  <span class="profile-chip guest-chip">
+                    <mat-icon>badge</mat-icon>
+                    Guest Demo Account
+                  </span>
+                }
+                <span class="profile-chip login-chip">
+                  <mat-icon>verified_user</mat-icon>
+                  {{ user.isExternalLogin ? user.externalAuthenticationProvider : 'Standard' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </mat-card>
+
+        <mat-card class="stats-card">
+          <div class="stat-row">
+            <mat-icon>forum</mat-icon>
+            <div class="stat-text">
+              <span class="stat-value">{{ (posts$ | async)?.length ?? 0 }}</span>
+              <span class="stat-label">Posts</span>
+            </div>
+          </div>
+          <div class="stat-row">
+            <mat-icon>mail</mat-icon>
+            <div class="stat-text">
+              <span class="stat-value stat-value-small">{{ displayEmail ?? user.email }}</span>
+              <span class="stat-label">Email</span>
+            </div>
+          </div>
+          <div class="stat-row">
+            <mat-icon>verified_user</mat-icon>
+            <div class="stat-text">
+              <span class="stat-value stat-value-small">{{ user.isExternalLogin ? user.externalAuthenticationProvider : 'Standard' }}</span>
+              <span class="stat-label">Login Type</span>
+            </div>
+          </div>
+        </mat-card>
+      </aside>
+
+      <main class="profile-main">
+        <mat-card class="composer-card">
+          <div class="composer-row">
+            <div class="composer-avatar">{{ (displayUsername ?? user.username) | slice:0:1 | uppercase }}</div>
+            <textarea
+              class="composer-input"
+              rows="2"
+              placeholder="What's happening?"
+              [(ngModel)]="composerText"
+              maxlength="280"
+            ></textarea>
+          </div>
+          <div class="composer-footer">
+            <span class="composer-count">{{ composerText.length }}/280</span>
+            <button
+              mat-raised-button
+              color="primary"
+              class="post-btn"
+              type="button"
+              [disabled]="!composerText.trim()"
+              (click)="submitPost(displayUsername ?? user.username)"
+            >
+              Post
+            </button>
+          </div>
+        </mat-card>
+
+        <div class="feed">
+          @if (posts$ | async; as posts) {
+            @if (posts.length) {
+              @for (post of posts; track post.id) {
+                <mat-card class="post-card">
+                  <div class="post-header">
+                    <div class="post-avatar">{{ post.authorName | slice:0:1 | uppercase }}</div>
+                    <div class="post-meta">
+                      <span class="post-author">{{ post.authorName }}</span>
+                      <span class="post-time">{{ post.createdAt | date:'MMM d, y, h:mm a' }}</span>
+                    </div>
+                    <button mat-icon-button class="post-delete-btn" matTooltip="Delete post" type="button" (click)="deletePost(post.id)">
+                      <mat-icon>delete_outline</mat-icon>
+                    </button>
+                  </div>
+                  <p class="post-text">{{ post.text }}</p>
+                </mat-card>
+              }
+            } @else {
+              <div class="feed-empty">
+                <mat-icon>forum</mat-icon>
+                <p>No posts yet. Share your first update above!</p>
+              </div>
+            }
+          }
+        </div>
+      </main>
+    </div>
+  } @else {
+    <mat-card class="profile-header-card">
+      <p class="profile-empty">No profile information available. Please sign in again.</p>
+    </mat-card>
+  }
+</div>

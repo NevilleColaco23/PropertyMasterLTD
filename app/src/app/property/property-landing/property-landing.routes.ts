@@ -5,6 +5,7 @@ import { MenuAccessMap } from '../../core/Settings/MenuAccessMap/menu-access-map
 import { PropertyMasterComponent } from '../property-master/property-master.component';
 import { Dashboard1Component } from '../../dashboard/dashboard1/dashboard1.component';
 import { noGuestGuard } from '../../core/auth/guards/no-guest.guard';
+import { ProfileComponent } from '../../profile/profile.component';
 
 export const PROPERTY_LANDING_ROUTES: Routes = [
   {
@@ -25,6 +26,9 @@ export const PROPERTY_LANDING_ROUTES: Routes = [
 
       // Property Master Management — write operations, block guests
       { path: 'property-master', component: PropertyMasterComponent, canActivate: [noGuestGuard] },
+
+      // My Profile — current signed-in user's info
+      { path: 'profile', component: ProfileComponent },
     ],
   },
 ];
