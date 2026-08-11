@@ -166,6 +166,8 @@ export interface ChartRefreshEvent {
       display: flex;
       flex-direction: column;
       box-shadow: none !important;
+      border-radius: 14px;
+      overflow: hidden;
     }
 
     mat-card-header {
@@ -173,39 +175,41 @@ export interface ChartRefreshEvent {
       justify-content: space-between;
       align-items: center;
       padding: 16px 20px;
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      border-bottom: none;
+      background: #fbfbfe;
+      border-bottom: 1px solid #eef0f4;
     }
 
     mat-card-title {
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 15px;
+      font-weight: 700;
       margin: 0;
       flex: 1;
-      color: white;
+      color: #111827;
     }
 
     .chart-menu {
       margin-left: auto;
-      color: white;
+      color: #6b7280;
     }
 
     .refresh-button {
-      color: white;
+      color: #6b7280;
       transition: transform 0.3s ease;
     }
 
     .refresh-button:hover {
       transform: rotate(180deg);
+      color: #1976d2;
     }
 
     .more-details-button {
-      color: white;
+      color: #6b7280;
       transition: all 0.2s ease;
     }
 
     .more-details-button:hover {
       transform: scale(1.1);
+      color: #1976d2;
     }
 
     mat-card-content {
@@ -289,10 +293,10 @@ export interface ChartRefreshEvent {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px;
-      background: #f9f9f9;
-      border-radius: 6px;
-      border-left: 4px solid #1976d2;
+      padding: 12px 14px;
+      background: #f7f8fb;
+      border-radius: 10px;
+      border-left: none;
     }
 
     .dataset-label {
@@ -336,8 +340,8 @@ export interface ChartRefreshEvent {
     .subtitle {
       display: block;
       font-size: 11px;
-      font-weight: 400;
-      opacity: 0.9;
+      font-weight: 500;
+      color: #6b7280;
       margin-top: 2px;
     }
 

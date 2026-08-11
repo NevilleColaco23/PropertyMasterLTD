@@ -27,6 +27,8 @@
       <div class="topbar-logo">
         @if (logoPath) {
           <img [src]="logoPath" alt="Company Logo" class="topbar-logo-img">
+        } @else {
+          <span class="topbar-logo-text">{{ brandName }}</span>
         }
       </div>
 
@@ -37,19 +39,16 @@
         </div>
 
         <div class="topbar-user">
-          <button mat-button class="topbar-btn topbar-btn--primary" type="button" (click)="changeProperties()">
+          <button mat-icon-button class="topbar-icon-btn topbar-icon-btn--primary" type="button" (click)="changeProperties()" matTooltip="Change Properties">
             <mat-icon>business</mat-icon>
-            Change Properties
           </button>
 
-          <button mat-button class="topbar-btn" type="button" (click)="goToProfile()">
+          <button mat-icon-button class="topbar-icon-btn" type="button" (click)="goToProfile()" matTooltip="My Profile">
             <mat-icon>account_circle</mat-icon>
-            My Profile
           </button>
 
-          <button mat-button class="topbar-btn topbar-btn--danger" type="button" (click)="signOut()">
+          <button mat-icon-button class="topbar-icon-btn topbar-icon-btn--danger" type="button" (click)="signOut()" matTooltip="Sign Out">
             <mat-icon>logout</mat-icon>
-            Sign Out
           </button>
         </div>
 
@@ -137,6 +136,13 @@
           </button>
         </div>
       </nav>
+
+      @if (currentPropertyName) {
+        <div class="current-property-badge">
+          <mat-icon>apartment</mat-icon>
+          <span>{{ currentPropertyName }}</span>
+        </div>
+      }
     </div>
   </div>
 </header>

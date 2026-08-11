@@ -110,6 +110,8 @@ export type ListViewType = 'bookings' | 'activity';
       display: flex;
       flex-direction: column;
       box-shadow: none !important;
+      border-radius: 14px;
+      overflow: hidden;
     }
 
     mat-card-header {
@@ -117,52 +119,54 @@ export type ListViewType = 'bookings' | 'activity';
       justify-content: space-between;
       align-items: center;
       padding: 12px 16px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-bottom: none;
+      background: #fbfbfe;
+      border-bottom: 1px solid #eef0f4;
       gap: 8px;
     }
 
     mat-card-title {
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 15px;
+      font-weight: 700;
       margin: 0;
-      color: white;
+      color: #111827;
       flex: 1;
       text-align: center;
     }
 
     .nav-arrow {
-      color: white;
+      color: #6b7280;
       transition: transform 0.2s, opacity 0.2s;
     }
 
     .nav-arrow:hover {
       transform: scale(1.1);
-      opacity: 0.8;
+      color: #1976d2;
     }
 
     .refresh-button {
-      color: white;
+      color: #6b7280;
       transition: transform 0.3s ease;
     }
 
     .refresh-button:hover {
       transform: rotate(180deg);
+      color: #1976d2;
     }
 
     .more-details-button {
-      color: white;
+      color: #6b7280;
       transition: all 0.2s ease;
     }
 
     .more-details-button:hover {
       transform: scale(1.1);
+      color: #1976d2;
     }
 
     .item-count {
       font-size: 12px;
-      color: white;
-      background: rgba(255, 255, 255, 0.2);
+      color: #1976d2;
+      background: rgba(25, 118, 210, 0.1);
       padding: 4px 12px;
       border-radius: 12px;
       font-weight: 600;
