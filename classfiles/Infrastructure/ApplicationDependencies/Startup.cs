@@ -40,6 +40,7 @@ internal static class Startup
         services.AddScoped<IUserActivityRepository, UserActivityRepositoryMongo>();
         services.AddScoped<IPostsRepository, PostsRepositoryMongo>();
         services.AddScoped<IGroupRepository, GroupRepositoryMongo>();
+        services.AddScoped<IFeedSettingsRepository, FeedSettingsRepositoryMongo>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddTransient<IDateTime, DateTimeService>();

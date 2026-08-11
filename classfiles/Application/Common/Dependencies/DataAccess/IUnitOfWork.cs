@@ -20,6 +20,7 @@ public interface IUnitOfWork : IDisposable
     public IAuditLogRepository? AuditLogs { get; }
     public IPostsRepository? Posts { get; }
     public IGroupRepository? Groups { get; }
+    public IFeedSettingsRepository? FeedSettings { get; }
 
     bool HasActiveTransaction { get; }
 

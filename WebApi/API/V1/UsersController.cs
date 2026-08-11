@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MyWarehouse.Application.Common.Users;
 using MyWarehouse.Application.Common.Users.DTO;
+using MyWarehouse.Application.Common.Users.GetUsersByProperty;
 using MyWarehouse.Application.UserActivity.Attributes;
 
 namespace MyWarehouse.WebApi.API.V1
@@ -27,6 +28,17 @@ namespace MyWarehouse.WebApi.API.V1
         {
             var query = new GetUsersQuery();
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Get active users who have access to the given property, for @mention autocomplete.
+        /// </summary>
+        [HttpGet("by-property/{propertyId}")]
+        [LogList("Users")]
+        public async Task<ActionResult<List<GetUserDTO>>> GetByProperty(int propertyId)
+        {
+            var result = await _mediator.Send(new GetUsersByPropertyQuery { PropertyId = propertyId });
             return Ok(result);
         }
     }
