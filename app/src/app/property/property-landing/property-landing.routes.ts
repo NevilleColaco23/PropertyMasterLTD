@@ -3,6 +3,7 @@ import { PropertyLandingComponent } from './property-landing.component';
 import { ReportsComponent } from '../../menu/reports/reports.component';
 import { MenuAccessMap } from '../../core/Settings/MenuAccessMap/menu-access-map/menu-access-map';
 import { PropertyMasterComponent } from '../property-master/property-master.component';
+import { GroupMasterComponent } from '../../core/Settings/GroupMaster/group-master/group-master.component';
 import { Dashboard1Component } from '../../dashboard/dashboard1/dashboard1.component';
 import { noGuestGuard } from '../../core/auth/guards/no-guest.guard';
 import { ProfileComponent } from '../../profile/profile.component';
@@ -27,8 +28,12 @@ export const PROPERTY_LANDING_ROUTES: Routes = [
       // Property Master Management — write operations, block guests
       { path: 'property-master', component: PropertyMasterComponent, canActivate: [noGuestGuard] },
 
+      // Group Master Management — write operations, block guests
+      { path: 'group-master', component: GroupMasterComponent, canActivate: [noGuestGuard] },
+
       // My Profile — current signed-in user's info
       { path: 'profile', component: ProfileComponent },
     ],
   },
 ];
+

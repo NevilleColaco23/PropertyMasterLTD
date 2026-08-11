@@ -25,8 +25,10 @@ internal class UnitOfWork : IUnitOfWork
     public ISystemMessagesRepository SystemMessages { get; }
     public IEmailOutboxRepository EmailOutbox { get; }
     public IAuditLogRepository AuditLogs { get; }
+    public IPostsRepository Posts { get; }
+    public IGroupRepository Groups { get; }
 
-    public UnitOfWork(ApplicationDbContext dbContext, IPartnerRepository partners, IProductRepository products, ITransactionRepository transactions, IPropertyRepository properties, IRoomRepository rooms, IPropertyAuditRepository propertyAudits, IRoomAuditRepository roomAudits, IUsersRepository users, IMenuRepository menus, IMenuPermissionRepository menusPermissions, IBookingsRepository bookings, ISystemMessagesRepository systemMessages, IEmailOutboxRepository emailOutbox, IAuditLogRepository auditLogs)
+    public UnitOfWork(ApplicationDbContext dbContext, IPartnerRepository partners, IProductRepository products, ITransactionRepository transactions, IPropertyRepository properties, IRoomRepository rooms, IPropertyAuditRepository propertyAudits, IRoomAuditRepository roomAudits, IUsersRepository users, IMenuRepository menus, IMenuPermissionRepository menusPermissions, IBookingsRepository bookings, ISystemMessagesRepository systemMessages, IEmailOutboxRepository emailOutbox, IAuditLogRepository auditLogs, IPostsRepository posts, IGroupRepository groups)
     {
         _dbContext = dbContext;
         Partners = partners;
@@ -43,6 +45,8 @@ internal class UnitOfWork : IUnitOfWork
         SystemMessages = systemMessages;
         EmailOutbox = emailOutbox;
         AuditLogs = auditLogs;
+        Posts = posts;
+        Groups = groups;
     }
 
     public void Dispose()

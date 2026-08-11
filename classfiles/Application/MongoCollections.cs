@@ -24,4 +24,10 @@ public static class MongoCollections
 
     // User Activity Tracking
     public const string UserActivityLogsCollection = "UserActivityLogs";
+
+    // Profile Feed
+    public const string PostsCollection = "Posts";
+
+    // Groups (post targeting)
+    public const string GroupsCollection = "Groups";
 }

@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using MyWarehouse.Domain.Common;
+using MyWarehouse.Domain.Common.Serialization;
 using MyWarehouse.Domain.Partners;
 using MyWarehouse.Domain.Products;
 using System.Diagnostics.CodeAnalysis;
@@ -23,6 +24,7 @@ namespace MyWarehouse.Domain.Users
         public string PhoneNumber { get; set; }
         public bool PhoneNumberConfirmed { get; set; }
         public bool TwoFactorEnabled { get; set; }
+        [BsonSerializer(typeof(LenientStringSerializer))]
         public string LockoutEnd { get; set; }
         public bool LockoutEnabled { get; set; }
         public int AccessFailedCount { get; set; }
@@ -32,6 +34,18 @@ namespace MyWarehouse.Domain.Users
         public DateTime EmailConfirmationTokenExpiresAtUtc { get; set; }
         public DateTime EmailConfirmationTokenCreatedAtUtc { get; set; }
         public List<PropertyAccessList> PropertyAccessList { get; set; }
+
+        /// <summary>
+        /// A short, unique display name the user chooses for use in the feed (posts/comments),
+        /// e.g. so others can @mention them without exposing their full username/email.
+        /// </summary>
+        public string? Alias { get; set; }
+
+        /// <summary>
+        /// Id of the Group (see Domain.Groups.Group) this user belongs to, if any.
+        /// Used to determine which targeted-group posts this user can see.
+        /// </summary>
+        public int? GroupId { get; set; }
 
         private Users()
         {

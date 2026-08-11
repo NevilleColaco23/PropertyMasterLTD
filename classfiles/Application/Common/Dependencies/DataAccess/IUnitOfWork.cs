@@ -18,6 +18,8 @@ public interface IUnitOfWork : IDisposable
     public ISystemMessagesRepository? SystemMessages { get; }
     public IEmailOutboxRepository? EmailOutbox { get; }
     public IAuditLogRepository? AuditLogs { get; }
+    public IPostsRepository? Posts { get; }
+    public IGroupRepository? Groups { get; }
 
     bool HasActiveTransaction { get; }
 

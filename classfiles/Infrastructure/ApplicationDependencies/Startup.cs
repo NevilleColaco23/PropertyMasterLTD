@@ -38,6 +38,8 @@ internal static class Startup
         services.AddScoped<IEmailOutboxRepository, EmailOutboxRepositoryMongo>();
         services.AddScoped<IAuditLogRepository, AuditLogRepositoryMongo>();
         services.AddScoped<IUserActivityRepository, UserActivityRepositoryMongo>();
+        services.AddScoped<IPostsRepository, PostsRepositoryMongo>();
+        services.AddScoped<IGroupRepository, GroupRepositoryMongo>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddTransient<IDateTime, DateTimeService>();

@@ -41,7 +41,10 @@ namespace MyWarehouse.Infrastructure.Filters
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            // CRITICAL: Wrap entire filter in try-catch to NEVER crash requests
+            // Determine whether the action already ran, so we never invoke `next()` more than once
+            // (calling it twice would execute the underlying action/command a second time).
+            var actionExecuted = false;
+
             try
             {
                 // Check if action has ActivityLog attribute
@@ -52,6 +55,7 @@ namespace MyWarehouse.Infrastructure.Filters
                 if (activityLogAttribute == null)
                 {
                     // No attribute, just execute action
+                    actionExecuted = true;
                     await next();
                     return;
                 }
@@ -60,6 +64,7 @@ namespace MyWarehouse.Infrastructure.Filters
                 var stopwatch = Stopwatch.StartNew();
 
                 // Execute the action
+                actionExecuted = true;
                 var executedContext = await next();
 
                 // Stop timing
@@ -169,11 +174,18 @@ namespace MyWarehouse.Infrastructure.Filters
                     // Log the error but don't fail the request
                 }
             }
-            catch (Exception outerEx)
+            catch (Exception)
             {
-                // This catches errors in the filter itself (before action execution)
-                // Still execute the action even if filter fails
-                await next();
+                // This catches errors in the filter itself. If the action has not run yet
+                // (e.g. an error occurred while inspecting attributes before calling `next()`),
+                // execute it now so the request isn't dropped. If it already ran, do NOT call
+                // `next()` again - doing so would execute the underlying action a second time
+                // (e.g. creating a duplicate post) and can leave the response pipeline in an
+                // invalid state, which is what caused the "Post" button to appear broken.
+                if (!actionExecuted)
+                {
+                    await next();
+                }
             }
         }
 

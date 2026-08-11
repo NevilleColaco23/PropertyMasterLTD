@@ -79,6 +79,83 @@
               maxlength="280"
             ></textarea>
           </div>
+          <div class="composer-options">
+            <mat-form-field appearance="outline" class="composer-type-field">
+              <mat-label>Type</mat-label>
+              <mat-select [(ngModel)]="composerPostType">
+                @for (type of postTypes; track type.value) {
+                  <mat-option [value]="type.value">{{ type.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <button mat-icon-button matTooltip="Attach files" type="button" (click)="composerFileInput.click()">
+              <mat-icon>attach_file</mat-icon>
+            </button>
+            <input #composerFileInput type="file" multiple hidden accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" (change)="onComposerFilesSelected($event)" />
+          </div>
+
+          <div class="composer-group-tags">
+            <span class="group-tags-label">Target group (optional):</span>
+            <mat-chip-grid #groupChipGrid aria-label="Groups">
+              @for (group of (groups$ | async); track group.id) {
+                @if (editingGroupId === group.id) {
+                  <span class="group-chip-edit-inline">
+                    <input
+                      class="new-group-input"
+                      type="text"
+                      placeholder="Group name"
+                      maxlength="100"
+                      [(ngModel)]="editGroupName"
+                    />
+                    <button mat-icon-button matTooltip="Save" type="button" [disabled]="!editGroupName.trim()" (click)="saveEditGroup()">
+                      <mat-icon>check</mat-icon>
+                    </button>
+                    <button mat-icon-button matTooltip="Cancel" type="button" (click)="cancelEditGroup()">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </span>
+                } @else {
+                  <mat-chip-row
+                    class="group-chip"
+                    [class.group-chip--selected]="composerTargetGroupId === group.id"
+                    [matTooltip]="group.description || group.name"
+                    (click)="selectComposerGroup(group.id)"
+                    (dblclick)="startEditGroup(group)"
+                    (removed)="deleteGroup(group)"
+                  >
+                    {{ group.name }}
+                    <button matChipRemove [attr.aria-label]="'Remove ' + group.name" (click)="$event.stopPropagation()">
+                      <mat-icon>cancel</mat-icon>
+                    </button>
+                  </mat-chip-row>
+                }
+              }
+              <input
+                class="group-chip-input"
+                placeholder="Add group..."
+                [matChipInputFor]="groupChipGrid"
+                [matChipInputSeparatorKeyCodes]="groupChipSeparatorKeys"
+                (matChipInputTokenEnd)="addGroupChip($event)"
+              />
+            </mat-chip-grid>
+            <span class="group-tags-hint">Click a tag to target it; double-click to rename; use the ✕ to delete.</span>
+          </div>
+
+          @if (composerAttachments.length) {
+            <div class="composer-attachments">
+              @for (attachment of composerAttachments; track $index) {
+                <span class="attachment-chip">
+                  <mat-icon>description</mat-icon>
+                  {{ attachment.fileName }}
+                  <button mat-icon-button type="button" (click)="removeComposerAttachment($index)">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </span>
+              }
+            </div>
+          }
+
           <div class="composer-footer">
             <span class="composer-count">{{ composerText.length }}/280</span>
             <button
@@ -98,18 +175,102 @@
           @if (posts$ | async; as posts) {
             @if (posts.length) {
               @for (post of posts; track post.id) {
-                <mat-card class="post-card">
+                <mat-card class="post-card" [class.post-card-important]="post.postType === 1" [class.post-card-announcement]="post.postType === 2">
                   <div class="post-header">
                     <div class="post-avatar">{{ post.authorName | slice:0:1 | uppercase }}</div>
                     <div class="post-meta">
-                      <span class="post-author">{{ post.authorName }}</span>
+                      <span class="post-author">
+                        {{ post.authorName }}
+                        @if (post.authorAlias) {
+                          <span class="post-alias">&#64;{{ post.authorAlias }}</span>
+                        }
+                      </span>
                       <span class="post-time">{{ post.createdAt | date:'MMM d, y, h:mm a' }}</span>
                     </div>
+                    @if (post.postType === 1) {
+                      <span class="post-type-badge post-type-important">Important</span>
+                    } @else if (post.postType === 2) {
+                      <span class="post-type-badge post-type-announcement">Announcement</span>
+                    } @else if (post.postType === 3) {
+                      <span class="post-type-badge post-type-question">Question</span>
+                    }
                     <button mat-icon-button class="post-delete-btn" matTooltip="Delete post" type="button" (click)="deletePost(post.id)">
                       <mat-icon>delete_outline</mat-icon>
                     </button>
                   </div>
                   <p class="post-text">{{ post.text }}</p>
+
+                  @if (post.attachments.length) {
+                    <div class="post-attachments">
+                      @for (attachment of post.attachments; track $index) {
+                        <a class="attachment-chip" [href]="attachment.url" [download]="attachment.fileName" target="_blank">
+                          <mat-icon>description</mat-icon>
+                          {{ attachment.fileName }}
+                        </a>
+                      }
+                    </div>
+                  }
+
+                  <div class="post-actions">
+                    <button
+                      mat-button
+                      type="button"
+                      [color]="hasAcknowledged(post.acknowledgements, displayUsername ?? user.username) ? 'primary' : ''"
+                      (click)="acknowledgePost(post.id, displayUsername ?? user.username)"
+                    >
+                      <mat-icon>thumb_up</mat-icon>
+                      Acknowledge ({{ post.acknowledgements.length }})
+                    </button>
+                    <button mat-button type="button" (click)="toggleComments(post.id)">
+                      <mat-icon>chat_bubble_outline</mat-icon>
+                      Comments ({{ post.comments.length }})
+                    </button>
+                  </div>
+
+                  @if (expandedComments[post.id]) {
+                    <div class="post-comments">
+                      @for (comment of post.comments; track comment.id) {
+                        <div class="comment-row">
+                          <div class="comment-avatar">{{ comment.authorName | slice:0:1 | uppercase }}</div>
+                          <div class="comment-body">
+                            <div class="comment-meta">
+                              <span class="comment-author">
+                                {{ comment.authorName }}
+                                @if (comment.authorAlias) {
+                                  <span class="post-alias">&#64;{{ comment.authorAlias }}</span>
+                                }
+                              </span>
+                              <span class="comment-time">{{ comment.createdAt | date:'MMM d, h:mm a' }}</span>
+                            </div>
+                            <p class="comment-text">{{ comment.text }}</p>
+                            <button
+                              mat-button
+                              class="comment-ack-btn"
+                              type="button"
+                              [color]="hasAcknowledged(comment.acknowledgements, displayUsername ?? user.username) ? 'primary' : ''"
+                              (click)="acknowledgeComment(post.id, comment.id, displayUsername ?? user.username)"
+                            >
+                              <mat-icon>thumb_up</mat-icon>
+                              {{ comment.acknowledgements.length }}
+                            </button>
+                          </div>
+                        </div>
+                      }
+
+                      <div class="comment-composer">
+                        <input
+                          class="comment-input"
+                          type="text"
+                          placeholder="Write a comment..."
+                          maxlength="280"
+                          [(ngModel)]="commentDrafts[post.id]"
+                        />
+                        <button mat-icon-button type="button" (click)="submitComment(post.id, displayUsername ?? user.username)">
+                          <mat-icon>send</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  }
                 </mat-card>
               }
             } @else {
@@ -128,3 +289,4 @@
     </mat-card>
   }
 </div>
+
