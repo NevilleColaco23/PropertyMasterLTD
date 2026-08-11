@@ -416,8 +416,9 @@
   .topbar-inner {
     height: auto;
     padding: 10px 12px;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto auto 1fr; /* hamburger | logo | controls */
     justify-items: stretch;
+    align-items: center;
     gap: 10px;
   }
 

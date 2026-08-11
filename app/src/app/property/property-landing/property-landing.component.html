@@ -10,6 +10,20 @@
   <!-- Top blue bar: LOGO + search + profile/signout + email/cta -->
   <div class="topbar">
     <div class="topbar-inner">
+      <!-- Hamburger toggle - only visible on mobile -->
+      <button
+        class="mobile-nav-toggle"
+        type="button"
+        [class.is-active]="isMobileMenuOpen"
+        (click)="toggleMobileNav()"
+        [attr.aria-expanded]="isMobileMenuOpen"
+        aria-label="Toggle navigation menu"
+      >
+        <span class="mobile-nav-toggle-bar"></span>
+        <span class="mobile-nav-toggle-bar"></span>
+        <span class="mobile-nav-toggle-bar"></span>
+      </button>
+
       <div class="topbar-logo">
         @if (logoPath) {
           <img [src]="logoPath" alt="Company Logo" class="topbar-logo-img">
@@ -38,20 +52,6 @@
             Sign Out
           </button>
         </div>
-
-        <!-- Hamburger toggle - only visible on mobile -->
-        <button
-          class="mobile-nav-toggle"
-          type="button"
-          [class.is-active]="isMobileMenuOpen"
-          (click)="toggleMobileNav()"
-          [attr.aria-expanded]="isMobileMenuOpen"
-          aria-label="Toggle navigation menu"
-        >
-          <span class="mobile-nav-toggle-bar"></span>
-          <span class="mobile-nav-toggle-bar"></span>
-          <span class="mobile-nav-toggle-bar"></span>
-        </button>
 
       </div>
     </div>
