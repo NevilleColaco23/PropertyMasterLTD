@@ -447,5 +447,19 @@
       </div>
     </mat-tab>
 
+    <!-- Tab 3: Team Feed -->
+    <mat-tab label="Team Feed">
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon" [matBadge]="unseenFeedCount > 0 ? (unseenFeedCount > 9 ? '9+' : unseenFeedCount) : null" matBadgeColor="warn" matBadgeSize="small">forum</mat-icon>
+        Team Feed
+      </ng-template>
+
+      <div class="tab-content">
+        @if (selectedTabIndex === 2) {
+          <app-team-feed-widget></app-team-feed-widget>
+        }
+      </div>
+    </mat-tab>
+
   </mat-tab-group>
 </div>

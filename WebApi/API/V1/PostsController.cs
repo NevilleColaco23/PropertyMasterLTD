@@ -20,8 +20,8 @@ public class PostsController : ControllerBase
 
     [HttpGet]
     [LogList("Posts")]
-    public async Task<ActionResult<List<PostDto>>> GetList()
-        => Ok(await _mediator.Send(new GetPostsListQuery()));
+    public async Task<ActionResult<List<PostDto>>> GetList([FromQuery] int? limit = null)
+        => Ok(await _mediator.Send(limit.HasValue ? new GetPostsListQuery { Limit = limit.Value } : new GetPostsListQuery()));
 
     [HttpPost]
     [LogCreate("Post")]

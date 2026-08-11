@@ -69,6 +69,14 @@
   filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25));
 }
 
+.topbar-logo-text {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
 /* right controls */
 .topbar-right {
   display: flex;
@@ -77,13 +85,15 @@
   gap: 12px;
   white-space: nowrap;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
-/* search area in top bar */
+/* search area in top bar - grows to fill remaining space */
 .topbar-search {
-  width: 520px;
-  max-width: 48vw;
-  min-width: 280px;
+  flex: 1 1 auto;
+  width: auto;
+  max-width: none;
+  min-width: 160px;
 }
 
 /* match the Infibeam search sizing inside the bar */
@@ -101,7 +111,7 @@
 .topbar-user {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .topbar-btn.mat-mdc-button {
@@ -146,6 +156,41 @@
   color: #ffffff;
 }
 
+/* Compact icon-only buttons for the desktop topbar (replaces full labeled buttons) */
+.topbar-icon-btn.mat-mdc-icon-button {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.topbar-icon-btn.mat-mdc-icon-button:hover {
+  background: rgba(255, 255, 255, 0.10);
+  color: #ffffff;
+}
+
+.topbar-icon-btn.mat-mdc-icon-button mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.topbar-icon-btn--primary.mat-mdc-icon-button {
+  color: #93c5fd;
+}
+
+.topbar-icon-btn--primary.mat-mdc-icon-button:hover {
+  background: rgba(59, 130, 246, 0.20);
+  color: #ffffff;
+}
+
+.topbar-icon-btn--danger.mat-mdc-icon-button:hover {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+}
+
 .topbar-link {
   color: rgba(255,255,255,0.92);
   text-decoration: none;
@@ -179,6 +224,8 @@
 
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 /* ---------- NAV TABS ---------- */
@@ -189,6 +236,27 @@
   min-width: 0;
   white-space: nowrap;
   overflow: visible;
+}
+
+.current-property-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #1e3a8a;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.current-property-badge mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #3b82f6;
 }
 
 .nav-item-wrapper {
@@ -458,6 +526,10 @@
     padding: 0;
     max-width: none;
     margin: 0;
+  }
+
+  .current-property-badge {
+    display: none;
   }
 
   /* ---------- APP-LIKE SLIDE-IN NAV PANEL ---------- */

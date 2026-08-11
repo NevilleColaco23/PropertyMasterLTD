@@ -1,0 +1,192 @@
+<div class="team-feed-widget">
+  <div class="feed-widget-header">
+    <div class="feed-widget-title">
+      <mat-icon>forum</mat-icon>
+      <span>Team Feed</span>
+    </div>
+
+    <button mat-icon-button matTooltip="Feed settings" type="button" [matMenuTriggerFor]="feedMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #feedMenu="matMenu">
+      <div class="feed-limit-menu" (click)="$event.stopPropagation()">
+        @if (!editingLimit) {
+          <button mat-menu-item type="button" (click)="startEditLimit()">
+            <mat-icon>tune</mat-icon>
+            <span>Posts shown: {{ maxPostsToShow }}</span>
+          </button>
+        } @else {
+          <div class="feed-limit-editor">
+            <mat-form-field appearance="outline" class="feed-limit-field">
+              <mat-label>Max posts</mat-label>
+              <input matInput type="number" min="1" max="500" [(ngModel)]="limitDraft" />
+            </mat-form-field>
+            <button mat-icon-button matTooltip="Save" type="button" (click)="saveLimit()">
+              <mat-icon>check</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Cancel" type="button" (click)="cancelEditLimit()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+    </mat-menu>
+  </div>
+
+  <div class="feed-card composer-card">
+    <div class="feed-composer">
+      <div class="composer-avatar">{{ (currentUsername ?? '?') | slice:0:1 | uppercase }}</div>
+      <div class="composer-pill">
+        <textarea
+          class="composer-input"
+          rows="1"
+          placeholder="Share an update with the team..."
+          [(ngModel)]="composerText"
+          (input)="onComposerInput($event)"
+          (blur)="composerMention.active = false"
+          maxlength="280"
+        ></textarea>
+
+        @if (composerMention.active) {
+          <div class="mention-suggestions">
+            @for (user of composerMention.suggestions; track user.id) {
+              <button type="button" class="mention-suggestion-item" (mousedown)="$event.preventDefault(); selectComposerMention(user)">
+                <span class="mention-avatar">{{ user.username | slice:0:1 | uppercase }}</span>
+                <span class="mention-name">{{ user.username }}</span>
+                <span class="mention-email">{{ user.email }}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+      <button
+        mat-icon-button
+        class="composer-send-btn"
+        matTooltip="Post"
+        type="button"
+        [disabled]="!composerText.trim()"
+        (click)="submitPost()"
+      >
+        <mat-icon>send</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="feed-widget-list">
+    @if (posts$ | async; as posts) {
+      @if (posts.length) {
+        @for (post of posts; track post.id) {
+          <div class="feed-card post-card" [class.post-card-new]="isNewPost(post.id)">
+            <div class="feed-post-header">
+              <div class="feed-post-avatar">{{ post.authorName | slice:0:1 | uppercase }}</div>
+              <div class="feed-post-meta">
+                <span class="feed-post-author">{{ post.authorName }}</span>
+                <span class="feed-post-time">{{ post.createdAt | date:'MMM d, h:mm a' }}</span>
+              </div>
+              @if (isNewPost(post.id)) {
+                <span class="feed-new-badge">New</span>
+              }
+            </div>
+
+            <p class="feed-post-text">{{ post.text }}</p>
+
+            @if (post.acknowledgements.length || post.comments.length) {
+              <div class="feed-post-stats">
+                @if (post.acknowledgements.length) {
+                  <span class="feed-stat-likes">
+                    <mat-icon>task_alt</mat-icon>
+                    {{ post.acknowledgements.length }}
+                  </span>
+                }
+                @if (post.comments.length) {
+                  <span class="feed-stat-comments" (click)="toggleComments(post.id)">
+                    {{ post.comments.length }} comment{{ post.comments.length === 1 ? '' : 's' }}
+                  </span>
+                }
+              </div>
+            }
+
+            <div class="feed-post-actions">
+              <button
+                mat-button
+                class="feed-action-btn"
+                type="button"
+                [class.active]="hasAcknowledged(post.acknowledgements)"
+                (click)="acknowledgePost(post.id)"
+              >
+                <mat-icon>task_alt</mat-icon>
+                <span>Acknowledge</span>
+              </button>
+              <button
+                mat-button
+                class="feed-action-btn"
+                type="button"
+                (click)="toggleComments(post.id)"
+              >
+                <mat-icon>chat_bubble_outline</mat-icon>
+                <span>Comment</span>
+              </button>
+            </div>
+
+            @if (expandedComments[post.id]) {
+              <div class="feed-comments-section">
+                @for (comment of post.comments; track comment.id) {
+                  <div class="feed-comment">
+                    <div class="feed-comment-avatar">{{ comment.authorName | slice:0:1 | uppercase }}</div>
+                    <div class="feed-comment-bubble">
+                      <span class="feed-comment-author">{{ comment.authorName }}</span>
+                      <p class="feed-comment-text">{{ comment.text }}</p>
+                    </div>
+                  </div>
+                }
+
+                <div class="feed-comment-composer">
+                  <div class="composer-avatar small">{{ (currentUsername ?? '?') | slice:0:1 | uppercase }}</div>
+                  <div class="composer-pill comment-pill">
+                    <input
+                      type="text"
+                      class="comment-input"
+                      placeholder="Write a comment..."
+                      [(ngModel)]="commentDrafts[post.id]"
+                      (input)="onCommentInput($event, post.id)"
+                      (blur)="commentMention.active = false"
+                      (keyup.enter)="submitComment(post.id)"
+                      maxlength="280"
+                    />
+
+                    @if (commentMention.active && activeCommentPostId === post.id) {
+                      <div class="mention-suggestions">
+                        @for (user of commentMention.suggestions; track user.id) {
+                          <button type="button" class="mention-suggestion-item" (mousedown)="$event.preventDefault(); selectCommentMention(user, post.id)">
+                            <span class="mention-avatar">{{ user.username | slice:0:1 | uppercase }}</span>
+                            <span class="mention-name">{{ user.username }}</span>
+                            <span class="mention-email">{{ user.email }}</span>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                  <button
+                    mat-icon-button
+                    class="composer-send-btn"
+                    matTooltip="Comment"
+                    type="button"
+                    [disabled]="!commentDrafts[post.id]?.trim()"
+                    (click)="submitComment(post.id)"
+                  >
+                    <mat-icon>send</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      } @else {
+        <div class="feed-widget-empty">
+          <mat-icon>forum</mat-icon>
+          <p>No posts yet. Share the first update!</p>
+        </div>
+      }
+    }
+  </div>
+</div>

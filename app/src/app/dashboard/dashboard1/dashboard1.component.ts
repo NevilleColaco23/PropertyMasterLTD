@@ -27,12 +27,15 @@ import { ListWidgetComponent, ListWidgetData, ListItem } from '../../widgets/lis
 import { ChartWidgetComponent, ChartWidgetData } from '../../widgets/chart-widget/chart-widget.component';
 import { CalendarWidgetComponent, CalendarWidgetData, CalendarEvent } from '../../widgets/calendar-widget/calendar-widget.component';
 import { ActivityStreamWidgetComponent } from '../../widgets/activity-stream-widget/activity-stream-widget.component';
+import { TeamFeedWidgetComponent } from '../../widgets/team-feed-widget/team-feed-widget.component';
 import { WidgetPickerDialogComponent } from '../../widgets/widget-picker-dialog/widget-picker-dialog.component';
 import { SaveDashboardDialogComponent, SaveDashboardDialogData } from '../../dialogs/save-dashboard-dialog/save-dashboard-dialog.component';
 import { BookingDetailsDialogComponent, BookingDetailsData } from '../booking-details-dialog/booking-details-dialog.component';
 import { BookingContextMenuComponent, BookingContextMenuData, BookingContextMenuResult } from './booking-context-menu/booking-context-menu.component';
 import { GridsterConfigService } from '../../services/gridster-config.service';
 import { NotificationService } from '../../services/notification.service';
+import { PostsService } from '../../profile/posts.service';
+import { FeedSettingsService } from '../../profile/feed-settings.service';
 
 export interface DashboardType {
   value: string;
@@ -104,7 +107,8 @@ export interface BookingBar {
     ListWidgetComponent,
     ChartWidgetComponent,
     CalendarWidgetComponent,
-    ActivityStreamWidgetComponent
+    ActivityStreamWidgetComponent,
+    TeamFeedWidgetComponent
   ],
   templateUrl: './dashboard1.component.html',
   styleUrls: ['./dashboard1.component.css', './room-planner-gantt.css'],
@@ -133,6 +137,7 @@ export class Dashboard1Component implements OnInit {
 
   // ===== Tab Management =====
   selectedTabIndex = 0;
+  unseenFeedCount = 0;
 
   // ===== Room Planner Properties =====
   loadingRoomPlanner = false;
@@ -170,7 +175,9 @@ export class Dashboard1Component implements OnInit {
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private postsService: PostsService,
+    private feedSettingsService: FeedSettingsService
   ) {
     // Initialize gridster configuration
     this.options = GridsterConfigService.getDefaultConfig(false);
@@ -183,6 +190,16 @@ export class Dashboard1Component implements OnInit {
 
     // Pre-load Room Planner data in background
     this.initializeRoomPlanner();
+
+    // Start polling the team feed in the background so new posts are detected
+    // and counted even while the user is on the Dashboard or Room Planner tab.
+    this.feedSettingsService.get().subscribe(settings => {
+      this.postsService.startPolling(settings.maxPostsToShow);
+    });
+
+    this.postsService.unseenCount$.subscribe(count => {
+      this.unseenFeedCount = count;
+    });
   }
 
   // ========================================
@@ -1261,6 +1278,11 @@ export class Dashboard1Component implements OnInit {
 
     // Room Planner tab selected - data is pre-loaded in background, no auto-refresh
     // User can explicitly click refresh button if needed
+
+    // Team Feed tab selected - mark all currently loaded posts as seen and clear the unseen badge
+    if (event.index === 2) {
+      this.postsService.markAllSeen();
+    }
   }
 
   // ========================================

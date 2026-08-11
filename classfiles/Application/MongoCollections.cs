@@ -30,4 +30,7 @@ public static class MongoCollections
 
     // Groups (post targeting)
     public const string GroupsCollection = "Groups";
+
+    // System-wide settings (shared collection for various per-user/per-app settings documents)
+    public const string SystemSettingsCollection = "SystemSettings";
 }

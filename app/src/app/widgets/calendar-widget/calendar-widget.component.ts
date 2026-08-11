@@ -138,6 +138,8 @@ export interface CalendarWidgetData {
       display: flex;
       flex-direction: column;
       box-shadow: none !important;
+      border-radius: 14px;
+      overflow: hidden;
     }
 
     mat-card-header {
@@ -145,15 +147,15 @@ export interface CalendarWidgetData {
       justify-content: space-between;
       align-items: center;
       padding: 16px 20px;
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      border-bottom: none;
+      background: #fbfbfe;
+      border-bottom: 1px solid #eef0f4;
     }
 
     mat-card-title {
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 15px;
+      font-weight: 700;
       margin: 0;
-      color: white;
+      color: #111827;
     }
 
     .calendar-controls {
@@ -163,7 +165,7 @@ export interface CalendarWidgetData {
     }
 
     .calendar-controls button {
-      color: white;
+      color: #6b7280;
     }
 
     .refresh-button {
@@ -172,6 +174,7 @@ export interface CalendarWidgetData {
 
     .refresh-button:hover {
       transform: rotate(180deg);
+      color: #1976d2;
     }
 
     .more-details-button {
@@ -180,12 +183,13 @@ export interface CalendarWidgetData {
 
     .more-details-button:hover {
       transform: scale(1.1);
+      color: #1976d2;
     }
 
     .current-month {
       font-size: 14px;
       font-weight: 600;
-      color: white;
+      color: #111827;
       min-width: 120px;
       text-align: center;
     }
@@ -232,8 +236,8 @@ export interface CalendarWidgetData {
     .calendar-day {
       aspect-ratio: 1;
       background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 4px;
+      border: 1px solid #eef0f4;
+      border-radius: 8px;
       padding: 4px;
       display: flex;
       flex-direction: column;
@@ -303,8 +307,8 @@ export interface CalendarWidgetData {
     .event-legend {
       margin-top: 12px;
       padding: 12px;
-      background: #f5f5f5;
-      border-radius: 6px;
+      background: #f7f8fb;
+      border-radius: 10px;
     }
 
     .legend-title {

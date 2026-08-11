@@ -23,7 +23,9 @@ export interface KpiCardData {
     <mat-card class="kpi-card" [style.border-left-color]="data.color || '#1976d2'">
       <mat-card-content>
         <div class="kpi-header">
-          <mat-icon [style.color]="data.color || '#1976d2'">{{ data.icon }}</mat-icon>
+          <span class="kpi-icon-badge" [style.background]="(data.color || '#1976d2') + '1a'">
+            <mat-icon [style.color]="data.color || '#1976d2'">{{ data.icon }}</mat-icon>
+          </span>
           <span class="kpi-title">{{ data.title }}</span>
           <button mat-icon-button (click)="onRefresh()" class="refresh-button" matTooltip="Refresh">
             <mat-icon>refresh</mat-icon>
@@ -53,13 +55,14 @@ export interface KpiCardData {
 
     .kpi-card {
       height: 100%;
-      border-left: 4px solid;
-      transition: all 0.2s ease;
+      border-left: none;
+      border-radius: 14px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: none !important;
     }
 
     .kpi-card:hover {
-      border-left-width: 6px;
+      transform: translateY(-2px);
     }
 
     mat-card-content {
@@ -73,14 +76,24 @@ export interface KpiCardData {
     .kpi-header {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .kpi-icon-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      flex-shrink: 0;
     }
 
     .kpi-header mat-icon {
-      font-size: 28px;
-      width: 28px;
-      height: 28px;
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
     }
 
     .kpi-title {
@@ -131,11 +144,12 @@ export interface KpiCardData {
     }
 
     .kpi-value {
-      font-size: 36px;
+      font-size: 34px;
       font-weight: 700;
-      color: #1a1a1a;
-      margin-bottom: 8px;
-      line-height: 1;
+      color: #101828;
+      margin-bottom: 6px;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
     }
 
     .kpi-trend {

@@ -13,6 +13,7 @@ import { LoggingService } from '../../core/system/service/logging.service';
 import { SystemMessagesSnackbarComponent } from '../../core/system/system-messages-snackbar/system-messages-snackbar.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../core/auth/services/auth.service';
 
 @Component({
@@ -24,7 +25,8 @@ import { AuthService } from '../../core/auth/services/auth.service';
     SearchBoxAutocompleteComponent,
     SystemMessagesSnackbarComponent,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    MatTooltipModule
   ],
   templateUrl: './property-landing.component.html',
   styleUrls: ['./property-landing.component.css']
@@ -50,6 +52,8 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
   navItems: any[] = [];
   logoPath: string | null = null;
   isMobileMenuOpen: boolean = false;
+  currentPropertyName: string = '';
+  readonly brandName: string = 'PropertyMaster';
 
   get isGuest(): boolean { return this.authService.isGuestUser(); }
 
@@ -157,6 +161,9 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
     return this.http.get<any>(this.pathAPI + '/menu/GetinitialData', { params }).pipe(
       map(response => {
         this.logoPath = response?.results?.[0]?.property?.companyLogoURL || '';
+        this.currentPropertyName = response?.results?.[0]?.property?.name
+          || response?.results?.[0]?.property?.propertyName
+          || '';
         return response;
       }),
       catchError((err) => this.errorHandling.handleError(err))
