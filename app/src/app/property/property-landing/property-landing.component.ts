@@ -49,6 +49,7 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
 
   navItems: any[] = [];
   logoPath: string | null = null;
+  isMobileMenuOpen: boolean = false;
 
   get isGuest(): boolean { return this.authService.isGuestUser(); }
 
@@ -204,11 +205,6 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
   }
 
   toggleMobileMenu(event: Event, item: any) {
-    console.log('🔄 toggleMobileMenu called for:', item.label);
-    console.log('   Has dropdown:', item.hasDropdown);
-    console.log('   Sub items count:', item.subItems?.length || 0);
-    console.log('   Current isOpen state:', item.isOpen);
-
     // Prevent default link behavior
     event.preventDefault();
     event.stopPropagation();
@@ -220,21 +216,40 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
       }
     });
 
-    // Toggle this menu
+    // Toggle this menu (accordion on mobile, dropdown on desktop)
     item.isOpen = !item.isOpen;
-    console.log('   New isOpen state:', item.isOpen);
 
     // Force change detection
     this.cdr.detectChanges();
   }
 
   handleTouchStart(event: Event) {
-    // Prevent touch event issues on mobile
-    console.log('👆 Touch event detected');
+    // Reserved for future touch-specific handling
   }
 
   closeMobileMenu(item: any) {
     item.isOpen = false;
+    // Also close the whole mobile nav panel once a destination is chosen
+    this.isMobileMenuOpen = false;
+  }
+
+  toggleMobileNav() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+
+    // Collapse any open accordion sections when the panel itself closes
+    if (!this.isMobileMenuOpen) {
+      this.navItems.forEach(item => item.isOpen = false);
+    }
+  }
+
+  closeMobileNav() {
+    this.isMobileMenuOpen = false;
+    this.navItems.forEach(item => item.isOpen = false);
+  }
+
+  onPlainNavLinkClick() {
+    // For links without a dropdown, tapping them should close the mobile panel too
+    this.closeMobileNav();
   }
 
   isMenuActive(item: any): boolean {
@@ -251,11 +266,16 @@ export class PropertyLandingComponent implements AfterViewInit, OnDestroy, OnIni
     // Close all mobile menus when clicking outside
     const target = event.target as HTMLElement;
     const clickedInsideNav = target.closest('.nav-item-wrapper');
+    const clickedInsideMobileNav = target.closest('.mobile-nav-toggle');
 
     if (!clickedInsideNav) {
       this.navItems.forEach(item => {
         item.isOpen = false;
       });
+    }
+
+    if (!clickedInsideNav && !clickedInsideMobileNav) {
+      this.isMobileMenuOpen = false;
     }
   }
 }

@@ -10,6 +10,20 @@
   <!-- Top blue bar: LOGO + search + profile/signout + email/cta -->
   <div class="topbar">
     <div class="topbar-inner">
+      <!-- Hamburger toggle - only visible on mobile -->
+      <button
+        class="mobile-nav-toggle"
+        type="button"
+        [class.is-active]="isMobileMenuOpen"
+        (click)="toggleMobileNav()"
+        [attr.aria-expanded]="isMobileMenuOpen"
+        aria-label="Toggle navigation menu"
+      >
+        <span class="mobile-nav-toggle-bar"></span>
+        <span class="mobile-nav-toggle-bar"></span>
+        <span class="mobile-nav-toggle-bar"></span>
+      </button>
+
       <div class="topbar-logo">
         @if (logoPath) {
           <img [src]="logoPath" alt="Company Logo" class="topbar-logo-img">
@@ -43,10 +57,15 @@
     </div>
   </div>
 
+  <!-- Backdrop shown behind the mobile nav panel while it's open -->
+  @if (isMobileMenuOpen) {
+    <div class="mobile-nav-backdrop" (click)="closeMobileNav()"></div>
+  }
+
   <!-- White bar: NAV only -->
   <div class="mainbar">
     <div class="mainbar-inner">
-      <nav class="nav" aria-label="Primary navigation">
+      <nav class="nav" aria-label="Primary navigation" [class.mobile-nav-open]="isMobileMenuOpen">
         <!-- Debug message when no menu items -->
         @if (navItems.length === 0) {
           <div class="nav-empty-message">
@@ -57,14 +76,14 @@
         @for (item of navItems; track item.label) {
           <div class="nav-item-wrapper" [class.menu-open]="item.isOpen">
             @if (item.hasDropdown && item.subItems?.length) {
-              <!-- Menu items with dropdowns - no routerLink, just click handler -->
+              <!-- Menu items with dropdowns - no routerLink, just click handler (accordion on mobile / dropdown on desktop) -->
               <a
                 class="nav-link"
                 (click)="toggleMobileMenu($event, item)"
-                (touchstart)="handleTouchStart($event)"
                 [class.nav-link--active]="isMenuActive(item)"
                 role="button"
                 tabindex="0"
+                [attr.aria-expanded]="item.isOpen"
               >
                 {{ item.label }}
                 <span class="arrow-down" [class.arrow-up]="item.isOpen" aria-hidden="true"></span>
@@ -76,6 +95,7 @@
                 routerLinkActive="nav-link--active"
                 [routerLinkActiveOptions]="{ exact: true }"
                 class="nav-link"
+                (click)="onPlainNavLinkClick()"
               >
                 {{ item.label }}
               </a>
@@ -98,6 +118,24 @@
             }
           </div>
         }
+
+        <!-- Account actions - only rendered/visible inside the mobile slide-in panel -->
+        <div class="mobile-nav-account-actions">
+          <button mat-button class="topbar-btn topbar-btn--primary" type="button" (click)="changeProperties(); closeMobileNav()">
+            <mat-icon>business</mat-icon>
+            Change Properties
+          </button>
+
+          <button mat-button class="topbar-btn" type="button" (click)="goToProfile(); closeMobileNav()">
+            <mat-icon>account_circle</mat-icon>
+            My Profile
+          </button>
+
+          <button mat-button class="topbar-btn topbar-btn--danger" type="button" (click)="signOut()">
+            <mat-icon>logout</mat-icon>
+            Sign Out
+          </button>
+        </div>
       </nav>
     </div>
   </div>
