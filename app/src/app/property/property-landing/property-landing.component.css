@@ -407,6 +407,15 @@
     position: relative;
   }
 
+  /* The desktop hover-bridge is a full-width transparent strip below each
+     nav item. On mobile the nav wraps into multiple rows with a small gap,
+     so this strip from one row overlaps the links in the next row and
+     silently swallows taps. Disable it on mobile since hover isn't used here. */
+  .nav-item-wrapper::after {
+    display: none;
+    pointer-events: none;
+  }
+
   /* Desktop hover doesn't work on mobile - use click toggle instead */
   .nav-item-wrapper:hover .mega-menu-panel {
     /* Disable hover behavior on mobile */
