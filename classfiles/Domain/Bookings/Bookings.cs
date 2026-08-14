@@ -13,6 +13,10 @@ namespace MyWarehouse.Domain.Bookings
         [BsonElement("bookingId")]
         public string BookingId { get; set; }
 
+        // Reference to the Property this booking belongs to
+        [BsonElement("propertyId")]
+        public int PropertyId { get; set; }
+
         // References to Guest and Staff collections (Int64 in MongoDB, so long in C#)
         [BsonElement("guestId")]
         public long GuestId { get; set; }

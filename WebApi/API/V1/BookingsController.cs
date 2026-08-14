@@ -23,6 +23,44 @@ namespace MyWarehouse.WebApi.API.V1
             => Ok(await _mediator.Send(query));
 
         /// <summary>
+        /// Create a new booking
+        /// </summary>
+        /// <param name="request">Booking details</param>
+        /// <returns>The created booking</returns>
+        [HttpPost("CreateBooking")]
+        [LogCreate("Bookings")]
+        public async Task<ActionResult> CreateBooking([FromBody] CreateBookingRequest request)
+        {
+            try
+            {
+                var command = new CreateBookingCommand(
+                    request.PropertyId ?? 0,
+                    request.GuestId,
+                    request.RoomNumber,
+                    request.CheckInDate,
+                    request.CheckOutDate,
+                    request.NumberOfGuests,
+                    request.TotalPrice,
+                    request.PaymentStatusId,
+                    request.BookingSourceId,
+                    request.SpecialRequests,
+                    request.IsConfirmed,
+                    request.UserId);
+
+                var result = await _mediator.Send(command);
+                return Ok(new { success = true, message = "Booking created successfully", data = result });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "An error occurred while creating the booking", error = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Move a booking to a different room
         /// </summary>
         /// <param name="bookingId">The booking ID to move</param>

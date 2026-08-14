@@ -53,6 +53,42 @@ namespace MyWarehouse.Application.Bookings.Services
         }
 
         /// <summary>
+        /// Logs a booking creation operation
+        /// </summary>
+        public async Task LogBookingCreation(
+            string bookingId,
+            string roomNumber,
+            DateTime checkInDate,
+            DateTime checkOutDate,
+            int userId,
+            string username = "Unknown User",
+            bool isSuccess = true,
+            string? errorMessage = null)
+        {
+            var activityLog = new UserActivityLog
+            {
+                UserId = userId,
+                Username = username,
+                ActivityType = ActivityType.Create,
+                EntityType = "Booking",
+                EntityId = null,
+                Action = $"Created booking {bookingId}",
+                DisplayMessage = $"{username} created booking {bookingId} for Room {roomNumber} ({checkInDate:MMM dd} - {checkOutDate:MMM dd})",
+                Metadata = new Dictionary<string, object>
+                {
+                    { "BookingId", bookingId },
+                    { "RoomNumber", roomNumber },
+                    { "OperationType", "BookingCreate" }
+                },
+                Timestamp = DateTime.UtcNow,
+                IsSuccess = isSuccess,
+                ErrorMessage = errorMessage
+            };
+
+            await SaveActivityLog(activityLog);
+        }
+
+        /// <summary>
         /// Logs booking date update operation
         /// </summary>
         public async Task LogBookingDateUpdate(

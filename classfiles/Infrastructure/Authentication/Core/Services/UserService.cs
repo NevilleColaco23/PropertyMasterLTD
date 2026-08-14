@@ -395,6 +395,8 @@ public class UserService : IUserService
                 }
 
                 _logger.LogInformation("Guest user {Email} created successfully (id: {UserId}).", email, user.Id);
+
+                await EnsureGuestMenuPermissionsAsync(user.Id);
             }
             else
             {
@@ -403,6 +405,11 @@ public class UserService : IUserService
                 // Always ensure the existing guest user has access to the demo property.
                 // This handles cases where the PropertyAccessList was lost (DB reset, redeployment, etc.).
                 await _demoPropertyService.GrantUserAccessToPropertyAsync(existing.Id, demoPropertyId);
+
+                // Always ensure the guest user has menu permissions.
+                // This handles cases where MenuPermissions were lost (DB reset, redeployment, etc.)
+                // or new menu items were added after the guest user was first provisioned.
+                await EnsureGuestMenuPermissionsAsync(existing.Id);
             }
 
             // Always check the demo property — runs whether user is new or existing.
@@ -417,6 +424,58 @@ public class UserService : IUserService
         {
             _logger.LogError(ex, "Unexpected error while provisioning guest user {Email}.", email);
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Grants the guest user read access to every visible navigation menu item.
+    /// Idempotent — skips menus for which a permission already exists.
+    /// </summary>
+    private async Task EnsureGuestMenuPermissionsAsync(int userId)
+    {
+        try
+        {
+            var menusCollection = _mongoDatabase.GetCollection<BsonDocument>(MyWarehouse.Application.MongoCollections.MenuCollection);
+            var visibleMenus = await menusCollection.Find(Builders<BsonDocument>.Filter.Eq("isVisible", true)).ToListAsync();
+
+            if (visibleMenus.Count == 0)
+            {
+                _logger.LogWarning("No visible menu items found while provisioning menu permissions for guest user {UserId}.", userId);
+                return;
+            }
+
+            var permissionsCollection = _mongoDatabase.GetCollection<BsonDocument>(MyWarehouse.Application.MongoCollections.MenuPermissionsCollection);
+            var existingMenuIds = (await permissionsCollection
+                    .Find(Builders<BsonDocument>.Filter.Eq("UserId", userId))
+                    .ToListAsync())
+                .Select(p => p.GetValue("MenuID", -1).ToInt32())
+                .ToHashSet();
+
+            var grantedCount = 0;
+            foreach (var menu in visibleMenus)
+            {
+                var menuId = menu["_id"].AsInt32;
+                if (existingMenuIds.Contains(menuId))
+                    continue;
+
+                await _mediator.Send(new MyWarehouse.Application.Common.MenuPermissions.CreateMenuPermissionCommand
+                {
+                    UserId = userId,
+                    MenuId = menuId,
+                    AccessLevel = "read",
+                    IsActive = true,
+                    From = DateTime.UtcNow,
+                    To = DateTime.UtcNow.AddYears(10)
+                });
+                grantedCount++;
+            }
+
+            _logger.LogInformation("Ensured menu permissions for guest user {UserId} ({GrantedCount} new, {TotalCount} total visible menus).",
+                userId, grantedCount, visibleMenus.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to provision menu permissions for guest user {UserId}.", userId);
         }
     }
 
