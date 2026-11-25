@@ -1,14 +1,18 @@
 <div class="menu-access-container">
 	<!-- Header Section -->
-	<div class="page-header">
-		<div class="header-content">
-			<h1 class="page-title">
-				<mat-icon class="title-icon">security</mat-icon>
-				Menu Access Management
-			</h1>
+	<mat-card class="header-card">
+		<mat-card-header>
+			<mat-card-title>
+				<div class="header-title">
+					<mat-icon class="title-icon">security</mat-icon>
+					<h1>Menu Access Management</h1>
+				</div>
+			</mat-card-title>
+		</mat-card-header>
+		<mat-card-content>
 			<p class="page-subtitle">Manage user permissions and menu access control</p>
-		</div>
-	</div>
+		</mat-card-content>
+	</mat-card>
 
 	<!-- Main Content -->
 	<div class="content-grid">
@@ -57,7 +61,11 @@
 							<mat-icon>menu</mat-icon>
 							<div>
 								<div class="label">Assigned Menus</div>
-								<div class="value">{{ getAssignedMenuCount() }}</div>
+								@if (isLoading && !hasLoadedOnce) {
+									<mat-spinner diameter="18" class="summary-spinner"></mat-spinner>
+								} @else {
+									<div class="value">{{ getAssignedMenuCount() }}</div>
+								}
 							</div>
 						</div>
 					</div>
@@ -124,12 +132,20 @@
 						<h2>Select a User to Begin</h2>
 						<p>Choose a user from the left panel to view and manage their menu permissions</p>
 					</div>
-				} @else if (isLoading) {
+				} @else if (isLoading && !hasLoadedOnce) {
 					<div class="loading-state">
 						<mat-spinner diameter="50"></mat-spinner>
 						<p>Loading menu permissions...</p>
 					</div>
 				} @else {
+
+					<!-- Thin refresh indicator shown on top of existing content while re-fetching -->
+					@if (isLoading) {
+						<div class="refresh-bar">
+							<mat-spinner diameter="16"></mat-spinner>
+							<span>Refreshing...</span>
+						</div>
+					}
 
 					<!-- Search Bar -->
 					<mat-form-field class="search-field">

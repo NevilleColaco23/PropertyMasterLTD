@@ -1,8 +1,8 @@
 import { Component, signal, inject } from '@angular/core';
-import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
+import { Router, RouteConfigLoadStart, RouteConfigLoadEnd, RouterOutlet } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { filter, first } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { LoaderService } from './core/auth/services/loader-service.service';
 
 @Component({
@@ -16,16 +16,21 @@ export class App {
   loaderService = inject(LoaderService);
   router = inject(Router);
 
-  // Set to true once the first navigation completes. Used to avoid showing
-  // the large global loader after the app has already rendered — allow
-  // smaller component-level loaders to run instead.
-  initialLoadCompleted = false;
-
   constructor() {
-    // Mark initial load completed after the first successful navigation end
-    // so subsequent background requests do not trigger the full-page loader.
-    this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd), first()).subscribe(() => {
-      this.initialLoadCompleted = true;
-    });
+    // Only show the global loader while a lazy-loaded route module/chunk is
+    // actually being fetched (e.g. first visit to a feature page). Regular
+    // in-page navigations (tabs, query param changes, same-route clicks) do
+    // NOT trigger this, so the overlay no longer appears on every click.
+    // HTTP-request-driven loading is still handled separately by
+    // loading.interceptor.ts using the same LoaderService.
+    this.router.events
+      .pipe(filter(e => e instanceof RouteConfigLoadStart || e instanceof RouteConfigLoadEnd))
+      .subscribe(event => {
+        if (event instanceof RouteConfigLoadStart) {
+          this.loaderService.show();
+        } else {
+          this.loaderService.hide();
+        }
+      });
   }
 }

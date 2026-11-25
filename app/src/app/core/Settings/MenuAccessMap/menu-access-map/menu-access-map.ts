@@ -109,6 +109,7 @@ export class MenuAccessMap implements OnInit, AfterViewInit {
   statusFilter: string = 'all';
 
   isLoading: boolean = false;
+  hasLoadedOnce: boolean = false;
   totalCount: number = 0;
   pageSize: number = 25;
 
@@ -183,7 +184,6 @@ export class MenuAccessMap implements OnInit, AfterViewInit {
   loadUserPermissions(): void {
     if (!this.selectedUserId) return;
 
-    console.log('Loading permissions for user:', this.selectedUserId);
     this.isLoading = true;
     this.cdr.detectChanges(); // ✅ Force UI update to show spinner immediately
 
@@ -213,8 +213,8 @@ export class MenuAccessMap implements OnInit, AfterViewInit {
       finalize(() => {
         // Always set loading to false and trigger change detection
         this.isLoading = false;
+        this.hasLoadedOnce = true;
         this.cdr.detectChanges(); // ✅ Force UI update to hide spinner
-        console.log('Loading complete, isLoading:', this.isLoading);
       })
     ).subscribe(permissions => {
       console.log('Processed permissions:', permissions);

@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { PropertyLandingComponent } from './property-landing.component';
-import { ReportsComponent } from '../../menu/reports/reports.component';
+import { ReportsComponent } from '../../Menu/reports/reports.component';
 import { MenuAccessMap } from '../../core/Settings/MenuAccessMap/menu-access-map/menu-access-map';
 import { PropertyMasterComponent } from '../property-master/property-master.component';
 import { GroupMasterComponent } from '../../core/Settings/GroupMaster/group-master/group-master.component';
@@ -21,6 +21,13 @@ export const PROPERTY_LANDING_ROUTES: Routes = [
 
       // Report screen shown when user clicks the "Bookings report" menu item (guests can view)
       { path: 'bookingsReport', component: ReportsComponent },
+
+      // New booking entry form — nested so the persistent top nav is preserved
+      {
+        path: 'bookingsReport/new',
+        loadComponent: () => import('../../bookings/booking-entry/booking-entry.component').then(m => m.BookingEntryComponent),
+        canActivate: [noGuestGuard],
+      },
 
       // Menu access matrix — admin only, block guests
       { path: 'MenuAccessmapping', component: MenuAccessMap, canActivate: [noGuestGuard] },

@@ -1991,7 +1991,7 @@ export class Dashboard1Component implements OnInit {
     };
 
     console.log('📊 Navigating to bookings report with chart filters:', queryParams);
-    this.router.navigate(['/bookings'], { queryParams });
+    this.router.navigate(['/propertyLanding/bookingsReport'], { queryParams });
   }
 
   /**
@@ -2016,7 +2016,7 @@ export class Dashboard1Component implements OnInit {
     };
 
     console.log('🔗 Navigating to bookings report for date:', selectedDate);
-    this.router.navigate(['/bookings'], { queryParams });
+    this.router.navigate(['/propertyLanding/bookingsReport'], { queryParams });
   }
 
   /**
@@ -2055,7 +2055,7 @@ export class Dashboard1Component implements OnInit {
     }
 
     console.log('🔗 Navigating to bookings report with params:', queryParams);
-    this.router.navigate(['/bookings'], { queryParams });
+    this.router.navigate(['/propertyLanding/bookingsReport'], { queryParams });
   }
 
   // ========================================
