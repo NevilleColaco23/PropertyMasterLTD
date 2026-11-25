@@ -1,19 +1,14 @@
-.reports-card {
-  margin: 20px;
-  padding: 20px;
+.reports-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.reports-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
+.header-card {
   margin-bottom: 20px;
 }
 
-.header-left {
+.header-title {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -27,35 +22,51 @@
   background-color: rgba(25, 118, 210, 0.08);
 }
 
-.header-left h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.header-left h1 mat-icon {
-  font-size: 28px;
-  width: 28px;
-  height: 28px;
-}
-
-.filter-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: #e3f2fd;
-  border-radius: 20px;
+.title-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
   color: #1976d2;
 }
 
-.filter-badge mat-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
+.header-title h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.add-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-weight: 500;
+}
+
+.stat-chip--primary {
+  background-color: #e3f2fd;
+  color: #1976d2;
 }
 
 .clear-filter-btn {
@@ -72,8 +83,32 @@
   height: 16px;
 }
 
-.reports-panel {
-  margin-bottom: 16px;
+.filters-card {
+  margin-bottom: 20px;
+}
+
+.filters-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-field {
+  flex: 1;
+  min-width: 300px;
+}
+
+.table-card {
+  position: relative;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
 }
 
 .table-stats {
@@ -121,11 +156,6 @@
   height: 16px;
 }
 
-.full-width-input {
-  width: 100%;
-  margin-bottom: 15px;
-}
-
 .table-container {
   overflow-x: auto; /* Enables horizontal scrolling for small screens */
   max-width: 100%; /* Ensures it doesn't overflow its parent */
@@ -134,22 +164,34 @@
 table {
   width: 100%;
   min-width: 700px; /* Ensures a minimum width for the table columns */
+  background: white;
 }
 
-/* Optional: Style for status if you want different colors */
-/*
-td.mat-cell:has(.status-confirmed) { color: green; }
-td.mat-cell:has(.status-pending) { color: orange; }
-td.mat-cell:has(.status-cancelled) { color: red; }
-*/
+mat-paginator {
+  background: transparent;
+}
 
-/* Adjust column widths if needed (example) */
-/*
-.mat-column-bookingId { flex: 0 0 100px; }
-.mat-column-customerName { flex: 0 0 180px; }
-.mat-column-serviceType { flex: 0 0 150px; }
-.mat-column-bookingDate { flex: 0 0 120px; }
-.mat-column-amount { flex: 0 0 100px; text-align: right; }
-.mat-column-status { flex: 0 0 100px; }
-.mat-column-actions { flex: 0 0 120px; text-align: center; }
-*/
+/* Responsive */
+@media (max-width: 768px) {
+  .reports-container {
+    padding: 12px;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stats {
+    justify-content: center;
+  }
+
+  .filters-row {
+    flex-direction: column;
+  }
+
+  .search-field {
+    width: 100%;
+    min-width: unset;
+  }
+}
