@@ -35,7 +35,7 @@ The dev frontend calls `https://localhost:44346/api/v1` (`app/src/app/environmen
 
 ## Repository layout gotchas
 
-- **The live API project is `WebApi/` at the repo root.** `classfiles/` holds the real Domain, Application, Infrastructure, MongoDBBackend and SampleData projects, but `classfiles/WebApi/` is a stale copy (last touched 2025-06-27). It is not in the solution, nothing references it, it references a nonexistent `MailingService` project, and it is missing many current controllers. Don't edit it.
+- **The API project is `WebApi/` at the repo root.** `classfiles/` holds the shared libraries (Domain, Application, Infrastructure, MongoDBBackend, SampleData).
 - `testAngularAPI.Server/` is a separate, older net8.0 server project. `AccessLogWorker/` has only build output; access logs are now handled by `AccessLogFunction`.
 - The many `*.md` files and `*.js` files at the root are historical implementation notes and ad-hoc MongoDB shell scripts (seeding, data fixes, debugging). They are not part of the build. `scripts/` and `Database/Scripts/` hold more mongo shell scripts.
 - C# namespaces use the legacy `MyWarehouse.*` prefix (e.g. `MyWarehouse.Application.Bookings.Commands`), even though the product is Property Master.
