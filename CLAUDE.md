@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Property Master: a property/hotel management system (bookings, rooms, guests, dashboards, social feed). The backend is .NET (Clean Architecture + CQRS via MediatR) on MongoDB, and the frontend is an Angular 21 SPA with SSR. Async work goes through Azure Service Bus to Azure Functions and a worker.
+Property Master: a property/hotel management system (bookings, rooms, guests, dashboards, social feed). The backend is .NET (Clean Architecture + CQRS via MediatR) on MongoDB, and the frontend is an Angular 21 standalone-component SPA (SSR files are scaffolded but not enabled; see Frontend architecture). Async work goes through Azure Service Bus to Azure Functions and a worker.
 
 ## Commands
 
@@ -35,14 +35,14 @@ The dev frontend calls `https://localhost:44346/api/v1` (`app/src/app/environmen
 
 ## Repository layout gotchas
 
-- **The live API project is `WebApi/` at the root.** `classfiles/WebApi/` is a stale copy. It is not in the solution and references a missing `MailingService` project, so don't edit it.
+- **The live API project is `WebApi/` at the repo root.** `classfiles/` holds the real Domain, Application, Infrastructure, MongoDBBackend and SampleData projects, but `classfiles/WebApi/` is a stale copy (last touched 2025-06-27). It is not in the solution, nothing references it, it references a nonexistent `MailingService` project, and it is missing many current controllers. Don't edit it.
 - `testAngularAPI.Server/` is a separate, older net8.0 server project. `AccessLogWorker/` has only build output; access logs are now handled by `AccessLogFunction`.
 - The many `*.md` files and `*.js` files at the root are historical implementation notes and ad-hoc MongoDB shell scripts (seeding, data fixes, debugging). They are not part of the build. `scripts/` and `Database/Scripts/` hold more mongo shell scripts.
 - C# namespaces use the legacy `MyWarehouse.*` prefix (e.g. `MyWarehouse.Application.Bookings.Commands`), even though the product is Property Master.
 
 ## Backend architecture
 
-Project dependency chain (`classfiles/`):
+Project dependency chain (everything is in `classfiles/` except `WebApi/`, `Messaging.Shared/` and the workers, which are at the repo root):
 `Domain` ← `MongoDBBackend` (generic Mongo repository/UoW/specification) ← `Application` ← `Infrastructure` ← `WebApi`. `SampleData` feeds Infrastructure seeding. `Messaging.Shared` (multi-target net6/net8) holds the Service Bus/RabbitMQ contracts, event models (`UserActivityEvent`, `EmailQueuedEvent`) and queue names, and every service shares it.
 
 - **Controllers** (`WebApi/API/V1/*Controller.cs`) are thin. They inject `IMediator`, use the route `api/v{v:apiversion}/<Entity>` with `[ApiVersion("1.0")]`, and send commands/queries. Action names live in the route (e.g. `Bookings/GetBookings`, `Bookings/CreateBooking`).
@@ -55,7 +55,7 @@ Project dependency chain (`classfiles/`):
 
 ## Frontend architecture (`app/`)
 
-- Standalone-component Angular 21 with SSR (`server.ts`, `app.routes.server.ts`). It uses Angular Material, angular-gridster2 for the dashboard widgets, and chart.js/ng2-charts.
+- Standalone-component Angular 21 (no `standalone: false` components; two unused legacy `*-routing.module.ts` files remain). SSR is scaffolded (`server.ts`, `main.server.ts`, `app.routes.server.ts`) but **not enabled**: `angular.json` has no `server`/`ssr` option, so `npm run build` makes a client-only SPA in `dist/propertyMasterV3.0/browser` (deployed to Azure Static Web Apps) and the `serve:ssr:*` script has nothing to run. Uses Angular Material, angular-gridster2 for dashboard widgets, and chart.js/ng2-charts.
 - Routing: `app.routes.ts` holds only the auth/landing entry routes (login, `propertySelector`, `create-user`, `activate`). **Every feature route must be nested as a child of `propertyLanding`** in `property/property-landing/property-landing.routes.ts`. That keeps the `PropertyLandingComponent` nav shell mounted and avoids menu re-fetching and flicker. Legacy top-level URLs redirect into `propertyLanding/...`.
 - HTTP interceptors in `core/interceptors/`: `property-context.interceptor.ts` adds `X-Selected-Property` from `localStorage.selectedPropertyIds` to every request, and the others handle loading state and activity messages. Auth (JWT + Google) and guards live in `core/auth/`.
 - Services build URLs from `environment.apiUrl`, which already includes `/api/v1` (e.g. `${environment.apiUrl}/Bookings`).
