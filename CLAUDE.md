@@ -11,7 +11,7 @@ Property Master: a property/hotel management system (bookings, rooms, guests, da
 Solution: `testAngularAPI.sln` (repo root).
 
 ```bash
-# Backend API (net6.0). Local dev listens on https://localhost:44346 (IIS Express profile) or the port in $PORT (default 5000)
+# Backend API (netexi6.0). Local dev listens on https://localhost:44346 (IIS Express profile) or the port in $PORT (default 5000)
 dotnet build WebApi/WebApi.csproj
 dotnet run --project WebApi
 
