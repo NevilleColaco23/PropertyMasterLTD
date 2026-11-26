@@ -1,5 +1,5 @@
 import { Component, signal, inject } from '@angular/core';
-import { Router, RouteConfigLoadStart, RouteConfigLoadEnd, RouterOutlet } from '@angular/router';
+import { Router, RouteConfigLoadStart, RouteConfigLoadEnd, RouterOutlet, NavigationCancel, NavigationError } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { filter } from 'rxjs/operators';
@@ -23,13 +23,28 @@ export class App {
     // NOT trigger this, so the overlay no longer appears on every click.
     // HTTP-request-driven loading is still handled separately by
     // loading.interceptor.ts using the same LoaderService.
+    // Track outstanding lazy loads so a cancelled/failed navigation can't leave
+    // the loader counter stuck above zero.
+    let pendingRouteLoads = 0;
     this.router.events
-      .pipe(filter(e => e instanceof RouteConfigLoadStart || e instanceof RouteConfigLoadEnd))
+      .pipe(filter(e =>
+        e instanceof RouteConfigLoadStart || e instanceof RouteConfigLoadEnd ||
+        e instanceof NavigationCancel || e instanceof NavigationError))
       .subscribe(event => {
         if (event instanceof RouteConfigLoadStart) {
+          pendingRouteLoads++;
           this.loaderService.show();
+        } else if (event instanceof RouteConfigLoadEnd) {
+          if (pendingRouteLoads > 0) {
+            pendingRouteLoads--;
+            this.loaderService.hide();
+          }
         } else {
-          this.loaderService.hide();
+          // NavigationCancel / NavigationError: release any loads that never ended.
+          while (pendingRouteLoads > 0) {
+            pendingRouteLoads--;
+            this.loaderService.hide();
+          }
         }
       });
   }

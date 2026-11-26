@@ -27,6 +27,19 @@ export class LoaderService {
   private showTimer: ReturnType<typeof setTimeout> | null = null;
   private hideTimer: ReturnType<typeof setTimeout> | null = null;
   private shownAt = 0;
+  /** Hard cap on how long the overlay may stay visible. */
+  private readonly maxVisibleMs = 15000;
+  private maxTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private forceHide(): void {
+    this.maxTimer = null;
+    this.activeRequests = 0;
+    if (this.hideTimer) {
+      clearTimeout(this.hideTimer);
+      this.hideTimer = null;
+    }
+    this.isLoadingSubject.next(false);
+  }
 
   show(): void {
     this.activeRequests++;
@@ -49,6 +62,11 @@ export class LoaderService {
       if (this.activeRequests > 0) {
         this.shownAt = Date.now();
         this.isLoadingSubject.next(true);
+        // Safety net: never leave the blocking overlay up indefinitely.
+        if (this.maxTimer) {
+          clearTimeout(this.maxTimer);
+        }
+        this.maxTimer = setTimeout(() => this.forceHide(), this.maxVisibleMs);
       }
     }, this.showDelayMs);
   }
@@ -80,6 +98,10 @@ export class LoaderService {
     this.hideTimer = setTimeout(() => {
       this.hideTimer = null;
       if (this.activeRequests === 0) {
+        if (this.maxTimer) {
+          clearTimeout(this.maxTimer);
+          this.maxTimer = null;
+        }
         this.isLoadingSubject.next(false);
       }
     }, remaining);

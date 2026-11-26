@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ActivitySummaryDTO, PagedActivitiesDTO, UserActivityDTO, ActivityWidgetDTO } from '../models/activity.models';
 import { APP_CONFIG, AppConfig } from '../configuration/app.config.token';
+import { silentLoadingContext } from '../core/interceptors/loading.interceptor';
 
 @Injectable({
   providedIn: 'root'
@@ -23,14 +24,14 @@ export class ActivityService {
    * @param recentCount Number of recent activities to include
    * @param username Optional username to filter activities
    */
-  getActivitySummary(recentCount: number = 10, username?: string): Observable<ActivitySummaryDTO> {
+  getActivitySummary(recentCount: number = 10, username?: string, silent = false): Observable<ActivitySummaryDTO> {
     let params = new HttpParams().set('recentCount', recentCount.toString());
 
     if (username) {
       params = params.set('username', username);
     }
 
-    return this.http.get<ActivitySummaryDTO>(`${this.apiUrl}/summary`, { params });
+    return this.http.get<ActivitySummaryDTO>(`${this.apiUrl}/summary`, silent ? { params, context: silentLoadingContext() } : { params });
   }
 
   /**
@@ -164,8 +165,8 @@ export class ActivityService {
    * Get lightweight activity widget data
    * Returns only DisplayMessage, Timestamp, and Action for dashboard widgets
    */
-  getWidgetData(count: number = 15): Observable<ActivityWidgetDTO[]> {
+  getWidgetData(count: number = 15, silent = false): Observable<ActivityWidgetDTO[]> {
     const params = new HttpParams().set('count', count.toString());
-    return this.http.get<ActivityWidgetDTO[]>(`${this.apiUrl}/widget`, { params });
+    return this.http.get<ActivityWidgetDTO[]>(`${this.apiUrl}/widget`, silent ? { params, context: silentLoadingContext() } : { params });
   }
 }

@@ -70,7 +70,7 @@ export class ActivityFeedWidgetComponent implements OnInit, OnDestroy {
       interval(this.refreshInterval)
         .pipe(
           startWith(0),
-          switchMap(() => this.activityService.getWidgetData(this.count)),
+          switchMap(() => this.activityService.getWidgetData(this.count, true)),
           takeUntil(this.destroy$)
         )
         .subscribe({
