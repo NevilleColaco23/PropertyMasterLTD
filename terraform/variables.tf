@@ -86,3 +86,9 @@ variable "tags" {
     managed_by = "terraform"
   }
 }
+
+variable "app_location" {
+  description = "Region for the App Service plan and API. Separate from `location` because free-tier (F1) quota is per region and many regions have a quota of 0 on new subscriptions."
+  type        = string
+  default     = "belgiumcentral"
+}

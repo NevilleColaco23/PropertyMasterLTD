@@ -15,18 +15,18 @@ namespace MyWarehouse.Infrastructure.Services
     {
         private readonly IMongoCollection<EmailOutboxMessage> _collection;
         private readonly IMongoCollection<BsonDocument> _keyCounters;
-        private readonly IServiceBusPublisher _serviceBusPublisher;
+        private readonly IEmailOutboxSignal _signal;
         private readonly ILogger<EmailQueueService> _logger;
         private const string EmailOutboxCounterKey = "EmailOutbox";
 
         public EmailQueueService(
             IMongoDatabase database,
-            IServiceBusPublisher serviceBusPublisher,
+            IEmailOutboxSignal signal,
             ILogger<EmailQueueService> logger)
         {
             _collection     = database.GetCollection<EmailOutboxMessage>("EmailOutbox");
             _keyCounters    = database.GetCollection<BsonDocument>("KeyCounter");
-            _serviceBusPublisher = serviceBusPublisher;
+            _signal         = signal;
             _logger         = logger;
         }
 
@@ -60,28 +60,9 @@ namespace MyWarehouse.Infrastructure.Services
             _logger.LogInformation("Queued email {Id} to MongoDB outbox: To={To}, Subject='{Subject}'",
                 message.Id, to, subject);
 
-            // Publish to Azure Service Bus so EmailWorker picks it up immediately (no polling)
-            try
-            {
-                var emailEvent = new EmailQueuedEvent
-                {
-                    EmailId      = message.Id,
-                    Type         = message.Type,
-                    To           = message.To,
-                    Subject      = message.Subject,
-                    BodyHtml     = message.BodyHtml,
-                    QueuedAtUtc  = message.CreatedAtUtc
-                };
-
-                await _serviceBusPublisher.SendAsync(emailEvent, ServiceBusQueueNames.Email);
-                _logger.LogInformation("Published EmailQueuedEvent {Id} to Service Bus", message.Id);
-            }
-            catch (Exception ex)
-            {
-                // Service Bus publish failure is non-fatal — the EmailWorker can still
-                // pick it up on its fallback polling pass if needed.
-                _logger.LogError(ex, "Failed to publish EmailQueuedEvent {Id} to Service Bus", message.Id);
-            }
+            // Wake the in-API outbox processor (WebApi/Email/EmailOutboxProcessor) so it sends now.
+            // If the signal is missed, the processor's periodic polling pass picks the row up anyway.
+            _signal.Notify();
         }
     }
 

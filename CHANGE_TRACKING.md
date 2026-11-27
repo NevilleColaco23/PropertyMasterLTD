@@ -5,9 +5,83 @@ Add a new entry per commit. For uncommitted work, use `PENDING` and fill in the 
 
 ---
 
-## Entry 3 — Terraform for the new Azure environment; remove exposed secrets from EmailWorker README
+## Entry 5 — Workflows and prod config for the new Terraform-managed Azure environment
 
 - **Commit:** `PENDING` (fill in after commit: `git log -1 --format=%h`)
+- **Date:** 2026-11-27
+- **Branch:** `introducing_Claude`
+
+### Why
+The old workflows authenticated to a deleted subscription (OIDC client/tenant/subscription secrets), pointed at the deleted app
+`propertymaster-api-de09`, set Service Bus settings, and deployed a Function App that no longer exists. The old frontend host was also
+in the API's CORS list, so a new Static Web App hostname would have been blocked by the browser.
+
+### Changes
+
+| File | Change |
+|---|---|
+| `.github/workflows/deploy-API.yml` | App name now from the repo variable `AZURE_WEBAPP_NAME`; auth via the `AZURE_WEBAPP_PUBLISH_PROFILE` secret (no OIDC). Removed the "Set App Service configuration secrets" step: Terraform now owns all app settings, so they are not overwritten on each deploy. Removed `ServiceBus__*` settings. |
+| `.github/workflows/azure_web_app_deployment_propertymaster-activitylogfunc.yml` | Deleted. The Function App is not part of the new setup (Service Bus dropped). |
+| `.github/workflows/deploy-angular-frontend.yml` | Token secret renamed to `AZURE_STATIC_WEB_APPS_API_TOKEN` (was tied to the old `BRAVE_ROCK` app). |
+| `terraform/main.tf` | Added app setting `CorsSettings__AllowedOrigins__20` = new Static Web App URL (appends to the list in `appsettings.json`). |
+| `terraform/README.md` (new) | Apply steps, the GitHub variable/secrets to set after apply, and how to switch Azure accounts. |
+| `app/src/app/environments/environment.prod.ts` | `apiUrl` replaced with a **placeholder**: the real hostname is only known after `terraform apply`. |
+
+### Not done / must do before deploying
+- Run `terraform apply`, then set `apiUrl` in `environment.prod.ts` to `<api_url>/api/v1`. Until then the deployed frontend cannot reach the API.
+- Create the GitHub variable `AZURE_WEBAPP_NAME` and secrets `AZURE_WEBAPP_PUBLISH_PROFILE` and `AZURE_STATIC_WEB_APPS_API_TOKEN`.
+- `docker-build-push.yml` still builds the EmailWorker image (no longer used); left as is.
+- Old secrets (`AZUREAPPSERVICE_*`, `AZURE_SERVICE_BUS_CONNECTION_STRING`, `AZURE_CREDENTIALS`) can be deleted from GitHub.
+- Hardcoded old hosts remain in `appsettings.json` / `appsettings.Production.json` / `UserService.cs` (`brave-rock-...azurestaticapps.net`); the
+  Terraform app settings override `FrontendSettings__BaseUrl` and add the new CORS origin.
+- `appsettings.json` contains a demo `GuestSettings:Password` in plain text; consider moving it to secrets.
+
+### Verification
+- `terraform fmt` + `terraform validate`: success. `npm run build` (app): success. Workflows not run.
+
+---
+
+## Entry 4 — Send email from inside the API (no Service Bus / EmailWorker)
+
+- **Commit:** `PENDING` (fill in after commit: `git log -1 --format=%h`)
+- **Date:** 2026-11-27
+- **Branch:** `introducing_Claude`
+
+### Why
+Service Bus is dropped in the new Azure setup (Entry 3). Account-activation emails used to be saved to the MongoDB
+`EmailOutbox` collection and then published to the `email-queue` Service Bus queue for `EmailWorker`. With no queue,
+nothing sent the email. Emails are already persisted in MongoDB first, so the API now sends them itself.
+
+### Flow
+`UserService` -> `EmailQueueService.QueueEmailAsync` (writes outbox row, status Queued) -> `IEmailOutboxSignal.Notify()`
+-> `EmailOutboxProcessor` (hosted service in WebApi) claims the row -> `ResendHttpEmailSender` calls the Resend REST API.
+The processor also polls every 30 s as a safety net.
+
+### Changes
+
+| File | Change |
+|---|---|
+| `classfiles/Infrastructure/Services/EmailQueueService.cs` | Removed the `IServiceBusPublisher` dependency and publish; now calls `IEmailOutboxSignal.Notify()`. Constructor signature changed. |
+| `classfiles/Infrastructure/Services/EmailOutboxSignal.cs` (new) | `IEmailOutboxSignal` / `EmailOutboxSignal` (SemaphoreSlim) to wake the processor immediately. |
+| `WebApi/Email/EmailOutboxProcessor.cs` (new) | `BackgroundService`. Atomically claims one due row with `FindOneAndUpdate` (Status Pending/Queued, `NextRunAtUtc <= now`, `Attempts < 5`; also recovers rows stuck in Processing after the 2 min lock), sends, then sets Sent, or re-queues with exponential backoff (30 s x 2^n), or marks Failed after 5 attempts. If `Resend:ApiKey` is empty it leaves rows queued and logs one warning. |
+| `WebApi/Email/ResendHttpEmailSender.cs` (new) | Calls `POST https://api.resend.com/emails` with `HttpClient` (no new NuGet package). Uses `Resend:ApiKey` and `Email:From` (default `onboarding@resend.dev`). |
+| `WebApi/Startup.cs` | Registers the signal (singleton), the typed HttpClient sender and the hosted processor. |
+
+### Notes
+- Safe with several API instances: the claim is atomic, so a row is sent once.
+- `EmailWorker/` is no longer needed by the API. It still requires a Service Bus connection string and is left untouched for now.
+- Needs `Resend__ApiKey` (and optionally `Email__From`) in the API app settings; Terraform already sets them.
+
+### Verification
+- `dotnet build WebApi` (to a separate output folder): 0 errors.
+- Unit tests **not run**: IIS Express / Visual Studio had `WebApi/bin` locked. Run `dotnet test APIUnitProject.Tests` after stopping IIS Express.
+- Not tested end to end (no real send yet).
+
+---
+
+## Entry 3 — Terraform for the new Azure environment; remove exposed secrets from EmailWorker README
+
+- **Commit:** `a4026e4` ("commit terraform files")
 - **Date:** 2026-11-27
 - **Branch:** `introducing_Claude`
 
