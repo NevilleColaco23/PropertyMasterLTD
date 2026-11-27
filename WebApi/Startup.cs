@@ -122,7 +122,7 @@ public class Startup
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapHub<ChatHub>("/chatHub");
-            endpoints.MapHealthChecks("/health");
+            // /health is already mapped in UseMyApi(); mapping it twice makes the request ambiguous (HTTP 500).
         });
 
     }
