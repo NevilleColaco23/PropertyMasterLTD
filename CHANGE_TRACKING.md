@@ -1,13 +1,69 @@
 # Change Tracking
 
-Log of notable changes: commit id, what changed, and the technical reason. Newest first.
+Log of notable changes: commit id, what changed, and the technical reason. Newest first (Entry 3 is the latest).
 Add a new entry per commit. For uncommitted work, use `PENDING` and fill in the id after committing.
+
+---
+
+## Entry 3 — Terraform for the new Azure environment; remove exposed secrets from EmailWorker README
+
+- **Commit:** `PENDING` (fill in after commit: `git log -1 --format=%h`)
+- **Date:** 2026-11-27
+- **Branch:** `introducing_Claude`
+
+### Why
+All Azure resources from the free-credit month were deleted, so the app is offline. Re-creating them by hand
+is error-prone and not repeatable. Terraform makes the environment reproducible, so switching or rebuilding
+an Azure account is one `terraform apply`. Chosen constraints: pay-as-you-go account, cheapest viable
+setup, and Service Bus dropped (see "Decisions").
+
+### Decisions
+- **Cheapest design:** App Service F1 (free, no always-on, so cold starts), Static Web App Free tier, no Function
+  App, no Container App, no Service Bus. Expected Azure cost is about 0; the main cost is MongoDB Atlas, which is
+  outside Azure.
+- **Service Bus dropped.** Activity logs already fall back to direct MongoDB writes when no connection string is set.
+  Email is already saved to the MongoDB `EmailOutbox` collection first; the plan is for the API to send via
+  Resend from the outbox with a retry loop, which makes `EmailWorker` unnecessary. **That code change is not
+  done yet**, so email sending is not working in the new setup until it is.
+- **State is local** (`terraform/terraform.tfstate`, gitignored). It must survive the Azure account, so it is not
+  stored in an Azure storage account.
+- **Cost guardrail:** a monthly budget (default USD 5) on the resource group with email alerts at 50/80/100%.
+  Azure budgets only alert; they do not stop spending.
+- **Data stays in MongoDB Atlas** (`pmcluster0`, database `ListingDB`), so it is independent of the Azure account.
+
+### Changes
+
+| File | Change |
+|---|---|
+| `terraform/providers.tf` | `azurerm ~> 4.0`, subscription id from a variable, local state. |
+| `terraform/variables.tf` | Subscription, region, prefix, SKU, budget, alert emails, `dotnet_version`, and sensitive app-setting inputs. |
+| `terraform/main.tf` | Resource group, Linux App Service plan and web app (health check `/health`, `always_on` off for F1/D1), Static Web App (Free), resource-group budget with alerts. App settings mirror the keys the deploy-API workflow sets, with no `ServiceBus__*`. |
+| `terraform/outputs.tf` | API URL, API app name, frontend URL, and the Static Web App deploy token (sensitive). |
+| `terraform/terraform.tfvars.example` | Template; real `terraform.tfvars` is gitignored. |
+| `.gitignore` | Ignore Terraform state, `.terraform/`, `*.tfvars` (except the example) and plan files. |
+| `EmailWorker/README.md` | Replaced a real MongoDB password and a Resend API key with placeholders. |
+
+### Security note
+The removed MongoDB password (Railway host) and Resend key remain in git history, so they must be **rotated**.
+The same Railway MongoDB password is still present in `DEPLOYMENT_CHECKLIST.md`, `RAILWAY_DEPLOYMENT.md`,
+`RAILWAY_DEPLOYMENT_GUIDE.md` and `WORKER_RAILWAY_DEPLOYMENT.md`; not yet cleaned.
+
+### Status / not done yet
+- Nothing has been created in Azure: `terraform init -backend=false` and `terraform validate` only; no `plan` or `apply`.
+- Default region `francecentral` is a placeholder; set `location` to the Azure region closest to the Atlas cluster.
+- `dotnet_version` defaults to `6.0` to match `WebApi` (net6.0, end of support). If Azure rejects it, upgrade the API to net8.0.
+- F1 quota can be zero on some new subscriptions; the SKU is a one-line variable change.
+- Still to do: the email-sending code change, update the GitHub workflows (API app name and secrets, Angular token, remove the
+  Function App workflow), point `app/src/app/environments/environment.prod.ts` at the new API URL, and clean the four docs above.
+
+### Verification
+- `terraform fmt` and `terraform validate`: success.
 
 ---
 
 ## Entry 2 — Remove ~11 s delay on logged API calls (dead Azure Service Bus)
 
-- **Commit:** `PENDING` (fill in after commit: `git log -1 --format=%h`)
+- **Commit:** `d52630e` ("Fix ~11s delay on login and property list caused by dead Service Bus")
 - **Date:** 2026-11-26
 - **Branch:** `introducing_Claude`
 

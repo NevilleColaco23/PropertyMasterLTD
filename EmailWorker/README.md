@@ -25,13 +25,13 @@ Located in: `EmailWorker/`
 ```json
 {
   "ConnectionStrings": {
-    "MongoDb": "mongodb://mongo:EcMPWsskZQhygpalucMlhpEwbxaapZFL@gondola.proxy.rlwy.net:31267"
+    "MongoDb": "mongodb://mongo:<YOUR_PASSWORD>@gondola.proxy.rlwy.net:31267"
   },
   "AppSettings": {
     "MongoDbDatabaseName": "ListingDB"
   },
   "Resend": {
-    "ApiKey": "re_9WEmbhnZ_QFeCfA1MgmSuULRkPsYHVTQd"
+    "ApiKey": "<YOUR_RESEND_API_KEY>"
   },
   "Email": {
     "From": "onboarding@resend.dev"
