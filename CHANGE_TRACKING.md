@@ -7,7 +7,7 @@ Add a new entry per commit. For uncommitted work, use `PENDING` and fill in the 
 
 ## Entry 5 — Workflows and prod config for the new Terraform-managed Azure environment
 
-- **Commit:** `PENDING` (fill in after commit: `git log -1 --format=%h`)
+- **Commit:** `0ee1c27` ("Send email from API via Resend; update workflows, Terraform and prod config"; also covers Entry 4)
 - **Date:** 2026-11-27
 - **Branch:** `introducing_Claude`
 
@@ -43,7 +43,7 @@ in the API's CORS list, so a new Static Web App hostname would have been blocked
 
 ## Entry 4 — Send email from inside the API (no Service Bus / EmailWorker)
 
-- **Commit:** `PENDING` (fill in after commit: `git log -1 --format=%h`)
+- **Commit:** `0ee1c27` (same commit as Entry 5)
 - **Date:** 2026-11-27
 - **Branch:** `introducing_Claude`
 
