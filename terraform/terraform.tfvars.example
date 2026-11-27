@@ -1,0 +1,10 @@
+# Copy to terraform.tfvars (gitignored) and fill in. NEVER commit real values.
+subscription_id     = "00000000-0000-0000-0000-000000000000"
+location            = "francecentral"
+budget_alert_emails = ["you@example.com"]
+
+# Secrets (or export as TF_VAR_mongodb_connection_string, etc.)
+mongodb_connection_string = "mongodb+srv://<user>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority"
+jwt_signing_key_base64    = "<base64 key>"
+resend_api_key            = ""
+guest_password            = ""

@@ -5,7 +5,6 @@
   import { MatSort, Sort, MatSortModule } from '@angular/material/sort';
   import { MatInputModule } from '@angular/material/input';
   import {catchError, map,of } from 'rxjs';
-  import { MatExpansionModule } from '@angular/material/expansion';
   import { MatProgressBarModule } from '@angular/material/progress-bar'; // For loading indicator
   import { MatFormFieldModule } from '@angular/material/form-field'; // For search input
   import { MatTableModule } from '@angular/material/table';
@@ -13,6 +12,9 @@
   import { MatIconModule } from '@angular/material/icon'; // For search icon
   import { MatPaginatorModule } from '@angular/material/paginator';
   import { MatButtonModule } from '@angular/material/button';
+  import { MatCardModule } from '@angular/material/card';
+  import { MatChipsModule } from '@angular/material/chips';
+  import { MatTooltipModule } from '@angular/material/tooltip';
   import { DatePipe, CurrencyPipe, CommonModule } from '@angular/common';
   import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 
@@ -35,8 +37,8 @@
   @Component({
     selector: 'app-reports',
     standalone: true,
-    imports: [MatExpansionModule, MatProgressBarModule, MatFormFieldModule, MatTableModule, MatCheckboxModule, MatIconModule
-      , MatPaginatorModule, MatButtonModule, DatePipe, CurrencyPipe, CommonModule, MatInputModule, MatSortModule, RouterModule],
+    imports: [MatProgressBarModule, MatFormFieldModule, MatTableModule, MatCheckboxModule, MatIconModule
+      , MatPaginatorModule, MatButtonModule, MatCardModule, MatChipsModule, MatTooltipModule, DatePipe, CurrencyPipe, CommonModule, MatInputModule, MatSortModule, RouterModule],
     templateUrl: './reports.component.html',
     styleUrl: './reports.component.css'
   })
@@ -46,8 +48,7 @@
     // Corrected: Updated column names to match the matColumnDef IDs in the HTML.
     displayedColumns: string[] = ['srNo', 'bookingId', 'guestId', 'roomNumber', 'bookingDate', 'totalPrice', 'isConfirmed', 'actions'];
     dataSource = new MatTableDataSource<Booking>();
-    panelOpenState = true;
-    
+
     @ViewChild(MatPaginator) paginator!: MatPaginator;
     @ViewChild(MatSort) sort!: MatSort;
 
@@ -88,8 +89,6 @@
 
       // Check for query parameters from dashboard navigation
       this.route.queryParams.subscribe(params => {
-        console.log('📋 Bookings Report Query Params:', params);
-
         if (params['filter']) {
           this.filterMode = params['filter'];
         }
@@ -114,14 +113,6 @@
             this.endDate = params['endDate'];
           }
         }
-
-        console.log('📅 Date filters:', {
-          mode: this.filterMode,
-          startDate: this.startDate,
-          endDate: this.endDate,
-          daysBack: this.daysBack,
-          groupBy: this.groupBy
-        });
       });
 
       this.getBookings();
@@ -129,7 +120,6 @@
 
     loadSelectedProperty(): void {
       this.selectedPropertyIds = PropertySelectionComponent.getSelectedPropertyIds();
-      console.log('Selected Property IDs:', this.selectedPropertyIds);
     }
 
     ngAfterViewInit(): void {
@@ -176,7 +166,6 @@
 
     onFilterChange(event: Event): void {
       this.filterString = (event.target as HTMLInputElement).value.trim().toLowerCase();
-      console.log('Filter string:', this.filterString);
       // Reset page index to 0 to start a new search from the first page
       this.paginator.pageIndex = 0;
       this.pageIndex = 0;
@@ -210,11 +199,9 @@
       // Add date range filters if present
       if (this.startDate) {
         params = params.set('StartDate', this.startDate);
-        console.log('📅 Adding StartDate filter:', this.startDate);
       }
       if (this.endDate) {
         params = params.set('EndDate', this.endDate);
-        console.log('📅 Adding EndDate filter:', this.endDate);
       }
 
 
@@ -279,7 +266,6 @@
      * Navigate back to dashboard
      */
     goBackToDashboard(): void {
-      console.log('🔙 Navigating back to dashboard...');
       this.router.navigate(['/propertyLanding/dashboard1']);
     }
 
@@ -318,7 +304,6 @@
      * Clear all filters and reload data
      */
     clearFilters(): void {
-      console.log('🧹 Clearing filters...');
       this.filterMode = null;
       this.startDate = null;
       this.endDate = null;

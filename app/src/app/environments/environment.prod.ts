@@ -1,6 +1,7 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://propertymaster-api-de09-h0hqbzgsc4arfvez.francecentral-01.azurewebsites.net/api/v1',
+  // From `terraform output -raw api_url` (+ /api/v1). Update if the app is recreated under another name.
+  apiUrl: 'https://propertymaster-api.azurewebsites.net/api/v1',
 
   // Cloudinary Configuration
   cloudinary: {

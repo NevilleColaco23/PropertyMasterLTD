@@ -77,6 +77,11 @@ public class Startup
 
         // Register Email Queue Service for sending emails via Resend
         services.AddScoped<IEmailQueueService, EmailQueueService>();
+        // Emails are sent from inside the API (no Service Bus / EmailWorker): outbox row in MongoDB
+        // -> signal -> EmailOutboxProcessor -> Resend REST API, with retries.
+        services.AddSingleton<IEmailOutboxSignal, EmailOutboxSignal>();
+        services.AddHttpClient<MyWarehouse.WebApi.Email.IOutboxEmailSender, MyWarehouse.WebApi.Email.ResendHttpEmailSender>();
+        services.AddHostedService<MyWarehouse.WebApi.Email.EmailOutboxProcessor>();
 
         // Register Demo Property Services for new user onboarding
         services.AddScoped<DemoPropertySeeder>();

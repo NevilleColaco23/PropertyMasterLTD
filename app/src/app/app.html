@@ -1,6 +1,6 @@
 <router-outlet />
 
-@if ((loaderService.isLoading$ | async) && !initialLoadCompleted) {
+@if (loaderService.isLoading$ | async) {
   <div class="global-loader-overlay">
     <div class="loader-card">
       <mat-spinner diameter="48"></mat-spinner>

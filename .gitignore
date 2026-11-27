@@ -365,3 +365,12 @@ FodyWeavers.xsd
 **/appsettings.Development.json
 **/appsettings.*.json
 !**/appsettings.json
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
+!terraform/terraform.tfvars.example
+terraform/crash.log
+terraform/tfplan

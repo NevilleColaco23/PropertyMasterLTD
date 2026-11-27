@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, Subscription, catchError, interval, of, startWith, switchMap, tap } from 'rxjs';
 import { Attachment, Post, PostType } from './post.model';
 import { environment } from '../environments/environment';
+import { silentLoadingContext } from '../core/interceptors/loading.interceptor';
 
 @Injectable({
   providedIn: 'root'
@@ -53,7 +54,7 @@ export class PostsService {
         startWith(0),
         switchMap(() => {
           const url = this.lastLimit ? `${this.apiUrl}?limit=${this.lastLimit}` : this.apiUrl;
-          return this.http.get<Post[]>(url).pipe(catchError(() => of([] as Post[])));
+          return this.http.get<Post[]>(url, { context: silentLoadingContext() }).pipe(catchError(() => of([] as Post[])));
         })
       )
       .subscribe(posts => this.applyPosts(posts));

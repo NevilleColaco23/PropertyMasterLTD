@@ -1,13 +1,41 @@
-.group-master-card {
-  margin: 16px;
+.group-master-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-.toolbar {
+.header-card {
+  margin-bottom: 20px;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  color: #1976d2;
+}
+
+.header-title h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.filters-card {
+  margin-bottom: 20px;
+}
+
+.filters-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
@@ -16,16 +44,44 @@
   min-width: 240px;
 }
 
+.add-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .new-group-form {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-top: 16px;
   flex-wrap: wrap;
+}
+
+.table-card {
+  position: relative;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.table-container {
+  overflow: auto;
 }
 
 .group-table {
   width: 100%;
+  background: white;
 }
 
 .inline-edit-input {
@@ -39,4 +95,25 @@
   text-align: center;
   padding: 24px;
   color: rgba(0, 0, 0, 0.54);
+}
+
+mat-paginator {
+  background: transparent;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .group-master-container {
+    padding: 12px;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-field {
+    width: 100%;
+    min-width: unset;
+  }
 }

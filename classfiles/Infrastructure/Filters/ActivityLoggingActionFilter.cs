@@ -140,7 +140,7 @@ namespace MyWarehouse.Infrastructure.Filters
                                 .ToDictionary(kv => kv.Key, kv => kv.Value?.ToString() ?? string.Empty)
                         };
 
-                        await _serviceBusPublisher.SendAsync(
+                            _ = _serviceBusPublisher.SendAsync(
                             activityEvent,
                             _serviceBusOptions.AccessLogQueueName);
                     }

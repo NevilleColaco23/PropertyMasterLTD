@@ -178,7 +178,7 @@ export class BookingEntryComponent implements OnInit, OnDestroy {
       next: (res: any) => {
         console.log('Booking created', res);
         // Navigate to bookings report after successful create
-        this.router.navigate(['/bookings']);
+        this.router.navigate(['/propertyLanding/bookingsReport']);
       },
       error: (err: any) => {
         console.error('Failed to create booking', err);

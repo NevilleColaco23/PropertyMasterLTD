@@ -76,7 +76,7 @@ export class ActivityStreamWidgetComponent implements OnInit, OnDestroy {
       interval(this.refreshInterval)
         .pipe(
           startWith(0), // Start immediately
-          switchMap(() => this.activityService.getActivitySummary(this.maxActivities, this.currentUsername || undefined)),
+          switchMap(() => this.activityService.getActivitySummary(this.maxActivities, this.currentUsername || undefined, true)),
           takeUntil(this.destroy$)
         )
         .subscribe({

@@ -2,7 +2,6 @@
 import { Routes } from '@angular/router';
 import { LoginFormComponent } from '././core/auth/login-form/login-form';
 import { PropertySelectionComponent } from './property/property-selection/property-selection.component';
-import { ReportsComponent } from './menu/reports/reports.component';
 import { CreateUserComponent } from './core/auth/create-user/create-user';
 import { ActivateAccountComponent } from './core/auth/activate-account/activate-account.component';
 import { authGuard } from './core/auth/guards/auth.guard';
@@ -13,8 +12,10 @@ export const routes: Routes = [
   { path: 'propertySelector', component: PropertySelectionComponent, canActivate: [authGuard] },
   { path: 'create-user', component: CreateUserComponent },
   { path: 'activate', component: ActivateAccountComponent }, // Email activation page
-  { path: 'bookings', component: ReportsComponent, canActivate: [authGuard, propertySelectionGuard] },
-  { path: 'bookings/new', loadComponent: () => import('./bookings/booking-entry/booking-entry.component').then(m => m.BookingEntryComponent), canActivate: [authGuard, propertySelectionGuard] },
+  // Redirect legacy top-level booking URLs to the nested routes so the persistent
+  // property navigation (top bar/menu) is preserved instead of being torn down.
+  { path: 'bookings', redirectTo: 'propertyLanding/bookingsReport', pathMatch: 'full' },
+  { path: 'bookings/new', redirectTo: 'propertyLanding/bookingsReport/new', pathMatch: 'full' },
   {
     path: 'propertyLanding',
     canActivate: [authGuard, propertySelectionGuard], // Protect entire property landing and all child routes - require property selection
